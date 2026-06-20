@@ -12,9 +12,9 @@ and — most usefully — how to steer ICON's behavior with plain-English instru
 
 | Goal | Do this |
 |------|---------|
-| Install ICON | `copilot plugin marketplace add https://gitlab.com/onedatascan/ai-platform/marketplace.git` then `copilot plugin install ICON@datascan-marketplace` |
+| Install ICON | `copilot plugin marketplace add https://github.com/isochronous/icon-marketplace.git` then `copilot plugin install ICON@isochronous` |
 | Set up a repo for ICON | `/icon-init` — auto-detects project / monorepo / workspace and builds `.context/` |
-| Wire GitLab + Jira credentials | `/setup-mcp-servers` |
+| Authenticate GitHub access | `gh auth login` |
 | Update an older ICON repo | `/upgrade-repo` |
 | Update the plugin itself | `copilot plugin update ICON` |
 
@@ -32,8 +32,8 @@ else is a specialist the **manager delegates to** — you never invoke them your
 
 | Agent | Use it for |
 |-------|------------|
-| `@manager` | Any development work — it plans, delegates, tracks, commits, opens MRs. Your default entry point. |
-| `@product-manager` | Shaping/refining Jira-style stories (no code) |
+| `@manager` | Any development work — it plans, delegates, tracks, commits, opens PRs. Your default entry point. |
+| `@product-manager` | Shaping/refining GitHub issue-style stories (no code) |
 
 **The specialists the manager routes to** (internal — not user-invocable):
 
@@ -58,16 +58,16 @@ first" pulls in the architect/design gate; "skip the review" drops the reviewer)
 The recommended way to start any work is the **`New task:`** prefix. Three shapes:
 
 ```
-New task: WSD-1234
-New task: No Jira ticket. Fix the bug where user sessions expire too early.
-New task: WSD-1234. Retry cap should be 3 — not in the ticket, confirmed with Dana.
+New task: #1234
+New task: No issue. Fix the bug where user sessions expire too early.
+New task: #1234. Retry cap should be 3 — not in the issue, confirmed with Dana.
 ```
 
 | Shape | When to use |
 |-------|-------------|
-| `New task: <Jira ID>` | Manager pulls the ticket and plans from it |
-| `New task: No Jira ticket. <description>` | Local work with no Jira ticket |
-| `New task: <Jira ID>. <extra context>` | A ticket **plus** details that aren't written in it |
+| `New task: <issue #>` | Manager pulls the issue and plans from it |
+| `New task: No issue. <description>` | Local work with no GitHub issue |
+| `New task: <issue #>. <extra context>` | An issue **plus** details that aren't written in it |
 
 **Resuming an unfinished task** — just name it; the manager restores state and continues from the next incomplete step:
 
@@ -78,7 +78,7 @@ Resume ICON-0042          ← finds the task folder + branch, picks up where it 
 **Reopening a finished task** — a task that already completed, now needs more work. **You must say why in the same prompt:**
 
 ```
-Reopen ICON-0042 — the MR review asked us to handle the null-tenant case.
+Reopen ICON-0042 — the PR review asked us to handle the null-tenant case.
 Reopen ICON-0042: add the missing pagination tests the reviewer flagged.
 ```
 
@@ -92,7 +92,7 @@ Reopen ICON-0042: add the missing pagination tests the reviewer flagged.
 1. Reads `.context/` for project knowledge
 2. Creates a task ID + feature branch, writes `.context/tasks/<id>/plan.md`
 3. Plans (if non-trivial) → implements → tests → reviews
-4. **Runs a retrospective**, commits everything, opens an MR
+4. **Runs a retrospective**, commits everything, opens a PR
 
 Small, unambiguous fixes skip the branch/breakdown ceremony automatically — but never the retrospective (see §4).
 
@@ -113,7 +113,7 @@ These run automatically; disable per-task with a sentence:
 | "Skip the review, this is throwaway" | Skips the `@reviewer` pass |
 | "Don't research — just implement it" | Skips the upfront `@researcher` gate |
 | "Do these one at a time, not in parallel" | Serial instead of parallel delegation |
-| "Don't open an MR / don't commit — leave it on the branch" | Stops before commit/MR |
+| "Don't open a PR / don't commit — leave it on the branch" | Stops before commit/PR |
 
 > 🔴 **Never skip the retrospective.** It is the single most important step in the entire ICON
 > workflow — it's how lessons get promoted into `.context/` so the system gets smarter over time.
@@ -159,7 +159,7 @@ Saying "just do it yourself" or "skip verification" won't work — these are non
 - **No success claim without evidence** — commands get run, output gets quoted.
 - A **`plan.md` is written** for any medium/complex task before work begins.
 - The **retrospective always runs** at task close — see the red callout above.
-- An **MR/PR number is never treated as a Jira ticket** — you'll be asked for the real ID.
+- A **PR number is never treated as an issue number** — you'll be asked for the real issue.
 - It **won't investigate source by grepping** as the manager — that's delegated.
 
 If you ask for one of these, ICON will tell you it can't and explain why, rather than silently complying.
@@ -172,14 +172,14 @@ Persistent settings, set once per repo (re-run `/icon-init` or `/create-iconrc` 
 
 | Field | What it controls | Example |
 |-------|------------------|---------|
-| `local_task_id_prefix` | Prefix for non-Jira tasks | `"ICON"` → `ICON-0055` |
-| `default_branch` | Branch MRs target | `"main"` |
+| `local_task_id_prefix` | Prefix for local (non-issue) tasks | `"ICON"` → `ICON-0055` |
+| `default_branch` | Branch PRs target | `"main"` |
 | `cache_expires_after_days` | When `@researcher` cache goes stale | `30` |
 | `excludes` | `.context/` folders to skip on template sync | `["styling","testing"]` |
 | `repo_type` | `project` / `monorepo` / `multi-module` / `workspace` | `"project"` |
 
 Local task IDs must be `PREFIX-NNN` (3+ zero-padded digits) and the prefix must **not** collide
-with any real Jira prefix the repo uses.
+with any real issue-tracker prefix the repo uses.
 
 ---
 
@@ -189,13 +189,12 @@ User-facing skills (type the `/name`); the manager pulls in the rest automatical
 
 | Skill | Use it to… |
 |-------|------------|
-| `/icon-status` | See active task, branch, recent retros, context health, MCP creds |
+| `/icon-status` | See active task, branch, recent retros, context health |
 | `/rfc` | Draft or polish an RFC |
-| `/jira-story` | Render content into Jira story format |
-| `/sprint-goals` | Generate sprint goals from a Jira CSV export |
+| `/github-issue` | Render content into GitHub issue format |
 | `/post-meeting` | Turn a meeting transcript into summary + action items |
 | `/post-incident-review` | Run a structured incident retro |
-| `/mr-feedback-triage` | Triage open MR review threads into a resolution plan |
+| `/pr-feedback-triage` | Triage open PR review threads into a resolution plan |
 | `/migration-planning` | Plan a schema/flag/version migration with rollback criteria |
 | `/dependency-management` | Plan a library upgrade or new-dependency adoption |
 | `/deep-research` | Multi-source, fact-checked research report |
@@ -219,9 +218,9 @@ Claude Code isn't the officially supported surface, but if you use it the differ
 
 ## TL;DR
 
-1. `/icon-init` once per repo, `/setup-mcp-servers` for credentials.
-2. Start work with `New task: <Jira ID or description>`; the manager plans, codes, tests,
-   reviews, runs the retrospective, and opens the MR.
+1. `/icon-init` once per repo, `gh auth login` for GitHub access.
+2. Start work with `New task: <issue # or description>`; the manager plans, codes, tests,
+   reviews, runs the retrospective, and opens the PR.
 3. **Steer it with sentences** — "skip the review", "plan this first", "do a design pass",
    "only touch the API layer", "show me the test output".
 4. Some things are non-negotiable (delegation, verification, `plan.md`, **the retrospective**) — ICON will say so.

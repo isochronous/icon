@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Retrospective pruning now archives entries to `.context/retrospectives-archive.md` instead of discarding them when the rolling log exceeds its cap. (ICON-0073)
 - `icon-init` and `upgrade-repo` now configure a repo-root `.gitattributes` giving retrospective logs a `merge=union` driver, so concurrent retrospective appends across branches merge cleanly instead of conflicting; `upgrade-repo` adds it idempotently to existing repos. (ICON-0073)
+- Converted the plugin to GitHub-only: removed the bundled GitLab and Atlassian MCP servers, renamed `mr-discipline`→`pr-discipline`, `mr-feedback-triage`→`pr-feedback-triage`, and `jira-story`→`github-issue`, removed `mcp-tools-first`, `setup-mcp-servers`, and `sprint-goals`, and ported CI to GitHub Actions. (ICON-0080)
 
 ### Fixed
 
