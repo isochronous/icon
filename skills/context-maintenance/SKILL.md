@@ -114,7 +114,7 @@ generalize. That's fine — they stay in the retrospective as history.
 ### Pruning
 
 Remove orphaned or outdated entries. For task artifacts, remove completed task folders
-older than the current sprint/cycle.
+older than the current cycle.
 
 **Never delete history from `decisions/`** — those records explain WHY the codebase
 looks the way it does, even if the specific decision was later reversed.
@@ -217,7 +217,7 @@ bash "${CLAUDE_SKILL_DIR}/scripts/check-rules-index.sh" "$(git rev-parse --show-
 
 ```bash
 # Override via MARKETPLACE_NAME=<your-marketplace-slug>, or edit this line in forks.
-[ -n "${MARKETPLACE_NAME+x}" ] || MARKETPLACE_NAME="datascan-marketplace"
+[ -n "${MARKETPLACE_NAME+x}" ] || MARKETPLACE_NAME="icon-marketplace"
 SKILL_DIR="${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/${MARKETPLACE_NAME}/ICON/skills/context-maintenance"
 bash "$SKILL_DIR/scripts/check-rules-index.sh" "$(git rev-parse --show-toplevel)"
 ```

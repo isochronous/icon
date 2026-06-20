@@ -6,9 +6,9 @@
 
 ## Reconcile plan.md
 
-> **First step of the completion phase. Runs before review, context-update, retrospective, and commit.** This is the single source of truth for plan.md reconciliation; other surfaces (`agents/manager.agent.md`, `skills/mr-discipline/SKILL.md`, `skills/task-retrospective/SKILL.md`) refer to this section by name rather than re-describing the checks.
+> **First step of the completion phase. Runs before review, context-update, retrospective, and commit.** This is the single source of truth for plan.md reconciliation; other surfaces (`agents/manager.agent.md`, `skills/pr-discipline/SKILL.md`, `skills/task-retrospective/SKILL.md`) refer to this section by name rather than re-describing the checks.
 >
-> Reconciliation is gated, not encouraged. Author-discipline checks degrade quickly — a "remember to update plan.md" rule does not fire on the 30% of tasks where it matters most (the messy ones). Run the five sub-checks below before any review/MR/retro work; each should take under two minutes.
+> Reconciliation is gated, not encouraged. Author-discipline checks degrade quickly — a "remember to update plan.md" rule does not fire on the 30% of tasks where it matters most (the messy ones). Run the five sub-checks below before any review/PR/retro work; each should take under two minutes.
 
 Re-read `plan.md` end-to-end against the actual final state, and update each section:
 
@@ -20,12 +20,12 @@ Re-read `plan.md` end-to-end against the actual final state, and update each sec
 
 The reconciled `plan.md` is the input the retrospective reads from. A stale plan corrupts the retro and misleads reviewers — both downstream steps presume reconciliation has happened.
 
-**Final-state edits need their own commit.** Some `plan.md` fields can only be filled *after* the task artifacts commit and push — the commit SHA and the MR number describe the commit, so they cannot live inside it. Editing `plan.md` to record them and then stopping leaves the branch with a dangling, uncommitted plan. Either:
+**Final-state edits need their own commit.** Some `plan.md` fields can only be filled *after* the task artifacts commit and push — the commit SHA and the PR number describe the commit, so they cannot live inside it. Editing `plan.md` to record them and then stopping leaves the branch with a dangling, uncommitted plan. Either:
 
 - (a) finish the entire reconcile (Outcome, all checkboxes) **before** the artifacts commit and omit the commit SHA from `plan.md`, so the reconciled plan ships inside that commit; or
 - (b) follow the post-commit `plan.md` edit with a small `ICON-NNNN: reconcile plan.md to final state` commit and push.
 
-Do not leave the SHA/MR edit uncommitted on the branch.
+Do not leave the SHA/PR edit uncommitted on the branch.
 
 ## @reviewer Delegation Template
 
@@ -66,7 +66,7 @@ For the full procedure — including how to decide between internal vs user-faci
 > referencing excluded directories (`architecture/`, `testing/`, `styling/`)
 > are intentionally absent.
 
-- [ ] Domain files updated for changed behavior (`.context/domains/skill-system.md`, `mcp-servers.md`, `plugin-resource-paths.md`)
+- [ ] Domain files updated for changed behavior (`.context/domains/skill-system.md`, `github-access.md`, `plugin-resource-paths.md`)
 - [ ] Standards files updated for new conventions (`.context/standards/skill-decomposition.md`, `changelog-discipline.md`)
 - [ ] Workflow files updated for process changes (`.context/workflows/`)
 - [ ] `decisions/` updated with a new ADR file for project-wide architectural decisions, and `decisions/README.md` log row added (never delete or rewrite past ADRs — supersede instead)

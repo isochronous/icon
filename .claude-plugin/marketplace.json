@@ -3,7 +3,7 @@
   "name": "icon-local",
   "description": "Local marketplace for the ICON multi-agent orchestration plugin",
   "owner": {
-    "name": "DataScan Engineering"
+    "name": "isochronous"
   },
   "plugins": [
     {

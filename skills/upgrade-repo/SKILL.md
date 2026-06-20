@@ -174,7 +174,7 @@ if (Test-Path ".context\decisions") {
 
 - **New required files**: `workflows/commit-conventions.md`, `workflows/branching.md`, `.context/.gitignore`, `.context/iconrc.json`, `.context/rules-index.md` — present?
 - **`iconrc.json` schema version**: if present, compare the `version` field against the template value and report whether an update is needed.
-- **`local_task_id_prefix` collision check**: read the current value from `.context/iconrc.json`; sample recent commits with `git log --oneline -100`; extract any `[A-Za-z]{2,}-\d+` ticket-prefix patterns (case-insensitive extraction so a team that started lowercase is still caught); if the local prefix matches one of those (case-insensitive comparison), report it as a finding (`Local prefix '<X>' collides with detected Jira prefix '<X>' — recommend changing to 'LOCAL' or another distinct value`). Reporting only — Phase 2 does not auto-rewrite the field.
+- **`local_task_id_prefix` collision check**: read the current value from `.context/iconrc.json`; sample recent commits with `git log --oneline -100`; extract any `[A-Za-z]{2,}-\d+` ticket-prefix patterns (case-insensitive extraction so a team that started lowercase is still caught); if the local prefix matches one of those (case-insensitive comparison), report it as a finding (`Local prefix '<X>' collides with detected external ticket prefix '<X>' — recommend changing to 'LOCAL' or another distinct value`). Reporting only — Phase 2 does not auto-rewrite the field.
 - **Task plan phase templates**: `.context/workflows/task-plan/` directory
   exists? If yes, report which of the 6 phase files are present and their
   `<!-- template-version: X.Y -->` markers. If the directory is absent, note it
@@ -518,7 +518,7 @@ if ($InstalledVer -ne $TemplateVer) {
 ```
 
 **`local_task_id_prefix` collision (manual resolution)** — if Phase 1 flagged the
-local prefix as colliding with a detected Jira/Linear/GitHub ticket prefix, this
+local prefix as colliding with a detected external ticket prefix, this
 upgrade does not rewrite the field. Resolving the collision is a manual choice:
 the user should re-invoke `create-iconrc` with the new prefix (and `forbidden_prefixes`
 populated from the audit finding) once they have decided on a replacement.

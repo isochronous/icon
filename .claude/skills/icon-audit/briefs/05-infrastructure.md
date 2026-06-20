@@ -2,7 +2,7 @@
 
 ## Scope
 
-Investigate all infrastructure files: the plugin manifest (`.claude-plugin/plugin.json`; additionally `.github/plugin/plugin.json` and repo-root `plugin.json` if present), `.mcp.json`, `CHANGELOG.md`, `README.md`, `.gitlab-ci.yml` (if present), `.githooks/`, `hooks/`, per-skill `scripts/` directories, `.claude/skills/release-plugin/SKILL.md`. If a sibling `-beta` / `-dev` / `-staging` repo exists, treat it as a read-only distribution snapshot — note drift from the source but do not audit it as canonical.
+Investigate all infrastructure files: the plugin manifest (`.claude-plugin/plugin.json`; additionally `.github/plugin/plugin.json` and repo-root `plugin.json` if present), `CHANGELOG.md`, `README.md`, the GitHub Actions workflow `.github/workflows/security.yml` (if present), `.githooks/`, `hooks/`, per-skill `scripts/` directories, `.claude/skills/release-plugin/SKILL.md`. The bundled MCP server registry was removed, so there is no MCP config to audit. If a sibling `-beta` / `-dev` / `-staging` repo exists, treat it as a read-only distribution snapshot — note drift from the source but do not audit it as canonical.
 
 Focus on: version consistency across manifest variants, schema key coverage, release-script correctness, documentation accuracy, and health-check/smoke-test gaps. CI/CD discipline applies only when CI config is present.
 
@@ -10,7 +10,6 @@ Focus on: version consistency across manifest variants, schema key coverage, rel
 
 Before consulting the file list in `## Inputs`, run a discovery pass from the repo root to catch infrastructure that may exist but is not enumerated:
 
-- All MCP configs: `find . -maxdepth 3 -name '.mcp.json' -type f -not -path './.context/*' -not -path './.git/*'`
 - All READMEs at plugin level: `find . -maxdepth 2 -name 'README.md' -type f -not -path './.git/*'`
 - All manifest variants: `find . -maxdepth 4 -name 'plugin.json' -type f -not -path './.context/*' -not -path './.git/*'`
 - All hook scripts: `find . -maxdepth 3 -path '*/hooks/*' -type f -not -path './.context/*' -not -path './.git/*'`
@@ -23,10 +22,9 @@ For each result not already in `## Inputs`, you must either (a) audit it against
 - `.claude-plugin/plugin.json`
 - `.github/plugin/plugin.json` (if present)
 - `plugin.json` (repo root, if present)
-- `.mcp.json`
 - `CHANGELOG.md`
 - `README.md`
-- `.gitlab-ci.yml` (if present — repo currently has no CI config)
+- `.github/workflows/security.yml` (the GitHub Actions workflow, if present)
 - `.githooks/` — git-hook directory (e.g., post-commit prune hook; honored via `git config core.hooksPath`)
 - `hooks/` — Claude Code session hooks (different mechanism: invoked by Claude Code's harness on session events, not by git)
 - `skills/*/scripts/` — per-skill helper scripts

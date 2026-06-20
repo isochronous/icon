@@ -130,7 +130,7 @@ Populate from the analysis in Step 1a — do not guess:
 - Primary integration branch name(s) (verified from `git branch -r`)
 - Feature branch naming: exact format with real examples from the log
 - Release/tag naming format with real examples from `git tag`
-- Merge request workflow (squash? merge commit? rebase?)
+- Pull request workflow (squash? merge commit? rebase?)
 - Whether linear history is enforced
 
 ---
@@ -151,7 +151,7 @@ for this repository.
 
 ### `workflows/ci-cd.md` *(if applicable)*
 
-- CI system (GitHub Actions, GitLab CI, Jenkins, etc.) and config file location
+- CI system (GitHub Actions, Jenkins, etc.) and config file location
 - Pipeline stages and what each does
 - How to run the full pipeline locally (if possible)
 - Deployment environments and how to trigger deploys

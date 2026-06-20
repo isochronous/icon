@@ -28,7 +28,7 @@ SKIP_PREFIXES = (
     "http://", "https://",
     "/usr/", "/etc/", "/var/",
     ".context/", "context_template/",
-    "gitlab.com/", "github.com/",
+    "github.com/",
 )
 for p in list(pathlib.Path("agents").glob("*.agent.md")) + \
          list(pathlib.Path("skills").glob("*/SKILL.md")):

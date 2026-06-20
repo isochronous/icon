@@ -1,6 +1,6 @@
 # Overview: ICON Plugin Repository
 
-This repo is the canonical source of the **ICON** (Independent Context Orchestration Network) plugin — a project-agnostic, multi-agent orchestration system for Claude Code and GitHub Copilot CLI. It was split out of the `datascan-marketplace` monorepo so it can be released and versioned independently.
+This repo is the canonical source of the **ICON** (Independent Context Orchestration Network) plugin — a project-agnostic, multi-agent orchestration system for Claude Code and GitHub Copilot CLI. It is a standalone repository so it can be released and versioned independently of the marketplace listing that consumes it.
 
 ## What lives here
 
@@ -13,12 +13,12 @@ This repo is the canonical source of the **ICON** (Independent Context Orchestra
 | `context_template/` | Template `.context/` tree copied into target projects by `/icon-init`. |
 | `shared/` | Shared content snippets (e.g., `common-constraints.md`). |
 | `.claude-plugin/plugin.json` | Canonical plugin manifest. **Single source of truth for the version.** |
-| `.mcp.json` | Bundled MCP server registry (GitLab + Atlassian). |
+| `.github/workflows/` | GitHub Actions CI (e.g. `security.yml` — gitleaks / semgrep / shellcheck). |
 | `.claude/skills/release-plugin/` | Maintainer-only release tooling (not shipped). |
 
 ## Tech stack
 
-Pure content. Markdown for definitions, JSON for the manifest, MCP registry, and hook wiring, a single Node.js (`.mjs`) wrapper for the SessionStart hook (cross-platform; see `.context/domains/hooks.md`), and bash + PowerShell for the maintainer-only release scripts. No compile step, no test runner, no package manager. Validation is "the JSON parses" plus structural review.
+Pure content. Markdown for definitions, JSON for the manifest and hook wiring, a single Node.js (`.mjs`) wrapper for the SessionStart hook (cross-platform; see `.context/domains/hooks.md`), and bash + PowerShell for the maintainer-only release scripts. No compile step, no test runner, no package manager. Validation is "the JSON parses" plus structural review. The plugin bundles no MCP servers — GitHub access is via the `gh` CLI (see `.context/domains/github-access.md`).
 
 ## Branching and versioning
 
@@ -29,18 +29,18 @@ Pure content. Markdown for definitions, JSON for the manifest, MCP registry, and
 
 ## Marketplace consumption
 
-The `datascan-marketplace` listing at `gitlab.com/onedatascan/ai-platform/marketplace` references this repo with `ref: "latest"`. Moving the `latest` tag at release time is what propagates new versions to end users — no marketplace edit is required for a normal release.
+The `icon-marketplace` listing at `github.com/isochronous` references this repo with `ref: "latest"`. Moving the `latest` tag at release time is what propagates new versions to end users — no marketplace edit is required for a normal release.
 
 ## Status of `.context/`
 
 The `.context/` tree is **complete**. The following components are populated and in use:
 
-- `domains/` — skill system, MCP servers, plugin resource paths, hooks
+- `domains/` — skill system, GitHub access (`gh` CLI), plugin resource paths, hooks
 - `standards/` — skill decomposition, changelog discipline
 - `workflows/` — branching, commit conventions, changelog, prune-context script
 - `cache/` — research cache (TTL from `iconrc.json`)
 - `tasks/` — per-task plan folders (auto-pruned after 90 days)
-- `decisions/` — 7 ADRs (ADR-001 through ADR-007); see `decisions/README.md` for the log
+- `decisions/` — 11 ADRs (ADR-001 through ADR-011; ADR-006 and ADR-011 superseded by the GitHub-only conversion); see `decisions/README.md` for the log
 - `retrospectives.md` — rolling log of task-level lessons
 - `META.md` — maintenance guide
 - `iconrc.json` — repo config

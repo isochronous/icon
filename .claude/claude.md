@@ -1,11 +1,11 @@
 # Repo: ICON (Independent Context Orchestration Network)
 
-This repository is the canonical source of the ICON plugin — a project-agnostic, multi-agent orchestration system for Claude Code and GitHub Copilot CLI. The `datascan-marketplace` listing pulls from this repo at `ref: "latest"` (a movable git tag), so a release here is what propagates to ICON users.
+This repository is the canonical source of the ICON plugin — a project-agnostic, multi-agent orchestration system for Claude Code and GitHub Copilot CLI. The marketplace listing pulls from this repo at `ref: "latest"` (a movable git tag), so a release here is what propagates to ICON users.
 
 ## Tech stack
 
 - **Markdown** for all agent definitions, skills, and commands.
-- **JSON** for the plugin manifest (`.claude-plugin/plugin.json`) and the MCP server registry (`.mcp.json`).
+- **JSON** for the plugin manifest (`.claude-plugin/plugin.json`).
 - **Node.js** for the single `hooks/inject-manager-role.mjs` cross-platform wrapper and **Bash / PowerShell** for the maintainer `release-plugin` scripts.
 
 There is **no build step**, **no test runner**, and **no package manager**. Validation means "the JSON parses" and "the manifest validator accepts it":
@@ -24,7 +24,6 @@ python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
 | `hooks/` | `SessionStart` hook script that injects the manager role. |
 | `context_template/` | Source template copied into target projects by `/icon-init`. |
 | `.claude-plugin/plugin.json` | Canonical plugin manifest. Single source of truth for the version. |
-| `.mcp.json` | Bundled MCP server registry (GitLab + Atlassian). |
 | `.claude/skills/release-plugin/` | Maintainer-only release tooling. Not shipped to consumers. |
 
 ## Versioning
@@ -57,10 +56,10 @@ Personal/agent memory is only for genuinely user- or harness-specific facts (a d
 
 ## Marketplace consumption
 
-The marketplace at `gitlab.com/onedatascan/ai-platform/marketplace` references this repo with:
+The marketplace listing references this repo with:
 
 ```json
-{ "source": "url", "url": "https://gitlab.com/onedatascan/ai-platform/plugins/icon.git", "ref": "latest" }
+{ "source": "url", "url": "https://github.com/isochronous/icon.git", "ref": "latest" }
 ```
 
 No marketplace edit is required for a normal ICON release — the moved `latest` tag is the propagation mechanism.

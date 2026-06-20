@@ -9,7 +9,7 @@ user-invocable: false
 
 ## Overview
 
-**This skill maps a task description (and optional Jira metadata) to the correct sub-project root, context path, and skills directory before any implementation work begins.** It validates or rebuilds the topology cache, applies signal priority to match the task to a sub-project, and returns a structured JSON result.
+**This skill maps a task description (and optional issue metadata) to the correct sub-project root, context path, and skills directory before any implementation work begins.** It validates or rebuilds the topology cache, applies signal priority to match the task to a sub-project, and returns a structured JSON result.
 
 Run this skill as an isolated **explore sub-agent** — never inline in the manager's main context.
 
@@ -28,10 +28,10 @@ Passed via prompt from the manager:
 |-------|----------|-------------|
 | `cwd` | Yes | Absolute path where the manager agent is running |
 | `task_description` | Yes | Natural language description of the task |
-| `jira_component` | No | Jira component field |
-| `jira_impacted_area` | No | Jira impacted area field |
-| `jira_project` | No | Jira project key |
-| `jira_labels` | No | Jira labels array |
+| `issue_component` | No | Issue component / area field |
+| `issue_impacted_area` | No | Impacted area for the issue |
+| `issue_repo` | No | Repository the issue belongs to |
+| `issue_labels` | No | GitHub issue labels array |
 
 ---
 
@@ -71,9 +71,9 @@ Read `.context/.topology-cache.json`.
 
 Match the task to a sub-project using these signals in priority order. Stop at the first signal that yields a **confident** match.
 
-**Priority 1 — Jira metadata** (highest confidence; may short-circuit filesystem scan)
-- Match `jira_component` and `jira_impacted_area` against known sub-project names
-- Match `jira_labels` against sub-project names or conventional area labels
+**Priority 1 — Issue metadata** (highest confidence; may short-circuit filesystem scan)
+- Match `issue_component` and `issue_impacted_area` against known sub-project names
+- Match `issue_labels` against sub-project names or conventional area labels
 - Confident match → proceed to Step 4 immediately
 - Ambiguous or absent → fall through to Priority 2
 
@@ -149,7 +149,7 @@ This file is gitignored. Do not commit it.
 |-----------|----------|
 | No `.iconrc` present | Assume `project`; return CWD as root, `available_skills: []`; stop |
 | `repo_type: project` in iconrc | Return immediately; `rationale` notes this skill should not be invoked for project repos |
-| Cache expired and no Jira metadata | Must perform full filesystem scan; no short-circuit available |
+| Cache expired and no issue metadata | Must perform full filesystem scan; no short-circuit available |
 | Task spans multiple sub-projects | `scope: cross-project`; resolve root to git root or common ancestor; mark all touched projects |
 | `.iconrc` present but cache absent | Perform fresh filesystem scan; write cache on completion |
 | Resolved sub-project has no `.context/` | Return `available_skills: []`; root and path fields still resolve normally |
@@ -162,7 +162,7 @@ This file is gitignored. Do not commit it.
 |---------|-----|
 | Running inline in the manager's context | Always dispatch as an isolated explore sub-agent |
 | Checking only cache age, not drift | Always check topology-defining file mtimes against `scanned_at` |
-| Short-circuiting on ambiguous Jira metadata | Priority 1 only applies to confident matches; ambiguity falls through to Priority 2 |
+| Short-circuiting on ambiguous issue metadata | Priority 1 only applies to confident matches; ambiguity falls through to Priority 2 |
 | Returning relative paths | Every path in the return schema must be absolute |
 | Writing the cache on a cache hit | Only write after a filesystem scan, never on a hit |
 | Invoking this skill when `repo_type: project` | Check iconrc first; if project, the manager uses CWD directly |

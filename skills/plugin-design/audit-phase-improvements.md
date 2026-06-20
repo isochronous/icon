@@ -23,7 +23,7 @@ Walk the following list and produce at least one suggestion per category that ap
    - Multiple files must stay byte-equal (e.g., shared snippets duplicated across agents).
    - References to other plugin files must resolve (dead-ref class).
    - Frontmatter must be valid (otherwise loader silently drops the file).
-7. **MCP server bundling** — does the plugin ship MCP servers? If yes, is there a dedicated setup skill (like `setup-mcp-servers`) that walks the consumer through credential setup? Plugins that bundle MCP servers without a setup skill leave consumers to reverse-engineer the requirements.
+7. **MCP server bundling** — does the plugin ship MCP servers? If yes, is there a dedicated setup skill that walks the consumer through credential setup? Plugins that bundle MCP servers without a setup skill leave consumers to reverse-engineer the requirements.
 8. **Frontmatter description quality** — even when descriptions pass the Phase 2 boilerplate check, are they written in a way that lets `using-skills`-style auto-invocation pick them up? Descriptions that start "Use when…" with concrete triggers outperform abstract one-liners.
 
 ## Output Shape

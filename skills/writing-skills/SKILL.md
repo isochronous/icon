@@ -72,7 +72,7 @@ The entire skill creation process follows RED-GREEN-REFACTOR.
 | **Discipline** | Rules that prevent known failure modes | `testing-discipline`, `verification-checklist` |
 | **Pattern** | Way of thinking about problems | `design-first`, `migration-planning` |
 | **Reference** | API docs, syntax guides, tool documentation | `commit-discipline`, `code-quality-rules` |
-| **Format** | Output templates with structure guidance | `jira-story`, `rfc` |
+| **Format** | Output templates with structure guidance | `github-issue`, `rfc` |
 
 Discipline skills need the most hardening — see *Bulletproofing Discipline Skills* below.
 

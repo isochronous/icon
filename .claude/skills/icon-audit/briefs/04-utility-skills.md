@@ -2,7 +2,7 @@
 
 ## Scope
 
-Investigate standalone and utility skills not covered by the process or init suites: `jira-story`, `sprint-goals`, `rfc`, `post-meeting`, `ecological-impact`, `agent-evaluation`, `writing-skills`, `using-skills`, `icon-init`, `icon-status`, `setup-mcp-servers`, `start-worktree`, `dependency-management`, `code-quality-rules`, `context-document-guidelines`, `manager-routing-guide`.
+Investigate standalone and utility skills not covered by the process or init suites: `github-issue`, `rfc`, `post-meeting`, `ecological-impact`, `agent-evaluation`, `writing-skills`, `using-skills`, `icon-init`, `icon-status`, `start-worktree`, `dependency-management`, `code-quality-rules`, `context-document-guidelines`, `manager-routing-guide`.
 
 Evaluate: frontmatter correctness and description quality, skill-type classification fitness, token efficiency, discoverability, and SSOT violations (e.g., skills duplicating content from other skills rather than cross-referencing).
 

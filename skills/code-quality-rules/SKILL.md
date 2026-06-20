@@ -1,7 +1,7 @@
 ---
 name: code-quality-rules
 description: >
-  Use when conducting a code review — including when the diff is "small enough" that skipping passes feels safe, when CI-green is being treated as proof of correctness, when a security-sensitive change has only happy-path tests, when "tests exist" is being used as Pass 5 satisfaction without checking assertions, or when an experienced author's MR is being approved without each pass being run.
+  Use when conducting a code review — including when the diff is "small enough" that skipping passes feels safe, when CI-green is being treated as proof of correctness, when a security-sensitive change has only happy-path tests, when "tests exist" is being used as Pass 5 satisfaction without checking assertions, or when an experienced author's PR is being approved without each pass being run.
 user-invocable: false
 ---
 
@@ -58,7 +58,7 @@ For thorough reviews, evaluate changes through multiple focused passes rather th
 - Are API contract changes backward-compatible?
 
 ### code-quality-rules: Pass 4: Maintainability & Clarity
-- Would a new team member understand this code without the MR description?
+- Would a new team member understand this code without the PR description?
 - Are names descriptive and consistent with project conventions?
 - Is complexity justified, or could the same result be achieved more simply?
 - Are there magic numbers, unclear abbreviations, or misleading names?
@@ -85,7 +85,7 @@ The review output format should still use the standard Findings structure (Criti
 | "CI is green — that's the review" | CI proves the code compiles and tests pass. It does not prove the tests are meaningful, the design is sound, or auth boundaries are correct. |
 | "Tests exist, Pass 5 is satisfied" | Pass 5 asks whether the tests verify real outcomes, not whether files exist. Open the test file and confirm the assertions match the change. |
 | "I trust this author — skip the security pass" | Trust shortcuts are how subtle auth widenings ship. Pass 2 is non-negotiable for any change touching auth, input handling, or trust boundaries. |
-| "The author already explained it in the MR description" | Pass 4 (clarity) asks whether the *code* is clear without the description. The description rots; the code stays. |
+| "The author already explained it in the PR description" | Pass 4 (clarity) asks whether the *code* is clear without the description. The description rots; the code stays. |
 | "It's a doc / config / styling change — skip everything but Pass 4" | Config changes can break envs; doc changes can mislead future contributors; CSS can leak XSS via attribute injection. Match passes to the actual change surface. |
 | "Pass 3 (integration) doesn't apply — no callers will notice" | Author claims about caller impact are hypotheses, not facts. Verify by searching for callers; do not skip on author assurance. |
 | "I caught the big issues — minor stuff can ship" | Minor issues compound. Style drift becomes pattern drift becomes architectural drift. Note them; the author decides whether to fix. |
@@ -100,6 +100,6 @@ If you catch yourself thinking any of these, the review is not done:
 - About to accept "tests exist" without reading the assertions.
 - About to skip Pass 3 (integration) because the author said no callers will notice.
 - Reviewing a security-sensitive change whose tests only cover the happy path.
-- Approving a senior author's MR faster because "they don't make mistakes".
+- Approving a senior author's PR faster because "they don't make mistakes".
 
 **All of these mean: a pass was skipped. Run it now, or hand the review to someone who will.**

@@ -4,9 +4,9 @@
 
 **Input Transcription**:
 ```
-John: So we need to talk about the payment schedule API. It's blocking the frontend team.
+John: So we need to talk about the scheduling API. It's blocking the frontend team.
 
-Sarah: Right, I looked at the legacy code. There are three EJB methods we need to expose. The create, update, and delete schedule methods.
+Sarah: Right, I looked at the legacy code. There are three service methods we need to expose. The create, update, and delete schedule methods.
 
 John: OK good. Can we get that done this sprint?
 
@@ -30,10 +30,10 @@ Mike: I'll look into it.
 **Expected Output**:
 ```markdown
 ## Summary
-The team discussed development priorities for the payment schedule API, which is currently blocking frontend development. Key decisions included replicating existing validation logic in the new API and pairing on test case development. The question of whether to keep database triggers or move logic to the application layer was raised for further research.
+The team discussed development priorities for the scheduling API, which is currently blocking frontend development. Key decisions included replicating existing validation logic in the new API and pairing on test case development. The question of whether to keep database triggers or move logic to the application layer was raised for further research.
 
 ## Key Points
-- **Payment Schedule API Priority**: Three EJB methods (create, update, delete) need to be exposed via new API this sprint to unblock frontend team
+- **Scheduling API Priority**: Three service methods (create, update, delete) need to be exposed via new API this sprint to unblock frontend team
 - **Validation Logic Approach**: Decision made to replicate existing complex validation logic exactly in the new API initially, with refactoring planned once adequate test coverage exists
 - **Testing Support**: Mike will pair with Sarah on test case development to ensure comprehensive coverage of the API endpoints
 - **Database Architecture Question**: Discussion raised about keeping database triggers vs. moving logic to application layer - requires further research
@@ -46,7 +46,7 @@ The team discussed development priorities for the payment schedule API, which is
 **A**: 
 
 ## Action Items
-- **Develop payment schedule API (create, update, delete methods)** - Sarah - End of sprint
+- **Develop scheduling API (create, update, delete methods)** - Sarah - End of sprint
 - **Pair with Sarah on test case development for API** - Mike - End of week
 - **Research database triggers vs application layer logic and prepare recommendation** - Mike - Next week's meeting
 - **Schedule follow-up discussion on database architecture decision** - John - Next week

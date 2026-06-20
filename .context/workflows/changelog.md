@@ -26,7 +26,7 @@ The release-plugin skill lives under `.claude/skills/release-plugin/` and is mai
 
 ## Investigating Release History
 
-Releases are tagged `vX.Y.Z` on `main`. The mutable tag `latest` is force-moved to the newest stable release at cut time; this is how the marketplace listing picks up new versions automatically (the marketplace at `gitlab.com/onedatascan/ai-platform/marketplace` references this repo with `ref: "latest"`).
+Releases are tagged `vX.Y.Z` on `main`. The mutable tag `latest` is force-moved to the newest stable release at cut time; this is how the marketplace listing picks up new versions automatically (the `icon-marketplace` at `github.com/isochronous` references this repo with `ref: "latest"`).
 
 To compare two releases:
 

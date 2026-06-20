@@ -13,7 +13,7 @@ This skill is also a **callable primitive** for plugin-asset discovery. Other IC
 
 ## Marketplace Name
 
-The Copilot CLI install path includes the marketplace's folder name. By default this is `datascan-marketplace` (the canonical ICON marketplace). Organizations that fork the marketplace under a different slug can override the default by exporting `MARKETPLACE_NAME` before running ICON skills (or by editing the default in their fork of this file):
+The Copilot CLI install path includes the marketplace's folder name. By default this is `icon-marketplace` (the canonical ICON marketplace). Organizations that fork the marketplace under a different slug can override the default by exporting `MARKETPLACE_NAME` before running ICON skills (or by editing the default in their fork of this file):
 
 ```bash
 export MARKETPLACE_NAME="my-org-marketplace"
@@ -23,7 +23,7 @@ export MARKETPLACE_NAME="my-org-marketplace"
 $env:MARKETPLACE_NAME = "my-org-marketplace"
 ```
 
-The Discovery Commands below honor `$MARKETPLACE_NAME` when set and fall back to `datascan-marketplace` otherwise. Claude Code variants do not need this — `${CLAUDE_PLUGIN_ROOT}` already resolves the full install path regardless of marketplace slug.
+The Discovery Commands below honor `$MARKETPLACE_NAME` when set and fall back to `icon-marketplace` otherwise. Claude Code variants do not need this — `${CLAUDE_PLUGIN_ROOT}` already resolves the full install path regardless of marketplace slug.
 
 ## Discovery Command
 
@@ -31,7 +31,7 @@ The Discovery Commands below honor `$MARKETPLACE_NAME` when set and fall back to
 
 ```bash
 # Override via `MARKETPLACE_NAME=<your-marketplace-slug>` env var, or edit this line in forks.
-[ -n "${MARKETPLACE_NAME+x}" ] || MARKETPLACE_NAME="datascan-marketplace"
+[ -n "${MARKETPLACE_NAME+x}" ] || MARKETPLACE_NAME="icon-marketplace"
 TEMPLATE_DIR="${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/${MARKETPLACE_NAME}/ICON/context_template"
 ```
 
@@ -40,7 +40,7 @@ TEMPLATE_DIR="${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/${MARKETPLACE_NA
 ```powershell
 # Override via `MARKETPLACE_NAME=<your-marketplace-slug>` env var, or edit this line in forks.
 $CopilotHome = if ($env:COPILOT_HOME) { $env:COPILOT_HOME } else { "$HOME/.copilot" }
-$MarketplaceName = if ($env:MARKETPLACE_NAME) { $env:MARKETPLACE_NAME } else { "datascan-marketplace" }
+$MarketplaceName = if ($env:MARKETPLACE_NAME) { $env:MARKETPLACE_NAME } else { "icon-marketplace" }
 $TEMPLATE_DIR = "$CopilotHome/installed-plugins/$MarketplaceName/ICON/context_template"
 ```
 

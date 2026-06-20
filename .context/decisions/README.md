@@ -34,9 +34,9 @@ What did we reject and why?
 | [003](003-version-source-of-truth.md) | Single source of truth for the version is `.claude-plugin/plugin.json` | Accepted | (predates split) |
 | [004](004-tool-agnostic-content.md) | Tool-agnostic content; no runtime-specific code | Accepted | (predates split) |
 | [005](005-no-build-step.md) | No build step, no test runner, no package manager | Accepted | (predates split) |
-| [006](006-mcp-credentials-placeholders.md) | MCP credentials use `${VAR}` placeholders only — never committed | Accepted | 2026-04-06 |
+| [006](006-mcp-credentials-placeholders.md) | MCP credentials use `${VAR}` placeholders only — never committed | Superseded (ICON-0080) | 2026-04-06 |
 | [007](007-devnull-ban-scope.md) | `2>/dev/null` ban applies to agent-invoked commands only, not to autonomous scripts | Accepted | 2026-05-21 |
 | [008](008-always-loaded-token-budget.md) | Always-loaded session token budget for manager and PM dispatchers | Accepted | 2026-05-21 |
 | [009](009-skill-description-callers.md) | Skill `description` frontmatter does not enumerate callers | Accepted | 2026-05-22 |
 | [010](010-template-promotions-and-carryforward-retier.md) | Phase-template promotions and carry-forward re-tier registry | Accepted | 2026-05-23 |
-| [011](011-datascan-production-instance.md) | This repo IS DataScan's production plugin instance | Accepted | 2026-06-12 |
+| [011](011-datascan-production-instance.md) | This repo IS DataScan's production plugin instance | Superseded (ICON-0080) | 2026-06-12 |

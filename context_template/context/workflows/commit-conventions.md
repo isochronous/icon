@@ -113,7 +113,7 @@ All AI-assisted commits include the co-author trailer:
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
 
-The co-author trailer is a plain-text provenance claim and is forgeable. For verifiable attribution, enable cryptographic commit signing (GPG or SSH); GitLab shows a **Verified** badge on signed commits and can enforce signing with a push rule where your plan supports it. See `branching.md` for protected-branch and signing setup.
+The co-author trailer is a plain-text provenance claim and is forgeable. For verifiable attribution, enable cryptographic commit signing (GPG or SSH); GitHub shows a **Verified** badge on signed commits and can enforce signing with the "Require signed commits" branch protection setting where your plan supports it. See `branching.md` for protected-branch and signing setup.
 
 ## Well-formed Examples
 

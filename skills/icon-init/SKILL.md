@@ -220,18 +220,6 @@ Emit a single unconditional line pointing the user at `/icon-status`:
 Initialization complete. Run /icon-status to see where things stand.
 ```
 
-### icon-init: Step 5b: MCP onboarding hint (conditional)
-
-Suggest `/setup-mcp-servers` only when **both** `GITLAB_PERSONAL_ACCESS_TOKEN` and `JIRA_API_TOKEN` are unset. Use `${VAR+x}` presence checks (not a `${VAR:-literal}` fallback — see the **shell-portability** standard):
-
-```bash
-if [ -z "${GITLAB_PERSONAL_ACCESS_TOKEN+x}" ] && [ -z "${JIRA_API_TOKEN+x}" ]; then
-  echo "Tip: run /setup-mcp-servers to configure GitLab or Atlassian MCP credentials."
-fi
-```
-
-If either credential is already set, omit the tip — the user has at least one MCP server configured and does not need a fresh nudge.
-
 ---
 
 ## Common Mistakes

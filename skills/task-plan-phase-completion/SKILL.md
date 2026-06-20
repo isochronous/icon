@@ -20,7 +20,7 @@ at the end of every task; token cost matters.
 > retrospective, and commit.** Reconciliation is gated, not encouraged.
 > Author-discipline checks degrade quickly — a "remember to update plan.md"
 > rule does not fire on the 30% of tasks where it matters most (the messy
-> ones). Run the five sub-checks below before any review/MR/retro work; each
+> ones). Run the five sub-checks below before any review/PR/retro work; each
 > should take under two minutes.
 
 Re-read `plan.md` end-to-end against the actual final state, and update each section:

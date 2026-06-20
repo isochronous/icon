@@ -11,7 +11,7 @@
 > or `testing/` directories — domain and standards files carry that role.
 
 - `.context/domains/skill-system.md` — when the task touches any skill, agent, or the invocation chain
-- `.context/domains/mcp-servers.md` — when the task touches `.mcp.json`, credential handling, or MCP-related skills
+- `.context/domains/github-access.md` — when the task touches GitHub access, the `gh` CLI, or GitHub-facing skills
 - `.context/domains/plugin-resource-paths.md` — when the task touches `installed-plugins/` paths, manifest references, or runtime resource resolution
 - `.context/standards/skill-decomposition.md` — when adding or restructuring a skill (thin-router rules, distribution layout)
 - `.context/standards/changelog-discipline.md` — when writing CHANGELOG.md entries or planning a release

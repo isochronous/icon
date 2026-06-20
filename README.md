@@ -18,7 +18,7 @@ Specialized agents work together to complete development tasks. A **manager** ag
 | `@reviewer` | Reviews code changes for quality, consistency, and adherence to project standards. |
 | `@researcher` | Researches up-to-date library documentation, best practices, and standards to bridge training data gaps for technical decision-making. |
 | `@context-specialist` | Creates and maintains `.context/` documentation for leaf projects, grouping directories, and monorepo roots |
-| `@product-manager` | Creates and refines Jira-style user stories grounded in codebase research, existing stories, and project context. |
+| `@product-manager` | Creates and refines GitHub issue-style user stories grounded in codebase research, existing stories, and project context. |
 
 ### Design Principles
 
@@ -29,7 +29,7 @@ Specialized agents work together to complete development tasks. A **manager** ag
 - **Verification over reasoning**: Agents must provide evidence (command output) before claiming success. Internal reasoning that something "should work" is not verification.
 - **Discipline enforcement**: Common constraints prevent rationalization, enforce self-review before reporting, and escalate persistent failures rather than allowing infinite retry loops.
 
-This repository is the canonical home for ICON. The `datascan-marketplace` listing now points here via the movable `latest` git tag — installing ICON from the marketplace resolves to this repo at its most recent stable release.
+This repository is the canonical home for ICON. The `isochronous` marketplace listing points here via the movable `latest` git tag — installing ICON from the marketplace resolves to this repo at its most recent stable release.
 
 ## What do you want to do?
 
@@ -41,7 +41,6 @@ Quick intent index — pick the row that matches your situation:
 | I want to try ICON in a new repo | `/icon-init` | [Quick Setup](#quick-setup) |
 | I'm returning to a repo after a break | `/icon-status` | [Skills](#skills) table — `icon-status` row |
 | I'm upgrading an existing ICON repo | `/upgrade-repo` (also auto-dispatched by `/icon-init` when `.context/` already exists) | [Skills](#skills) table — `upgrade-repo` row |
-| I need to set up GitLab/Jira MCP credentials | `/setup-mcp-servers` | [MCP Servers](#mcp-servers) |
 | I want `@manager` to be my default role (Claude Code) | `/ICON:enable-manager-default` | [Default Role (Claude Code only)](#default-role-claude-code-only) |
 | I want to switch roles mid-session (Claude Code) | `/ICON:manager` or `/ICON:pm` | [Default Role (Claude Code only)](#default-role-claude-code-only) |
 | I'm working in a workspace, monorepo, or multi-module repo | `/icon-init` (auto-detects) | [Multi-Project Workspaces and Monorepos](#multi-project-workspaces-and-monorepos) |
@@ -52,7 +51,7 @@ Quick intent index — pick the row that matches your situation:
 
 There are two equivalent ways to install ICON.
 
-### Option 1: Install via `datascan-marketplace` (recommended)
+### Option 1: Install via the `isochronous` marketplace (recommended)
 
 The marketplace listing pins ICON to the movable `latest` tag in this repo, so you receive new stable releases automatically on plugin update.
 
@@ -60,26 +59,26 @@ Two steps: first register the marketplace, then install ICON from it.
 
 ```bash
 # Copilot CLI
-copilot plugin marketplace add https://gitlab.com/onedatascan/ai-platform/marketplace.git
-copilot plugin install ICON@datascan-marketplace
+copilot plugin marketplace add https://github.com/isochronous/icon-marketplace.git
+copilot plugin install ICON@isochronous
 
 # Claude Code
-claude plugin marketplace add https://gitlab.com/onedatascan/ai-platform/marketplace.git
-claude plugin install ICON@datascan-marketplace
+claude plugin marketplace add https://github.com/isochronous/icon-marketplace.git
+claude plugin install ICON@isochronous
 ```
 
 ### Option 2: Install this repo directly
 
 ```bash
 # Copilot CLI
-copilot plugin install https://gitlab.com/onedatascan/ai-platform/plugins/icon.git
+copilot plugin install https://github.com/isochronous/icon.git
 # or SSH
-copilot plugin install git@gitlab.com:onedatascan/ai-platform/plugins/icon.git
+copilot plugin install git@github.com:isochronous/icon.git
 
 # Claude Code
-claude plugin install https://gitlab.com/onedatascan/ai-platform/plugins/icon.git
+claude plugin install https://github.com/isochronous/icon.git
 # or SSH
-claude plugin install git@gitlab.com:onedatascan/ai-platform/plugins/icon.git
+claude plugin install git@github.com:isochronous/icon.git
 ```
 
 ### To update
@@ -89,7 +88,7 @@ claude plugin install git@gitlab.com:onedatascan/ai-platform/plugins/icon.git
 copilot plugin update ICON
 
 # Claude Code (update the marketplace index first, then the plugin)
-claude plugin marketplace update datascan-marketplace
+claude plugin marketplace update isochronous
 claude plugin update ICON
 ```
 
@@ -162,17 +161,15 @@ Skills provide reusable processes that agents can invoke when needed.
 | `design-first` | Pre-implementation exploration: propose alternatives, get approval before coding. Covers API design and security threat assessment. |
 | `ecological-impact` | Calculate and display the environmental footprint of a Copilot session in Trees Burned and water-usage equivalents, with annual projections |
 | `icon-init` | Recommended first command — auto-detects repo type and dispatches to the correct `/initialize-*` skill, or to `/upgrade-repo` if `.context/` already exists |
-| `icon-status` | Display plugin state: active task, current branch, recent retrospectives, context health, and MCP credential status |
-| `jira-story` | Render content into Jira story format |
+| `icon-status` | Display plugin state: active task, current branch, recent retrospectives, and context health |
+| `github-issue` | Render content into GitHub issue format |
 | `migration-planning` | Four-pattern migration discipline: two-phase deploy, feature flag rollout, schema backfill, and incremental refactor — with named rollback criteria for each |
-| `mr-feedback-triage` | Triage open GitLab MR review threads: fetch all unresolved discussions, assess necessity (Blocking / Recommended / Optional), and produce a prioritized resolution plan per thread |
+| `pr-feedback-triage` | Triage open GitHub PR review threads: fetch all unresolved discussions, assess necessity (Blocking / Recommended / Optional), and produce a prioritized resolution plan per thread |
 | `plugin-design` | Help build Claude Code plugins from scratch (create mode: scaffold, basic info, repo setup, context init, optional marketplace listing) or audit an existing plugin for structural integrity, cross-file consistency, and improvement opportunities (audit mode hard-requires /icon-init) |
 | `post-incident-review` | Structured classify → timeline → root-cause → comms → action-items → retro-append process for production incidents and security near-misses |
 | `post-meeting` | Transform meeting transcriptions into structured summaries |
 | `rfc` | Create RFCs from scratch or polish rough drafts (ORG-004) |
 | `security-review` | Security-review a change to ICON's own hooks/scripts against the `secure-coding` standard before merge |
-| `setup-mcp-servers` | Step-by-step credential setup for the GitLab and Atlassian MCP servers bundled with this plugin |
-| `sprint-goals` | Generate sprint goals from Jira CSV exports |
 | `start-worktree` | Isolate agent work in a git worktree when a human developer is actively editing the same repository, preventing branch and file conflicts |
 | `systematic-debugging` | 4-phase debugging: reproduce → root-cause trace → defense-in-depth → verify. Includes production incident guidance. |
 | `upgrade-repo` | Bring an existing `.context/` up to current spec: audit infrastructure, replace outdated scaffolding files, wire missing hooks |
@@ -200,9 +197,8 @@ The following skills are internal — they are invoked automatically by agents d
 | `initialize-workspace` | Parse a VS Code `.code-workspace` file, bootstrap each project folder with `initialize-repo` or `upgrade-repo` in isolated sessions (skipping resource-only folders), then generate workspace-level cross-project context at the first folder |
 | `invoke-sub-project-skill` | Use when a manager agent has a skill path from resolve-repo-context and needs to execute that skill against a specific task. |
 | `manager-routing-guide` | Routing reference tables, agent capability matrix, and sub-agent context-isolation rules — loaded on-demand when the manager makes a routing decision. |
-| `mcp-tools-first` | Enforce GitLab/Jira/Confluence access via the bundled MCP tools instead of falling back to CLI or URL paste |
 | `merge-phase-templates` | Migrate custom content from a deprecated `task-workflow-template.md` into the appropriate phase template files so the deprecated file can be deleted |
-| `mr-discipline` | Opening merge requests, writing descriptions, addressing review feedback, resolving merge conflicts |
+| `pr-discipline` | Opening pull requests, writing descriptions, addressing review feedback, resolving merge conflicts |
 | `resolve-repo-context` | Use when a manager agent needs to determine the correct context root for a task and the repo type is not a plain project — workspaces, monorepos, and multi-module repos all require this resolution before delegating to sub-agents. |
 | `task-plan` | plan.md format selection and handoff guidance — defers to local workflow template when present |
 | `task-plan-phase-architecture` | Invoke when entering Phase 4 (Architecture Review). Provides decision matrix for @architect consultation, delegation structure, and guidance for capturing architect output. |
@@ -215,20 +211,9 @@ The following skills are internal — they are invoked automatically by agents d
 | `using-skills` | **MANDATORY** — executed before starting any task. Forces skill invocation and prevents agents from skipping applicable skills. |
 | `verification-checklist` | Evidence-based verification gate and self-review process |
 
-## MCP Servers
+## GitHub Integration
 
-ICON bundles two MCP server configurations that activate automatically on plugin installation. No server config changes are required — just set environment variables with your credentials.
-
-| Server | Package | Purpose |
-|--------|---------|---------|
-| `gitlab` | `@zereight/mcp-gitlab` | GitLab issues, MRs, pipelines, wikis, CI/CD |
-| `atlassian` | `mcp-atlassian` | Jira issues/sprints, Confluence pages/spaces |
-
-To set up credentials and verify the servers are running, invoke the `setup-mcp-servers` skill:
-
-```
-/setup-mcp-servers
-```
+ICON is GitHub-only and does not bundle any MCP servers. Agents interact with issues, pull requests, and CI through the GitHub [`gh` CLI](https://cli.github.com/). Authenticate once with `gh auth login`; no plugin-side credential setup is required.
 
 ## Workflow
 

@@ -79,7 +79,7 @@ Rules:
 
 Scan the repo root for infrastructure that applies across all areas:
 
-- **CI/CD**: `.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, `azure-pipelines.yml`
+- **CI/CD**: `.github/workflows/`, `Jenkinsfile`, `azure-pipelines.yml`
 - **Container orchestration**: `docker-compose*.yml`, `k8s/`, `helm/`
 - **IaC**: `terraform/`, `cdk/`, `pulumi/`
 - **Build coordination**: `Directory.Build.props`, `Directory.Packages.props` (.NET),
@@ -167,7 +167,7 @@ Do not create domain files for concepts internal to a single area.
 ## context-specialist-impl-root: Step 9: Generate `workflows/ci-cd.md`
 
 Root-level pipeline and deployment process:
-- CI system (GitHub Actions, GitLab CI, Jenkins, etc.) and config file location
+- CI system (GitHub Actions, Jenkins, etc.) and config file location
 - Pipeline stages and what each does (build, test, lint, publish, deploy)
 - How to run the full pipeline locally (if possible)
 - Deployment environments and how to trigger deploys
@@ -182,7 +182,7 @@ Branching strategy for the full repository:
 - Primary integration branch name(s) — verified from `git branch -r`
 - Feature branch naming: exact format with real examples from `git log`
 - Release/tag naming format with real examples from `git tag`
-- Merge request workflow (squash? merge commit? rebase?)
+- Pull request workflow (squash? merge commit? rebase?)
 - Whether linear history is enforced
 
 ---
@@ -194,7 +194,7 @@ Detect from `git log --oneline -50`:
 - Ticket ID prefix(es) in use — the full set MUST be passed to `create-iconrc`
   (Step 14) as `forbidden_prefixes`, and the chosen `local_task_id_prefix` MUST
   be distinct from every entry. Agents otherwise cannot tell at a glance whether
-  a task ID points at a real Jira/Linear/GitHub ticket.
+  a task ID points at a real GitHub issue or other external ticket.
 - Whether a body or footer is conventional
 - 3–5 real examples from git log
 

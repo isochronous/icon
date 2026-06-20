@@ -42,7 +42,7 @@ git checkout -b feature/ICON-0002-some-short-description
 # 3. Work, commit using the convention in workflows/commit-conventions.md
 git commit -m "ICON-0002: do the thing"
 
-# 4. Push and open a merge request targeting main
+# 4. Push and open a pull request targeting main
 git push -u origin feature/ICON-0002-some-short-description
 ```
 
@@ -55,12 +55,12 @@ git rebase origin/main
 
 ## Stacked Branches for Dependent Task Sequences
 
-When a user requests **multiple dependent tasks in one go**, do not branch every task off `main`. Branch each task off the **previous task's branch** (a stacked sequence), and accept/merge the MRs **in order** to avoid the merge conflicts that arise when sibling branches each touch the same files from a stale `main` base.
+When a user requests **multiple dependent tasks in one go**, do not branch every task off `main`. Branch each task off the **previous task's branch** (a stacked sequence), and merge the PRs **in order** to avoid the merge conflicts that arise when sibling branches each touch the same files from a stale `main` base.
 
 - **Confirm the topology at the start of a multi-task sequence.** Ask whether the tasks are stacked (each depends on the prior one's changes) or independent (each can branch off `main` and merge in any order). The answer determines the base for every branch in the sequence; getting it wrong forces a rebase mid-sequence.
-- **Each branch bases on its predecessor.** Task 2 branches off `feature/ICON-0002-...`, task 3 off `feature/ICON-0003-...`, and so on. Each MR targets the **prior task's branch**, not `main`.
-- **GitLab auto-retargets as earlier MRs merge.** When the task-1 MR merges into `main`, GitLab retargets the task-2 MR to `main` automatically; when task 2 merges, task 3 retargets; and so on. Accept the MRs in sequence so each retarget lands cleanly.
-- **Enforce the order mechanically, not by discipline.** On GitLab Premium/Ultimate, use **Merge request dependencies**: declare each stacked MR as depending on the prior one (the upper MR names the lower MR as a blocker), and GitLab refuses to merge the dependent MR until its blocker has merged. Caveats: a maximum of 10 blockers per MR, and dependencies may span projects.
+- **Each branch bases on its predecessor.** Task 2 branches off `feature/ICON-0002-...`, task 3 off `feature/ICON-0003-...`, and so on. Each PR targets the **prior task's branch**, not `main`.
+- **GitHub auto-retargets as earlier PRs merge.** When the task-1 PR merges into `main`, GitHub retargets the task-2 PR to `main` automatically; when task 2 merges, task 3 retargets; and so on. Merge the PRs in sequence so each retarget lands cleanly.
+- **Enforce the order mechanically, not by discipline.** Mark each stacked PR as a draft until its predecessor merges, or note the blocking PR in the description, so a dependent PR is not merged ahead of its base. Re-mark ready once the base has merged and GitHub has retargeted.
 - **Independent (off-`main`) tasks** keep the default model above: each branches off `main` and targets `main`, and merge order does not matter.
 
 This is the same merge-base sharing that lets stacked same-release branches ride a single template-version bump (see the Template-Version Bump Cadence section below).
@@ -81,7 +81,7 @@ Merge to `main` may be either a fast-forward, a merge commit, or a squash — de
 
 After merge:
 - Delete the local feature branch: `git branch -d feature/ICON-NNNN-...`
-- Delete the remote feature branch via GitLab UI or `git push origin --delete feature/ICON-NNNN-...`
+- Delete the remote feature branch via the GitHub UI or `git push origin --delete feature/ICON-NNNN-...`
 - Local cleanup is also covered by `.context/workflows/prune-context.sh` for the per-task `.context/tasks/ICON-NNNN-.../` folders (auto-pruned after 90 days on `main`).
 
 ## Tag and Release Naming
@@ -109,10 +109,10 @@ ICON ships a consumer-facing context template under `context_template/`. Its ver
 
 **Cadence rule: bump the template version once per release, not once per task.** Consumers apply a template update once per release, so a single release should advance `context_template/context/iconrc.json` `version` **once total**, regardless of how many tasks in that release touched `context_template/`. Bumping per-task within one release produces redundant churn (this caused the ICON-0059/0060 double-bump).
 
-**The ICON-0044 pre-commit gate keys its baseline off the `latest` tag (ICON-0071, superseding both the ICON-0062 merge-base baseline and the interim `git describe` baseline).** When a commit stages any change under `context_template/`, the `.githooks/pre-commit` gate requires the staged template version to **differ from the version at the `latest` tag** — the release-maintained pointer that the marketplace consumes (`ref: "latest"`) and that `release-plugin` Step 9 force-moves to every release commit. Because `latest` is fixed for an entire release cycle (it only moves at the next release), the baseline does not move as MRs merge. Both the gate and the `release-plugin` flow read this one tag, so they agree by construction. Behavior:
+**The ICON-0044 pre-commit gate keys its baseline off the `latest` tag (ICON-0071, superseding both the ICON-0062 merge-base baseline and the interim `git describe` baseline).** When a commit stages any change under `context_template/`, the `.githooks/pre-commit` gate requires the staged template version to **differ from the version at the `latest` tag** — the release-maintained pointer that the marketplace consumes (`ref: "latest"`) and that `release-plugin` Step 9 force-moves to every release commit. Because `latest` is fixed for an entire release cycle (it only moves at the next release), the baseline does not move as PRs merge. Both the gate and the `release-plugin` flow read this one tag, so they agree by construction. Behavior:
 
-- **First template-touching MR of a release cycle** sees `staged == released` and must bump (`released -> released+1`). This preserves the "forgot to bump entirely" protection.
-- **Every later MR in the same cycle** is already at `released+1 != released`, so it passes **without** a redundant re-bump — even though earlier MRs already merged to `main`. This is the fix for the cross-MR accumulation that the old merge-base baseline caused (each merged MR advanced `main`, so the next MR inherited the bumped value as its merge-base and was forced to bump again — ICON-0070 drift).
+- **First template-touching PR of a release cycle** sees `staged == released` and must bump (`released -> released+1`). This preserves the "forgot to bump entirely" protection.
+- **Every later PR in the same cycle** is already at `released+1 != released`, so it passes **without** a redundant re-bump — even though earlier PRs already merged to `main`. This is the fix for the cross-PR accumulation that the old merge-base baseline caused (each merged PR advanced `main`, so the next PR inherited the bumped value as its merge-base and was forced to bump again — ICON-0070 drift).
 - **Stacked same-release branches / commits** also pass: once any commit in the stack bumps to `released+1`, later ones compare `released+1 != released` and ride the single bump.
 - **Net effect:** exactly one template-version bump per release cycle, enforced automatically — no release-time consolidation needed (`release-plugin` Step 6 is now a verify, not a reset).
 - **3-tier fail-safe fallback** (never weaker than the prior behavior): if the `latest` tag is absent (not fetched, shallow clone, pre-first-release repo) or its iconrc version can't be read, the gate falls back to the **merge-base with the default branch** (the ICON-0062 baseline); if the default-branch ref can't be resolved or `git merge-base` fails, it falls back to the **HEAD comparison** (original ICON-0044). Uncertainty degrades to a stricter tier — never to "allow".
@@ -122,17 +122,17 @@ The default branch (used only in the Tier-2 merge-base fallback) is resolved fro
 
 ## Protected-Branch Rules
 
-This is a **required setup prerequisite** a maintainer configures on the GitLab project. ICON's workflow depends on this gate but does not itself configure it — it is a server-side control the maintainer must enable once:
+This is a **required setup prerequisite** a maintainer configures on the GitHub repository (Settings → Branches → branch protection rules). ICON's workflow depends on this gate but does not itself configure it — it is a server-side control the maintainer must enable once:
 
-- `main` is a protected branch — no direct pushes; changes land only via merge request.
+- `main` is a protected branch — no direct pushes; changes land only via pull request.
 - Require at least one approval from someone other than the author.
 - Reject force-push to `main`.
-- A human performs the merge. The agent opens the MR and pauses — it never self-merges or self-approves. GitLab enforces approval-required and author-restrictions server-side, so the rule holds across the UI, the API, and MCP alike.
+- A human performs the merge. The agent opens the PR and pauses — it never self-merges or self-approves. GitHub enforces approval-required and author-restrictions server-side, so the rule holds across the UI, the API, and the `gh` CLI alike.
 - Keep the `latest` tag force-moveable (the release flow requires it).
 
 ## Commit Signing
 
-The `ICON-NNNN:` commit prefix and the `Co-authored-by` trailer are plain-text provenance *claims* — anyone can type them, so they are forgeable. Cryptographic commit signing (GPG or SSH) gives a verifiable *proof* of authorship that GitLab checks server-side.
+The `ICON-NNNN:` commit prefix and the `Co-authored-by` trailer are plain-text provenance *claims* — anyone can type them, so they are forgeable. Cryptographic commit signing (GPG or SSH) gives a verifiable *proof* of authorship that GitHub checks server-side.
 
 Enable signing locally. Two options:
 
@@ -144,7 +144,7 @@ git config user.signingkey <path-to-your-ssh-public-key>
 git config commit.gpgsign true
 ```
 
-Then add that key in GitLab (Profile → SSH Keys) with its **Usage type** set to "Signing" (or "Authentication & signing").
+Then add that key in GitHub (Settings → SSH and GPG keys → New SSH key) with its **Key type** set to "Signing Key".
 
 **GPG signing:**
 
@@ -153,9 +153,9 @@ git config user.signingkey <GPG-KEY-ID>
 git config commit.gpgsign true
 ```
 
-Then add the GPG public key in GitLab (Profile → GPG Keys).
+Then add the GPG public key in GitHub (Settings → SSH and GPG keys → New GPG key).
 
-**Verification and enforcement.** GitLab shows a **Verified** badge on signed commits whose key it can validate. Where the org's GitLab plan supports it, enable a **push rule to reject unsigned commits** so signing is enforced on `main`. Enforcement is org-side: ICON recommends signing and documents how to enable it, but does not add an ICON-level signing gate.
+**Verification and enforcement.** GitHub shows a **Verified** badge on signed commits whose key it can validate. Enable a branch-protection rule that **requires signed commits** on `main` so signing is enforced. Enforcement is repo-side: ICON recommends signing and documents how to enable it, but does not add an ICON-level signing gate.
 
 ## Why no `release/X.Y.Z` branches?
 

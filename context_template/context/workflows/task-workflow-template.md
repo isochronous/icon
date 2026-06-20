@@ -79,7 +79,7 @@ For simple tasks, track inline in the session rather than creating a task folder
 
 ## When to Create Task Folders
 
-Create `.context/tasks/[JIRA-ID-kebab-description]/` when:
+Create `.context/tasks/[ISSUE-ID-kebab-description]/` when:
 - Task is complex (multiple modules or phases)
 - Involves architectural changes
 - Has many decision points

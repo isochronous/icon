@@ -117,11 +117,11 @@ if [[ -n "$template_staged" ]]; then
     #     consumes this repo with `ref: "latest"`. The baseline is the iconrc
     #     version AT the `latest` tag. Because `latest` is fixed for an entire
     #     release cycle (it only moves at the next release), the first
-    #     template-touching MR of the cycle sees staged == released and must bump
-    #     (released -> released+1); every later MR in the same cycle is already at
+    #     template-touching PR of the cycle sees staged == released and must bump
+    #     (released -> released+1); every later PR in the same cycle is already at
     #     released+1 != released and passes WITHOUT a redundant re-bump. This
-    #     fixes the cross-MR accumulation that the merge-base baseline caused
-    #     (each merged MR advanced main, so the next MR's merge-base was already
+    #     fixes the cross-PR accumulation that the merge-base baseline caused
+    #     (each merged PR advanced main, so the next PR's merge-base was already
     #     bumped, forcing another bump — ICON-0070 drift).
     #
     #     `latest` is read directly (`git show latest:<iconrc>`), guarded by

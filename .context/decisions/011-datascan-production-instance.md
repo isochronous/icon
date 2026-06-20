@@ -1,7 +1,19 @@
 # ADR-011: This repo IS DataScan's production plugin instance
 
 **Date**: 2026-06-12
-**Status**: Accepted
+**Status**: Superseded by ICON-0080 (GitHub-only conversion)
+
+> **Superseded (2026-06-20, ICON-0080).** The premise of this ADR — that this repo
+> is simultaneously the canonical ICON plugin *and* DataScan's live production instance,
+> so DataScan/GitLab/Jira body-prose references are intentional production content — no
+> longer holds. ICON-0080 converted the plugin to a GitHub-only build for the
+> `isochronous` identity: the bundled GitLab + Atlassian MCP servers were removed, all
+> `onedatascan`/`gitlab.com`/`atlassian.net` references were replaced with their GitHub
+> equivalents, and there is no longer a DataScan production instance to preserve. The
+> "live org URL → keep, don't placeholder" carve-out this ADR established is therefore
+> moot. Org-specific portability concerns now fall back to ADR-004 (tool-agnostic) and
+> ordinary placeholder conventions. This record is retained to explain why earlier audit
+> cycles declined to placeholder the DataScan URLs.
 
 ## Context
 

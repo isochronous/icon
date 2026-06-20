@@ -98,7 +98,7 @@ From the log, determine:
 | Question | What to look for |
 |---|---|
 | **Commit format** | Does every message start with a ticket ID? (`ABC-123`, `PROJ-42`) A type prefix? (`feat:`, `fix:`, `chore:`) A plain description? A combination? |
-| **Ticket ID prefix(es)** | What Jira/Linear/GitHub project key(s) appear? (e.g., `WSD-`, `CORE-`, `BE-`) The full set MUST be passed to `create-iconrc` (Step 6) as `forbidden_prefixes`, and the chosen `local_task_id_prefix` MUST be distinct from every entry — agents otherwise cannot tell at a glance whether a task ID points at a real Jira ticket. |
+| **Ticket ID prefix(es)** | What external issue-tracker key(s) appear? (e.g., a GitHub issue reference convention, or prefixes like `WSD-`, `CORE-`, `BE-`) The full set MUST be passed to `create-iconrc` (Step 6) as `forbidden_prefixes`, and the chosen `local_task_id_prefix` MUST be distinct from every entry — agents otherwise cannot tell at a glance whether a task ID points at a real external ticket. |
 | **Case and separator** | `TICKET-123: Title` vs `ticket-123 title` vs `[TICKET-123] Title` |
 | **Body / footer conventions** | Co-authors? Breaking-change footers? Scope annotations? |
 | **Integration branches** | Which branches act as merge targets? (`main`, `master`, `dev`, `develop`, a release branch, etc.) |
@@ -324,7 +324,7 @@ prefixes detected in Step 1a so the skill can reject a colliding
 The chosen `local_task_id_prefix` MUST be distinct (case-insensitive) from every
 prefix in `forbidden_prefixes`. If the team has no opinion, default to `LOCAL` —
 it is generic, clearly signals "not a real ticket", and is unlikely to collide
-with any real-world Jira project key. Local task IDs use the format
+with any real-world external tracker key. Local task IDs use the format
 `<PREFIX>-<NNN>` with a numeric suffix at least 3 digits wide and zero-padded
 (e.g., `LOCAL-001`).
 

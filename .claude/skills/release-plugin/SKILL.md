@@ -13,7 +13,7 @@ disable-model-invocation: false
 
 ## Overview
 
-**Every release bumps one manifest file and one changelog, then tags `vX.Y.Z` and force-moves the `latest` tag.** This skill walks through that sequence so the marketplace listing picks up the new version automatically.
+**Every release bumps one manifest file and one changelog, then tags `vX.Y.Z` and force-moves the `latest` tag.** This skill walks through that sequence so the marketplace listing (which consumes this repo at `ref: "latest"`) picks up the new version automatically.
 
 Run all commands from the repository root.
 
@@ -26,7 +26,10 @@ This repo uses a **`main`-only** branch model. Release housekeeping commits land
 ## Maintainer setup (one-time)
 
 The only release step that needs machine-local configuration is the Slack
-announcement (Step 10). It reads the Slack incoming-webhook URL from the
+announcement (Step 10). **The Slack announcement is a personal/org-specific
+integration (the AI-Council channel webhook) carried over from this plugin's
+origin — you may want to reconfigure it to your own channel or remove it
+entirely.** It reads the Slack incoming-webhook URL from the
 `SLACK_WEBHOOK_URL` environment variable. **This is a shared secret — it is
 deliberately not stored in the repo.** Without it the release still completes;
 only the automated announcement is skipped (Step 10 degrades gracefully).
@@ -175,8 +178,8 @@ ICON ships a consumer-facing context template whose version lives in
 *Template-Version Bump Cadence* section of `.context/workflows/branching.md`.
 
 As of ICON-0071 the pre-commit gate enforces this automatically: its baseline is
-the **last release tag's** template version, so the first template-touching MR of
-a cycle bumps `released -> released+1` and every later MR in the same cycle passes
+the **last release tag's** template version, so the first template-touching PR of
+a cycle bumps `released -> released+1` and every later PR in the same cycle passes
 unchanged. `main` can therefore no longer drift above `released+1` within a cycle,
 and there is **nothing to consolidate**. This step is now a cheap safety check
 that the gate is behaving — not a reset.
@@ -345,7 +348,7 @@ failed.
 
 ## release-plugin: Step 11: Verify marketplace pickup
 
-No marketplace edit is required. The `datascan-marketplace` marketplace.json
+No marketplace edit is required. The marketplace listing's marketplace.json
 references this repo with `ref: "latest"`, and Step 9 force-moved the
 `latest` tag to the new release commit. The marketplace listing will resolve
 to the new version automatically on the next `/plugin update` from a consumer.

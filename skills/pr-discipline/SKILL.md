@@ -1,41 +1,41 @@
 ---
-name: mr-discipline
+name: pr-discipline
 description: >
-  Use when opening a merge request, writing an MR description, addressing review feedback, or resolving merge conflicts — including when about to open an MR without self-reviewing the diff, when writing the description as an afterthought, when force-pushing over reviewer feedback, when accepting "ours" or "theirs" in a merge conflict without reading both sides, or when an MR exceeds 20 files without a guided description.
+  Use when opening a pull request, writing a PR description, addressing review feedback, or resolving merge conflicts — including when about to open a PR without self-reviewing the diff, when writing the description as an afterthought, when force-pushing over reviewer feedback, when accepting "ours" or "theirs" in a merge conflict without reading both sides, or when a PR exceeds 20 files without a guided description.
 user-invocable: false
 ---
 
-# MR Discipline
+# PR Discipline
 
 ## Overview
 
-**An MR is a contract with the reviewer.** Before you open one, the diff should be self-reviewed, the build green, and the description complete. After you open one, every comment gets addressed and every fix lands as a new commit — not a force-push that invalidates the review trail.
+**A PR is a contract with the reviewer.** Before you open one, the diff should be self-reviewed, the build green, and the description complete. After you open one, every comment gets addressed and every fix lands as a new commit — not a force-push that invalidates the review trail.
 
 ## When to Use
 
-- About to open a merge request
-- Writing or refining an MR description
+- About to open a pull request
+- Writing or refining a PR description
 - Responding to review feedback
-- Resolving merge conflicts on an MR branch
+- Resolving merge conflicts on a PR branch
 
 ## When NOT to Use
 
 - For commit-message format and atomicity → use `commit-discipline`.
-- For evaluating someone else's MR → use `code-quality-rules`.
+- For evaluating someone else's PR → use `code-quality-rules`.
 
-## Opening an MR
+## Opening a PR
 
 Before opening, complete this checklist:
 
-- **Reconcile `plan.md` (if one exists for this branch's task)**: Confirm it has been reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`. Stale plans mislead reviewers and corrupt retro extraction. Surface this as a self-review question on the MR template ("plan.md reconciled? y/n") so the reviewer can spot-check.
+- **Reconcile `plan.md` (if one exists for this branch's task)**: Confirm it has been reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`. Stale plans mislead reviewers and corrupt retro extraction. Surface this as a self-review question on the PR template ("plan.md reconciled? y/n") so the reviewer can spot-check.
 - **Self-review the diff**: Read every changed file as if you were the reviewer. Fix anything you'd flag.
-- **Verify the branch builds and tests pass**: Include the evidence in the MR description.
-- **Check for unintended changes**: Stray formatting, debug code, unrelated refactors — remove them or split into separate MRs.
+- **Verify the branch builds and tests pass**: Include the evidence in the PR description.
+- **Check for unintended changes**: Stray formatting, debug code, unrelated refactors — remove them or split into separate PRs.
 
 ## Writing the Description
 
-- **Title**: Use the same format as commit messages — read `.context/workflows/commit-conventions.md` and apply **exactly** that format (ticket prefix, case, separator). If that file is absent, fall back to `Jira Ticket ID: Brief description`.
-- **Link to story/task**: Reference the Jira ticket, GitLab issue, or `.context/tasks/` artifact.
+- **Title**: Use the same format as commit messages — read `.context/workflows/commit-conventions.md` and apply **exactly** that format (issue prefix, case, separator). If that file is absent, fall back to `Issue #123: Brief description`.
+- **Link to story/task**: Reference the GitHub issue (`#123`), or `.context/tasks/` artifact.
 - **What changed and why**: Summarize the approach, not the diff. Reviewers can read the diff — explain what it doesn't show (design decisions, rejected alternatives, context).
 - **How to test**: Steps a reviewer can follow to verify the change works. Include commands, URLs, or test names.
 - **Risks and trade-offs**: Call out anything the reviewer should scrutinize closely.
@@ -57,9 +57,11 @@ retried on timeout, causing duplicate transactions.
 - Redis dependency added for idempotency cache — requires REDIS_URL in env
 ```
 
-## MR Size
+Closing the linked issue: include a closing keyword (`Closes #123`, `Fixes #123`) in the description so the issue auto-closes on merge.
 
-- Prefer small, reviewable MRs. If an MR changes 20+ files, consider splitting.
+## PR Size
+
+- Prefer small, reviewable PRs. If a PR changes 20+ files, consider splitting.
 - If splitting isn't practical, use the description to walk the reviewer through the changes in logical order.
 
 ## Handling Review Feedback
@@ -83,22 +85,22 @@ retried on timeout, causing duplicate transactions.
 | "I'll let CI confirm tests pass" | Open with green CI evidence, not faith. Failures during review burn reviewer cycles. |
 | "Force-push after addressing feedback keeps history clean" | Force-push erases the review trail. New commits are how reviewers track what changed since their last pass. |
 | "I'll just accept ours / theirs in the conflict" | Blind resolution silently drops the other side. Read both, choose deliberately, re-test. |
-| "20+ files but all related — one MR is fine" | Reviewers fatigue. Split when you can; if you can't, walk the reviewer through the order. |
+| "20+ files but all related — one PR is fine" | Reviewers fatigue. Split when you can; if you can't, walk the reviewer through the order. |
 | "I addressed the comment in code; no reply needed" | Silence reads as ignored. Resolve or reply — never both-ignore. |
 | "It was an internal refactor — behavior didn't change" | If `.context/` describes that constraint, invariant, or architecture decision, the docs can be wrong without any user-facing change. Invoke `context-maintenance`. |
 | "I'll update `.context/` after the reviewer approves" | Re-requesting review against stale docs preserves the mismatch. Update context in the same feedback cycle before re-requesting review. |
 
 ## Red Flags — STOP and Re-Open Properly
 
-If you catch yourself doing any of these, the MR is not ready or the response is not done:
+If you catch yourself doing any of these, the PR is not ready or the response is not done:
 
 - A `plan.md` exists for this branch's task and you have not confirmed it was reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`.
-- About to open an MR without having read every changed file as if you were the reviewer.
-- About to publish the MR before writing the description.
+- About to open a PR without having read every changed file as if you were the reviewer.
+- About to publish the PR before writing the description.
 - About to force-push or amend after a reviewer has already commented.
 - About to accept "ours" or "theirs" in a merge conflict without reading both sides.
 - About to leave a review comment unresolved without a reply.
-- MR is 20+ files and you have no plan to guide the reviewer through them.
+- PR is 20+ files and you have no plan to guide the reviewer through them.
 - About to re-request review after addressing feedback that changed documented behavior without invoking `context-maintenance`.
 
 **All of these mean: pause. Open / merge / respond properly, not faster.**

@@ -28,7 +28,7 @@ Invoke the `code-quality-rules` skill. It defines the six evaluation categories 
 ## Output Format
 
 ```markdown
-## Code Review: [Feature/MR Name]
+## Code Review: [Feature/PR Name]
 
 ### Summary
 [1-2 sentence overview]

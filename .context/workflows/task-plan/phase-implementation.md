@@ -14,7 +14,7 @@ Files to create/modify:
 Patterns to follow:
   - [reference to .context/standards/skill-decomposition.md when touching skills]
   - [reference to .context/standards/changelog-discipline.md when touching CHANGELOG.md]
-  - [reference to .context/domains/skill-system.md, mcp-servers.md, or plugin-resource-paths.md as relevant]
+  - [reference to .context/domains/skill-system.md, github-access.md, or plugin-resource-paths.md as relevant]
   - [reference to commit-conventions in .context/workflows/commit-conventions.md]
 Research/architecture findings: [summary or "N/A"]
 Constraints:

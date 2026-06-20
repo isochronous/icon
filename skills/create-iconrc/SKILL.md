@@ -42,8 +42,8 @@ If invoked directly by a user without `repo_type`, prompt for it before proceedi
 ```
 
 **Field semantics:**
-- `local_task_id_prefix` — prefix for locally-originated tasks only. Jira ticket IDs are always used as-is and are never prefixed by this field.
-  - The prefix MUST NOT match (case-insensitive) any Jira / Linear / GitHub ticket prefix the project actually uses. If an agent sees a task ID it cannot tell at a glance whether to chase it in Jira; a colliding local prefix wastes effort or hallucinates context for an external ticket that does not exist. Callers (the `initialize-*` skills) detect those prefixes from `git log` and pass them via `forbidden_prefixes`.
+- `local_task_id_prefix` — prefix for locally-originated tasks only. GitHub issue references (and any other external tracker IDs) are always used as-is and are never prefixed by this field.
+  - The prefix MUST NOT match (case-insensitive) any external issue-tracker prefix the project actually uses (GitHub issue references, or any other tracker the repo references). If an agent sees a task ID it cannot tell at a glance whether to chase it in the external tracker; a colliding local prefix wastes effort or hallucinates context for an external ticket that does not exist. Callers (the `initialize-*` skills) detect those prefixes from `git log` and pass them via `forbidden_prefixes`.
   - The default placeholder is `LOCAL`. Pick a real-feeling but unambiguous local prefix per project (e.g., `INT`, `OPS`, or stay with `LOCAL`).
   - Local task IDs MUST use the format `<PREFIX>-<NNN>` with a numeric suffix at least 3 digits wide and zero-padded (`LOCAL-001`, `LOCAL-042`, `LOCAL-128`). Repos may pad wider (e.g., 4-wide as `MKT-0092`) but MUST NOT use fewer than 3 digits or unpadded numerics.
 - `forbidden_prefixes` — caller-supplied list of ticket prefixes (typically detected from `git log`) that `local_task_id_prefix` must not collide with. Compared case-insensitively. Used at validation time; not persisted in `.context/iconrc.json`.
@@ -194,5 +194,5 @@ git commit -m "chore: update .context/iconrc.json"   # update path
 | Adding `branch_pattern` | This field is removed by design. Do not add it back. |
 | Skipping the commit | Always commit after creating or updating the file. |
 | Applying `excludes` during fresh init | `excludes` only applies on re-runs. A fresh init has no `.iconrc` to read from. |
-| Choosing a prefix that matches a real Jira/Linear/GitHub project key | Inspect `git log` for ticket prefixes; pick a distinct local prefix (default `LOCAL`). |
+| Choosing a prefix that matches a real external issue-tracker key (e.g., a GitHub issue reference convention) | Inspect `git log` for ticket prefixes; pick a distinct local prefix (default `LOCAL`). |
 | Using fewer than 3 digits or unpadded numerics in task IDs | Format is `<PREFIX>-<NNN>` minimum, leading zeros (e.g., `LOCAL-001`, `LOCAL-042`). |

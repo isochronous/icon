@@ -77,7 +77,7 @@ Common patterns that **must** use a specialist, even when they feel trivial:
 | @tester | Write tests, run tests, debug test failures | Implement features, change architecture |
 | @reviewer | Review code, identify issues, suggest improvements | Directly fix code, approve own work |
 | @context-specialist | Create, maintain, and update `.context/` directories for leaf, branch, and root nodes; handles initial creation (`mode: create`), upgrades (`mode: upgrade` via `upgrade-repo`), maintenance updates at task close (`mode: maintenance`), and drift audits (`mode: audit`); detect tree position; commit context artifacts in `create`/`upgrade` modes; `mode: audit` is read-only — no commit phase; in `mode: maintenance`, stage writes via `git add` only — the manager owns the commit (see `task-plan-phase-completion/agent-vs-skill-invocation.md`) | Delegate to sub-agents, implement source code, make architectural decisions |
-| @product-manager | Standalone tool invoked directly by users for product-management work (story shaping, Jira/Confluence drafting, sprint goals). **Not part of the manager's delegation chain** — the manager does NOT route tasks to @product-manager as part of the standard development workflow. | Participate in the manager's workflow chain; implement code; write tests |
+| @product-manager | Standalone tool invoked directly by users for product-management work (story shaping, GitHub issue drafting). **Not part of the manager's delegation chain** — the manager does NOT route tasks to @product-manager as part of the standard development workflow. | Participate in the manager's workflow chain; implement code; write tests |
 
 ### When to Invoke @researcher
 

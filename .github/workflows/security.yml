@@ -1,0 +1,54 @@
+# Security scans — ported from .gitlab-ci.yml security stage (ICON-0080).
+#
+# Mirrors the three GitLab security jobs as GitHub Actions: gitleaks
+# (secret scan), semgrep (SAST), and shellcheck (shell linting). Each job
+# pins the same scanner version the GitLab pipeline used and reproduces its
+# scan invocation. Runs on push and pull_request.
+name: security
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  secret-scan:
+    name: secret-scan (gitleaks)
+    runs-on: ubuntu-latest
+    container:
+      image: zricethezav/gitleaks:v8.30.1
+    steps:
+      - uses: actions/checkout@v4
+      # Working-tree scan; --redact keeps secrets out of the CI log; fail on find.
+      - name: gitleaks detect
+        run: gitleaks detect --source . --no-git --redact --verbose --exit-code 1
+
+  sast:
+    name: sast (semgrep)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.167.0
+    steps:
+      - uses: actions/checkout@v4
+      # p/ci: curated low-FP cross-language ruleset (JS hooks + shell). --error
+      # exits non-zero on findings.
+      - name: semgrep scan
+        run: semgrep scan --config p/ci --error .
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    container:
+      image: koalaman/shellcheck-alpine:v0.11.0
+    steps:
+      - uses: actions/checkout@v4
+      # busybox-safe (no bash/mapfile): the *.sh set minus the ICON-0013 artifact,
+      # plus the two git hooks, in two clean invocations.
+      - name: install git
+        run: apk add --no-cache git
+      - name: mark workspace safe
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      # Gate on real issues (warning + error); style/info findings are advisory.
+      - name: shellcheck *.sh
+        run: git ls-files '*.sh' | grep -v 'ICON-0013' | xargs -r shellcheck --severity=warning
+      - name: shellcheck git hooks
+        run: shellcheck --severity=warning .githooks/pre-commit .githooks/post-commit

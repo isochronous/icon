@@ -23,7 +23,7 @@
 Change proposed: [description of what the plan calls for]
 Architecture context:
   - [key fact from .context/standards/skill-decomposition.md — name the section]
-  - [key fact from .context/domains/skill-system.md or domains/mcp-servers.md]
+  - [key fact from .context/domains/skill-system.md or domains/github-access.md]
   - [key constraint from .context/decisions/ — name the ADR (e.g., ADR-002 main-only branching)]
 Specific questions:
   - [question about thin-router boundaries, dispatcher-prompt variable convention, or agent/skill role overlap]

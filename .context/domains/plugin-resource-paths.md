@@ -17,13 +17,13 @@ Resources at the plugin root — e.g., `context_template/` — are accessed via 
 
 **Copilot CLI — Bash:**
 ```bash
-${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/datascan-marketplace/ICON/<resource>
+${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/icon-marketplace/ICON/<resource>
 ```
 
 **Copilot CLI — PowerShell:**
 ```powershell
 $CopilotHome = if ($env:COPILOT_HOME) { $env:COPILOT_HOME } else { "$HOME\.copilot" }
-$CopilotHome\installed-plugins\datascan-marketplace\ICON\<resource>
+$CopilotHome\installed-plugins\icon-marketplace\ICON\<resource>
 ```
 
 ---
@@ -39,7 +39,7 @@ Resources co-located with a specific skill's `SKILL.md` — e.g., scripts or tem
 
 **Copilot CLI — Bash:**
 ```bash
-${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/datascan-marketplace/ICON/skills/<skill-name>/<resource>
+${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/icon-marketplace/ICON/skills/<skill-name>/<resource>
 ```
 
 ---

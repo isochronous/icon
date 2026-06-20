@@ -10,7 +10,7 @@
 
 ---
 
-This RFC consolidates email functionality across the DataScan ecosystem and eliminates the need for individual applications to manage their own email infrastructure.
+This RFC consolidates email functionality across the product ecosystem and eliminates the need for individual applications to manage their own email infrastructure.
 
 ## Background
 
@@ -24,7 +24,7 @@ The existing mailing service is operational and provides basic email functionali
 - **Cost Inefficiencies**: Current implementation has higher operational costs than necessary.
 - **Reliability Concerns**: Occasional delivery delays and failures during peak periods.
 
-With the growth of our user base and the expansion of DataScan product offerings, email volume has increased significantly. The current mailing infrastructure is becoming strained and requires reconsideration to meet future demands.
+With the growth of our user base and the expansion of product offerings, email volume has increased significantly. The current mailing infrastructure is becoming strained and requires reconsideration to meet future demands.
 
 ### Desired State
 
@@ -119,7 +119,7 @@ POST /api/v1/email-templates
 - Webhook tracking for email delivery status.
 - Support for both simple and complex email templates (HTML/CSS).
 - Integration with the branding service for template-specific images.
-- Usable across all DataScan applications.
+- Usable across all applications in the ecosystem.
 
 **Out of Scope / Constraints**:
 - Calling applications **cannot** pass arbitrary templates — they must use a pre-registered template.

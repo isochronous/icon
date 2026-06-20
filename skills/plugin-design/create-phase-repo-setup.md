@@ -38,14 +38,9 @@ git commit -m "Initial plugin scaffold"
 
 ## Remote (optional)
 
-If the user wants to push to a remote, offer the GitLab and GitHub forms. Do not auto-execute — provide the command and let the user run it after confirming the URL.
+If the user wants to push to a remote, offer the GitHub forms. Do not auto-execute — provide the command and let the user run it after confirming the URL.
 
 ```bash
-# GitLab (HTTPS)
-git remote add origin https://gitlab.com/<group>/<plugin-repo>.git
-# GitLab (SSH)
-git remote add origin git@gitlab.com:<group>/<plugin-repo>.git
-
 # GitHub (HTTPS)
 git remote add origin https://github.com/<user-or-org>/<plugin-repo>.git
 # GitHub (SSH)

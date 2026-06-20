@@ -16,7 +16,7 @@ This skill produces RFC (Request for Comments) documents that meet ORG-004 stand
 
 Both entrypoints converge on the same authoritative ORG-004 schema and the same quality checklist — the output format does not diverge based on how the RFC was started.
 
-Reference documentation: [RFC-001 RFC Process](https://onedatascan.atlassian.net/wiki/spaces/DAA/pages/5982879965/RFC-001+RFC+Process) · [General RFC Guidance](https://onedatascan.atlassian.net/wiki/spaces/DAA/pages/6080626827/General+RFC+Guidance)
+Reference documentation: `<your-rfc-process-doc>` (RFC-001 RFC Process) · `<your-rfc-guidance-doc>` (General RFC Guidance) — link these to your team's RFC index (e.g. a `docs/rfc/` directory or the repository wiki).
 
 ### Why RFCs Matter
 
