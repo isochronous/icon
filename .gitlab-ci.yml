@@ -1,0 +1,60 @@
+# .gitlab-ci.yml
+# -----------------------------------------------------------------------------
+# SHARED CI CONFIG — security stage (ICON-0075).
+#
+# Intentionally minimal and single-stage so the container `build` stage from
+# MR !38 (dw/copilot-containers) folds in on rebase with minimal conflict:
+# David adds `build` to `stages:` and appends his job(s).
+#
+# Every job MUST carry `tags: [devqa-common-saas]` — the project's
+# Docker-executor runner (shared runners are not used). These are custom
+# `script` jobs, NOT GitLab managed templates, so they run on any tier.
+# -----------------------------------------------------------------------------
+
+stages:
+  - security
+
+# One pipeline per change: MR pipeline when an MR is open, else a branch
+# pipeline. Avoids duplicate detached-MR + branch pipelines.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+secret-scan:
+  stage: security
+  tags: [devqa-common-saas]
+  image:
+    name: zricethezav/gitleaks:v8.30.1
+    entrypoint: [""]
+  script:
+    # Working-tree scan; --redact keeps secrets out of the CI log; fail on find.
+    - gitleaks detect --source . --no-git --redact --verbose --exit-code 1
+
+sast:
+  stage: security
+  tags: [devqa-common-saas]
+  image:
+    name: semgrep/semgrep:1.167.0
+    entrypoint: [""]
+  script:
+    # p/ci: curated low-FP cross-language ruleset (JS hooks + shell). --error
+    # exits non-zero on findings.
+    - semgrep scan --config p/ci --error .
+
+shellcheck:
+  stage: security
+  tags: [devqa-common-saas]
+  image:
+    name: koalaman/shellcheck-alpine:v0.11.0
+    entrypoint: [""]
+  script:
+    # busybox-safe (no bash/mapfile): the *.sh set minus the ICON-0013 artifact,
+    # plus the two git hooks, in two clean invocations.
+    - apk add --no-cache git
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    # Gate on real issues (warning + error); style/info findings are advisory.
+    - git ls-files '*.sh' | grep -v 'ICON-0013' | xargs -r shellcheck --severity=warning
+    - shellcheck --severity=warning .githooks/pre-commit .githooks/post-commit

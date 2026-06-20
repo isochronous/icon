@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Git post-commit hook: prune .context/cache/ (configurable TTL via
+# .context/iconrc.json `cache_expires_after_days`, default 30 days) and old
+# .context/tasks/ folders (90 days, integration branches only).
+# Installed via: git config core.hooksPath .githooks
+bash "$(git rev-parse --show-toplevel)/.context/workflows/prune-context.sh"

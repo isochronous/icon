@@ -1,0 +1,54 @@
+# Pre-Flight Exploration
+
+Discipline that applies BEFORE dispatching @architect or @coder on a non-trivial task: pre-flight @explorer on audit-finding tasks so the architecture spec operates on real tree-state facts, and pre-flight retrospectives.md reading so prior lessons become named constraints in plan.md and the dispatch.
+
+## Pre-Flight Explore on Audit-Finding Tasks
+
+When a task originates from an audit finding (an `icon-audit` issue, a doc-sweep ticket, or any work item whose architecture spec or @coder dispatch will rely on "what's actually out there in the tree right now"), dispatch a **pre-flight @explorer sub-agent** to produce a load-bearing factual artifact BEFORE invoking @architect.
+
+**What the pre-flight produces**: a concrete, characterized inventory of the tree state the architecture spec needs to assume — not just "list the matches" but "characterize each match" (legitimate vs accidental, in-scope vs out-of-scope, current count vs threshold). The artifact then becomes a named input to the architecture spec, and the spec can plan around real numbers rather than estimates.
+
+**Four narrow sub-patterns observed**:
+
+1. **Enumeration pre-flight** — when the audit finding implies "find all instances of X across the tree": dispatch Explore to enumerate every instance and characterize each. Examples:
+   - **ICON-0030**: Explore enumerated every placeholder marker in the repo and characterized whether each was legitimate (zero accidental unfilled values), which made the marker convention load-bearing in the architecture rather than optional.
+   - **ICON-0032**: Explore enumerated `.context/<sub>/<file>.<ext>` references and characterized each as live or dead, which let the architect bake the dead-ref resolver scope before @coder dispatch. (The pre-flight missed 10 fence-blind cases; lesson recorded separately — see retro for the "pre-flight grep must be byte-equal to the implementation's grep" refinement.)
+2. **Measurement pre-flight** — when the audit finding pairs a budget/threshold with a set of trims: dispatch Explore to measure the current value of the metric AND simulate the proposed trims against it. Example:
+   - **ICON-0033**: Explore measured current `using-skills/SKILL.md` line count and simulated the proposed extraction; this surfaced "extraction alone hits 511 lines, secondary trim required" BEFORE the architecture spec was written, which let @architect bake the secondary-trim recommendation (extract Testing All Skill Types + 1-line STOP trim → 499 lines) into the spec rather than @coder discovering the gap mid-implementation.
+3. **Characterization-plus-open-questions pre-flight** — when the audit finding implies architectural ambiguity (the issue body names a problem but leaves the design space open): dispatch Explore with an instruction to "characterize what is present, do not just confirm presence; surface architectural ambiguities as named open questions the architect must resolve." The artifact then becomes a Q1–Q*N* decision list the architect's spec answers explicitly. Example:
+   - **ICON-0035**: Explore characterized the init-orchestrator + context-resolution surfaces (find-context-template, resolve-repo-context, context-specialist-detect-tree-position, context-specialist-impl-root) and surfaced 6 named open questions covering placeholder convention, glob-vs-walk strategy, monorepo vs workspace differentiation, branch-vs-root impl-skill scoping, and won't-fix policy framing for the caller-listing audit findings. The architect's spec resolved each as Q1–Q6 with explicit rationale; @coder operated on resolved decisions rather than re-litigating mid-implementation.
+4. **Citation-drift detection pre-flight** — when the audit finding cites specific file paths and line numbers (e.g., from an `icon-audit` issue), dispatch Explore to verify each cited anchor against the current tree AND wider-grep the cited literal across the tree to surface drift the issue body did not enumerate. The artifact distinguishes (i) cites-that-still-resolve, (ii) cites-that-drifted-to-different-files (the cited path is wrong, the literal lives elsewhere), and (iii) additional sites the issue body missed. Example:
+   - **ICON-0037**: Explore brief instructed "verify each cited line/range AND wider grep for the literal across the tree" for the m-U-A through m-U-I sub-tasks. Result surfaced (i) m-U-D's cited `writing-skills/SKILL.md:495` had drifted — the actual `TaskCreate` references lived in two sub-files (`skill-creation-checklist.md:6`, `persuasion-principles.md:36`); (ii) m-U-I's 6 brief-level provenance references the issue body did not enumerate; (iii) m-U-C's 10 additional drift sites beyond the 3 the issue cited. Without anchor verification, @coder would have hit the wrong file on m-U-D mid-implementation.
+   - **ICON-0038**: issue #23 line/file citations verified pre-dispatch; surfaced m-n1 as auto-discharged by ICON-0031 (saved a sub-task roundtrip) and a cosmetic off-by-one on m-n3 (26-39 vs cited 27-38, fence-inclusive).
+
+**Why pre-flight, not in-architect**: @architect operating on estimates produces specs that fail at @coder time when the estimates are wrong. The pre-flight Explore is cheap (~60-120s wall-clock, Sonnet baseline) and the cost is recouped on the first prevented spec-rewrite or scope-expansion mid-implementation. The pattern has held across six audit-finding tasks now (ICON-0030, ICON-0032, ICON-0033, ICON-0035, ICON-0037, ICON-0038) — two enumerations, one measurement, one characterization-plus-open-questions, and two citation-drift detections — meeting the 3+-task stability gate on the broad axis with four distinct narrow sub-patterns.
+
+**When NOT to use**: tasks where the architecture spec doesn't depend on tree-state facts (e.g., a single-file edit with verbatim replacement text in the issue body; a new skill creation where the inputs are the user's design intent rather than the existing tree). The pre-flight cost is wasted if the architect won't consume the artifact.
+
+**How to dispatch**: invoke @explorer with a prompt that names (a) the concrete grep/measurement to run, (b) the characterization instruction ("for each match, classify as ..." or "report metric value AND simulated value under proposed change Y"), and (c) the named output format the architect will consume (typically a short table or a counted list). Do not dispatch @explorer with "look at the repo and tell me what's there" — that produces narrative, not load-bearing input.
+
+
+## Pre-Flight Retro Reading Translates Into Implementation Constraints
+
+Before drafting plan.md Decisions and the @coder dispatch on any non-trivial task, **read the recent retrospectives.md entries** (typically the last 3–6) and translate each applicable prior lesson into a named constraint in the current task's plan and dispatch. The pattern is not "be aware of prior retros" — it is "the dispatch's Hard Constraints section is the place where prior retro lessons become enforceable for THIS task."
+
+**Three narrow sub-patterns observed**:
+
+1. **Gate-checklist adoption** — when a prior retro promoted a process pattern (e.g., ICON-0033's verbatim acceptance-gate checklist), the current task's architect spec adopts the pattern directly. The architect is not "inspired by" the retro; the dispatch instructs the architect to use the pattern, named with its retro origin. Example: **ICON-0035** — architect spec's 13 acceptance gates explicitly traced to ICON-0033's pattern; the dispatch named ICON-0033 as the precedent the architect was expected to honor.
+2. **Fallback-chain restatement** — when a prior retro identified a single-command verification path as fragile (e.g., ICON-0034's `pyyaml` parser-not-found discovery), the current dispatch names the full fallback chain inline. Example: **ICON-0035** — the dispatch's "Frontmatter safety" section named the parser fallback chain (`pyyaml → node-js-yaml → ruby`) with exact invocations for each, so the @coder had no decision to make when the first parser was unavailable.
+3. **Project-rule restatement** — when a prior retro caught a reflexively-violated project rule (e.g., ICON-0030's `2>/dev/null` suppression, ICON-0030's macOS BSD portability), the current dispatch's Hard Constraints section names the constraint AND the alternative pattern. Example: **ICON-0035** — the dispatch's "Hard constraints" section named no-`2>/dev/null` and BSD/GNU portability (`sort -V` callout), each with the safe alternative.
+
+**Why this is distinct from "Echo Decisional Inputs Into Dispatch"**: Echo Decisional Inputs covers constraints originating in THIS task (the issue body, the user's clarifications, project rules surfaced for this work). Pre-Flight Retro Reading covers constraints originating in PRIOR tasks (retro entries with lessons that apply to the current axis). Both produce constraints in the dispatch; the trigger and the source differ.
+
+**Why not just rely on the agent reading retros at task time**: by the time the @coder is dispatched, the architect spec is fixed. Retro lessons that should have shaped the spec (e.g., "use a verbatim gate checklist, not prose acceptance") cannot retroactively reshape it. The pre-flight retro read is what gives plan.md Decisions and the architect's dispatch the named constraints; downstream, both architect and @coder operate on them.
+
+**When NOT to use**: trivial single-file edits where the dispatch is one acceptance criterion; tasks where no recent retros apply (rare — at minimum the rolling-log cap means there are 10 entries to scan, and a 60-second skim catches the 3–6 relevant ones).
+
+**How to dispatch**: open `.context/retrospectives.md`, scan the last 6 entries' Avoid + Repeat sections, identify the entries on the current task's axis (process change, audit finding, infrastructure edit, etc.), and translate each applicable lesson into a single named line in plan.md Decisions AND a corresponding Hard Constraint or sub-task brief in the @coder dispatch. Cost: ~3-5 minutes of reading per task; the dispatch grows by ~30–80 tokens per restated rule; each restated rule has zero violations downstream in the cases observed.
+
+**Precedents**: ICON-0030 (named the no-`2>/dev/null` rule from a prior axis — first restate-likely-violated-rule instance), ICON-0033 (named the gate-checklist pattern from a prior task — first gate-adoption instance), ICON-0034 (named all of: ICON-0027 inverse-phrasing, ICON-0014 renumber-backref, ICON-0031 frontmatter-parse-test — three restated rules, zero violations), ICON-0035 (named ICON-0033 gate-checklist adoption + ICON-0034 parser-fallback chain + ICON-0030 project-rule restate — three distinct narrow sub-patterns in one task). Four instances on the broad axis, three distinct narrow sub-patterns named; 3+-task stability gate met.
+
+
+---
+
+See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.

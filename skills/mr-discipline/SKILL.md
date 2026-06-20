@@ -1,0 +1,104 @@
+---
+name: mr-discipline
+description: >
+  Use when opening a merge request, writing an MR description, addressing review feedback, or resolving merge conflicts — including when about to open an MR without self-reviewing the diff, when writing the description as an afterthought, when force-pushing over reviewer feedback, when accepting "ours" or "theirs" in a merge conflict without reading both sides, or when an MR exceeds 20 files without a guided description.
+user-invocable: false
+---
+
+# MR Discipline
+
+## Overview
+
+**An MR is a contract with the reviewer.** Before you open one, the diff should be self-reviewed, the build green, and the description complete. After you open one, every comment gets addressed and every fix lands as a new commit — not a force-push that invalidates the review trail.
+
+## When to Use
+
+- About to open a merge request
+- Writing or refining an MR description
+- Responding to review feedback
+- Resolving merge conflicts on an MR branch
+
+## When NOT to Use
+
+- For commit-message format and atomicity → use `commit-discipline`.
+- For evaluating someone else's MR → use `code-quality-rules`.
+
+## Opening an MR
+
+Before opening, complete this checklist:
+
+- **Reconcile `plan.md` (if one exists for this branch's task)**: Confirm it has been reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`. Stale plans mislead reviewers and corrupt retro extraction. Surface this as a self-review question on the MR template ("plan.md reconciled? y/n") so the reviewer can spot-check.
+- **Self-review the diff**: Read every changed file as if you were the reviewer. Fix anything you'd flag.
+- **Verify the branch builds and tests pass**: Include the evidence in the MR description.
+- **Check for unintended changes**: Stray formatting, debug code, unrelated refactors — remove them or split into separate MRs.
+
+## Writing the Description
+
+- **Title**: Use the same format as commit messages — read `.context/workflows/commit-conventions.md` and apply **exactly** that format (ticket prefix, case, separator). If that file is absent, fall back to `Jira Ticket ID: Brief description`.
+- **Link to story/task**: Reference the Jira ticket, GitLab issue, or `.context/tasks/` artifact.
+- **What changed and why**: Summarize the approach, not the diff. Reviewers can read the diff — explain what it doesn't show (design decisions, rejected alternatives, context).
+- **How to test**: Steps a reviewer can follow to verify the change works. Include commands, URLs, or test names.
+- **Risks and trade-offs**: Call out anything the reviewer should scrutinize closely.
+- **Screenshots or recordings**: For UI changes, before/after screenshots are mandatory, not optional.
+
+```markdown
+## Summary
+- Added idempotency check to webhook processing using event ID
+
+## Why
+Webhooks were being processed multiple times when the provider
+retried on timeout, causing duplicate transactions.
+
+## How to Test
+1. Run `npm test -- --grep "webhook"` — all pass
+2. POST the same webhook payload twice — second returns 200 but no-ops
+
+## Risks
+- Redis dependency added for idempotency cache — requires REDIS_URL in env
+```
+
+## MR Size
+
+- Prefer small, reviewable MRs. If an MR changes 20+ files, consider splitting.
+- If splitting isn't practical, use the description to walk the reviewer through the changes in logical order.
+
+## Handling Review Feedback
+
+- Address every comment — resolve, reply, or discuss. Don't leave comments hanging.
+- Push fixes as new commits (not force-push or amend) so reviewers can see what changed since their review.
+- Before re-requesting review, check whether any addressed feedback changed documented behavior. If any feedback-driven change makes an existing `.context/` statement false, incomplete, or missing — invoke `context-maintenance`. Resolve the mismatch in the same feedback cycle, not after approval.
+- Re-request review after addressing feedback.
+
+## Merge Conflicts
+
+- Resolve conflicts by rebasing or merging from the target branch — don't blindly accept "ours" or "theirs".
+- After resolving, re-run tests to confirm the resolution didn't break anything.
+
+## Rationalization Prevention
+
+| Excuse | Reality |
+|--------|---------|
+| "I'll add the description after I open it" | Reviewers get notified immediately; an empty description sets the wrong expectation. Write it before opening. |
+| "The diff is self-explanatory" | The diff shows what changed, not why. Reviewers need the why. |
+| "I'll let CI confirm tests pass" | Open with green CI evidence, not faith. Failures during review burn reviewer cycles. |
+| "Force-push after addressing feedback keeps history clean" | Force-push erases the review trail. New commits are how reviewers track what changed since their last pass. |
+| "I'll just accept ours / theirs in the conflict" | Blind resolution silently drops the other side. Read both, choose deliberately, re-test. |
+| "20+ files but all related — one MR is fine" | Reviewers fatigue. Split when you can; if you can't, walk the reviewer through the order. |
+| "I addressed the comment in code; no reply needed" | Silence reads as ignored. Resolve or reply — never both-ignore. |
+| "It was an internal refactor — behavior didn't change" | If `.context/` describes that constraint, invariant, or architecture decision, the docs can be wrong without any user-facing change. Invoke `context-maintenance`. |
+| "I'll update `.context/` after the reviewer approves" | Re-requesting review against stale docs preserves the mismatch. Update context in the same feedback cycle before re-requesting review. |
+
+## Red Flags — STOP and Re-Open Properly
+
+If you catch yourself doing any of these, the MR is not ready or the response is not done:
+
+- A `plan.md` exists for this branch's task and you have not confirmed it was reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`.
+- About to open an MR without having read every changed file as if you were the reviewer.
+- About to publish the MR before writing the description.
+- About to force-push or amend after a reviewer has already commented.
+- About to accept "ours" or "theirs" in a merge conflict without reading both sides.
+- About to leave a review comment unresolved without a reply.
+- MR is 20+ files and you have no plan to guide the reviewer through them.
+- About to re-request review after addressing feedback that changed documented behavior without invoking `context-maintenance`.
+
+**All of these mean: pause. Open / merge / respond properly, not faster.**

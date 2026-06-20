@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.githooks/pre-commit)",
+      "mcp__gitlab__get_issue",
+      "mcp__gitlab__get_merge_request",
+      "mcp__gitlab__list_issues",
+      "mcp__gitlab__list_labels"
+    ]
+  }
+}

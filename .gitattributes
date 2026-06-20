@@ -1,0 +1,11 @@
+# Retrospective logs are append-mostly. When two branches each add a different
+# entry, a normal 3-way merge conflicts: on `retrospectives.md` at the shared
+# top-of-file insertion (entries are prepended, newest-first), and on
+# `retrospectives-archive.md` at the shared end-of-file insertion (pruned
+# entries are appended). Both conflicts are verified, not theoretical. The
+# built-in `union` merge driver keeps BOTH sides' added lines instead of
+# conflicting — the right outcome for a lessons log (never lose a retro to a
+# merge). A transient over-cap on retrospectives.md self-heals on the next
+# append, which re-prunes to the cap and archives the overflow.
+retrospectives.md          merge=union
+retrospectives-archive.md  merge=union

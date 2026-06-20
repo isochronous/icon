@@ -1,0 +1,8 @@
+{
+  "version": "1.7",
+  "repo_type": "project",
+  "local_task_id_prefix": "LOCAL",
+  "default_branch": "main",
+  "cache_expires_after_days": 30,
+  "excludes": []
+}

@@ -1,0 +1,8 @@
+{
+  "version": "1.2",
+  "repo_type": "project",
+  "local_task_id_prefix": "ICON",
+  "default_branch": "main",
+  "cache_expires_after_days": 30,
+  "excludes": ["architecture", "testing", "styling"]
+}

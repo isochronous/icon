@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "icon-local",
+  "description": "Local marketplace for the ICON multi-agent orchestration plugin",
+  "owner": {
+    "name": "DataScan Engineering"
+  },
+  "plugins": [
+    {
+      "name": "ICON",
+      "description": "ICON (Independent Context Orchestration Network) — A project-agnostic multi-agent orchestration system.",
+      "source": "./"
+    }
+  ]
+}

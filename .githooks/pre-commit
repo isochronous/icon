@@ -1,0 +1,898 @@
+#!/usr/bin/env bash
+# Git pre-commit hook: keep the `common-constraints` block in every
+# agents/*.agent.md byte-equal to shared/common-constraints.md, plus
+# additional invariants added in ICON-0032.
+#
+# Behavior:
+#   - Reads shared/common-constraints.md as the authoritative source.
+#   - For each agents/*.agent.md, finds the block between
+#     `<!-- BEGIN: common-constraints -->` and `<!-- END: common-constraints -->`
+#     and rewrites it to match the source when it drifts.
+#   - Re-stages any file it rewrites so the commit includes the synced content.
+#   - Aborts on structural errors (missing source, orphan marker, stray END
+#     before any BEGIN, or BEGIN+END on the same line).
+#   - Marker detection is fenced-code-block aware (CommonMark §4.5 block
+#     fences; inline code is still treated as content): markers that appear
+#     inside a backtick or tilde fenced code block are treated as literal
+#     text, not as sync markers.
+#
+# Additional invariants (ICON-0032, ICON-0044) — in script-execution order:
+#   1. iconrc.json version-bump gate — any staged add/modify/delete under
+#      context_template/ must be accompanied by a change to the `version`
+#      field in context_template/context/iconrc.json. That field is the
+#      gate /upgrade-repo Phase 2 uses to decide whether to apply template
+#      updates to a consumer's installed .context/; without a bump,
+#      consumer repos silently miss the new template content. Exemption:
+#      a commit that stages only iconrc.json under context_template/ IS
+#      the bump operation.
+#   2. Script-parity check — when any append-retrospective-entry.{sh,ps1}
+#      copy is staged, requires the three copies (post-incident-review,
+#      task-retrospective, context-maintenance) to be byte-identical.
+#      Canonical source: skills/post-incident-review/scripts/.
+#   3. Dead-ref resolver — for staged files under agents/, skills/,
+#      shared/, commands/ with extension .md, .sh, .ps1, .js: flags
+#      `.context/<subdir>/<file>.<ext>` references whose corresponding
+#      `context_template/context/<subdir>/<file>.<ext>` does not exist.
+#      The ref check is fence-blind: references in backticks are checked
+#      the same as references in prose. Regions bracketed by
+#      `<!-- pre-commit:dead-ref-ok-start -->` and the matching
+#      `-end -->` marker are exempt — for use in migration shell that
+#      operates on consumer-only paths (ICON-0040 precedent).
+#
+# Note: .githooks/ is local-only repo infrastructure and does not ship to
+# consumers. The three-surface sweep rule
+# (.context/workflows/ <-> context_template/ <-> skills/<phase>/SKILL.md)
+# does NOT apply to this hook. See
+# .context/standards/skill-decomposition.md § "Exception — repo-local
+# conventions" (ICON-0026 precedent).
+#
+# Installed via: git config core.hooksPath .githooks
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+source_file="$repo_root/shared/common-constraints.md"
+begin_marker='<!-- BEGIN: common-constraints -->'
+end_marker='<!-- END: common-constraints -->'
+
+# -----------------------------------------------------------------------------
+# context_template/ change gate — require iconrc.json version bump (ICON-0044)
+# -----------------------------------------------------------------------------
+# This check runs before any agent-file early-exit so it fires regardless of
+# whether the repo has agent files. Any staged add/modify/delete/rename under
+# context_template/ must be accompanied by a version-field bump in
+# context_template/context/iconrc.json. The iconrc `version` field is what
+# /upgrade-repo Phase 2 compares against the consumer's installed copy to
+# decide whether to apply template updates; without a bump, consumer repos
+# silently miss the new template content.
+#
+# Exempt cases:
+#   - No staged changes under context_template/ — nothing to enforce.
+#   - The only staged change under context_template/ is iconrc.json itself
+#     (that change IS the bump).
+#   - Initial commit / iconrc.json absent from HEAD — no prior version to
+#     compare against; treat as satisfied.
+ICONRC_PATH="context_template/context/iconrc.json"
+
+template_staged=$(git diff --cached --name-only --diff-filter=ACMRD | grep '^context_template/' || true)
+
+if [[ -n "$template_staged" ]]; then
+  other_staged=$(echo "$template_staged" | grep -v "^${ICONRC_PATH}$" || true)
+
+  if [[ -n "$other_staged" ]]; then
+    iconrc_staged=$(echo "$template_staged" | grep "^${ICONRC_PATH}$" || true)
+
+    if [[ -z "$iconrc_staged" ]]; then
+      echo "[pre-commit] error: context_template/ changes require an iconrc.json version bump" >&2
+      echo "  staged template files:" >&2
+      echo "$other_staged" | sed 's/^/    /' >&2
+      echo "  $ICONRC_PATH is NOT staged." >&2
+      head_ver=$(git show "HEAD:$ICONRC_PATH" 2>/dev/null | grep '"version"' | grep -oP '[\d.]+' || echo "<missing>")
+      echo "  current version: $head_ver — bump and stage $ICONRC_PATH before committing." >&2
+      exit 1
+    fi
+
+    head_ver=$(git show "HEAD:$ICONRC_PATH" 2>/dev/null | grep '"version"' | grep -oP '[\d.]+' || true)
+    staged_ver=$(git show ":$ICONRC_PATH" 2>/dev/null | grep '"version"' | grep -oP '[\d.]+' || true)
+
+    # Deletion guard: iconrc.json is staged but its content is absent from the
+    # index (deleted) or has no version field. Block — a deleted/versionless
+    # iconrc.json can never satisfy the bump requirement.
+    if [[ -n "$iconrc_staged" && -z "$staged_ver" ]]; then
+      echo "[pre-commit] error: $ICONRC_PATH is staged but has no version field (or was deleted)" >&2
+      echo "  staged template files:" >&2
+      echo "$other_staged" | sed 's/^/    /' >&2
+      echo "  restore or recreate $ICONRC_PATH with a bumped version before committing." >&2
+      exit 1
+    fi
+
+    # Release-aware version comparison (ICON-0044/0062/0071): compare the staged
+    # template version against a stable per-release-cycle baseline, failing only
+    # when they are EQUAL (template changed but version not advanced beyond the
+    # baseline). The baseline is resolved through a 3-tier preference chain, each
+    # tier never weaker than the next:
+    #
+    #   Tier 1 (preferred) — the `latest` TAG's template version.
+    #     release-plugin Step 9 force-moves `latest` to every release commit
+    #     (`git tag -f latest; git push -f origin latest`), and the marketplace
+    #     consumes this repo with `ref: "latest"`. The baseline is the iconrc
+    #     version AT the `latest` tag. Because `latest` is fixed for an entire
+    #     release cycle (it only moves at the next release), the first
+    #     template-touching MR of the cycle sees staged == released and must bump
+    #     (released -> released+1); every later MR in the same cycle is already at
+    #     released+1 != released and passes WITHOUT a redundant re-bump. This
+    #     fixes the cross-MR accumulation that the merge-base baseline caused
+    #     (each merged MR advanced main, so the next MR's merge-base was already
+    #     bumped, forcing another bump — ICON-0070 drift).
+    #
+    #     `latest` is read directly (`git show latest:<iconrc>`), guarded by
+    #     `git rev-parse --verify --quiet latest`. This is NOT a global newest-tag
+    #     sort (which would ignore reachability): `latest` is a release-maintained
+    #     pointer on `main` (ADR-002 main-only), so for any branch cut from `main`
+    #     it equals the nearest reachable release. The only divergence is a branch
+    #     left open ACROSS a new release; there the gate still fails SAFE (a
+    #     spurious "please bump", never a false PASS) and a rebase reconciles it.
+    #
+    #   Tier 2 (fallback) — MERGE-BASE with the default branch (ICON-0062).
+    #     Used when the `latest` tag is absent (not fetched, shallow clone,
+    #     pre-first-release repo) or its iconrc version can't be read. Preserves
+    #     the stacked-commit
+    #     protection ICON-0062 added.
+    #
+    #   Tier 3 (final fallback) — HEAD's version (original ICON-0044).
+    #     Used when the default-branch ref can't be resolved or merge-base fails.
+    #
+    # Uncertainty always degrades to a stricter/never-weaker tier — never to
+    # "allow". The git plumbing probes below use `2>/dev/null` / `|| true`
+    # matching this block's pre-existing convention (ADR-007 forbids NEW stderr
+    # suppression; these match the established local pattern for git probes).
+
+    _compare_ver=""
+    _compare_label=""
+
+    # --- Tier 1: `latest` tag's template version ---
+    # `latest` is force-moved to every release commit by release-plugin Step 9
+    # and is the ref the marketplace consumes (`ref: "latest"`). Keying the
+    # baseline off it makes the gate agree with what consumers actually receive,
+    # and unifies the gate with release-plugin's own "last release" lookup.
+    # `latest` is a local ref only if fetched; in a fresh/CI clone it may be
+    # absent — that is exactly what the Tier-2/3 fallbacks below cover.
+    if git rev-parse --verify --quiet latest >/dev/null; then
+      _latest_ver=$(git show "latest:${ICONRC_PATH}" 2>/dev/null \
+        | grep '"version"' | grep -oP '[\d.]+' || true)
+      if [[ -n "$_latest_ver" ]]; then
+        _compare_ver="$_latest_ver"
+        _compare_label="latest tag"
+      fi
+    fi
+
+    # --- Tier 2: merge-base with the default branch (ICON-0062) ---
+    if [[ -z "$_compare_ver" ]]; then
+      # Determine default branch name.
+      _iconrc_path="$repo_root/.context/iconrc.json"
+      _default_branch=""
+      if [[ -f "$_iconrc_path" ]]; then
+        _default_branch=$(grep '"default_branch"' "$_iconrc_path" | grep -oP '(?<=: ")[^"]+' || true)
+      fi
+      if [[ -z "$_default_branch" ]]; then
+        _default_branch="main"
+      fi
+
+      # Resolve the default branch ref; fall back to master if main doesn't exist.
+      _use_head_fallback=0
+      if ! git rev-parse --verify "refs/heads/$_default_branch" > /dev/null 2>&1 && \
+         ! git rev-parse --verify "refs/remotes/origin/$_default_branch" > /dev/null 2>&1; then
+        if [[ "$_default_branch" = "main" ]] && \
+           ( git rev-parse --verify "refs/heads/master" > /dev/null 2>&1 || \
+             git rev-parse --verify "refs/remotes/origin/master" > /dev/null 2>&1 ); then
+          _default_branch="master"
+        else
+          _use_head_fallback=1
+        fi
+      fi
+
+      if (( _use_head_fallback == 0 )); then
+        _merge_base=$(git merge-base HEAD "$_default_branch" 2>/dev/null || true)
+        if [[ -n "$_merge_base" ]]; then
+          _baseline_ver=$(git show "${_merge_base}:${ICONRC_PATH}" 2>/dev/null \
+            | grep '"version"' | grep -oP '[\d.]+' || true)
+          if [[ -n "$_baseline_ver" ]]; then
+            _compare_ver="$_baseline_ver"
+            _compare_label="merge-base ($_default_branch)"
+          fi
+        fi
+      fi
+    fi
+
+    # --- Tier 3: HEAD (original ICON-0044) ---
+    if [[ -z "$_compare_ver" ]]; then
+      _compare_ver="$head_ver"
+      _compare_label="HEAD"
+    fi
+
+    if [[ -n "$_compare_ver" && "$_compare_ver" = "$staged_ver" ]]; then
+      echo "[pre-commit] error: context_template/ changes detected but $ICONRC_PATH version has not been bumped for this release" >&2
+      echo "  current version: $_compare_ver (must be bumped relative to $_compare_label)" >&2
+      echo "  staged template files:" >&2
+      echo "$other_staged" | sed 's/^/    /' >&2
+      exit 1
+    fi
+  fi
+fi
+
+if [[ ! -f "$source_file" ]]; then
+  echo "[pre-commit] error: source file not found: $source_file" >&2
+  exit 1
+fi
+
+shopt -s nullglob
+agent_files=("$repo_root"/agents/*.agent.md)
+shopt -u nullglob
+
+if (( ${#agent_files[@]} == 0 )); then
+  exit 0
+fi
+
+src_content="$(cat "$source_file"; printf x)"
+src_content="${src_content%x}"
+
+for file in "${agent_files[@]}"; do
+  tmp_file="$(mktemp)"
+  status_file="$(mktemp)"
+  # Single awk pass: tracks fenced-code-block state (CommonMark §4.5), counts
+  # BEGIN/END markers that occur OUTSIDE any fence, rewrites the real block,
+  # and emits a result word for the shell wrapper to act on.
+  #
+  # Fence-state scope: fence tracking is strictly an OUTSIDE-block concern.
+  # When entering a real BEGIN/END block the awk resets fence state, and when
+  # leaving it resets again. This guarantees that a stale `` ``` `` inside the
+  # to-be-replaced block cannot leave inside_fence == 1 active for subsequent
+  # post-block lines, and that an in-block drop predicate of `inside_block==1`
+  # alone is sufficient.
+  #
+  # Result words (written to STATUS_FILE):
+  #   NONE             — no real markers found; file is left unchanged.
+  #   OK               — real BEGIN+END pair found and block was emitted.
+  #   ORPHAN_BEGIN     — BEGIN appeared outside a fence with no matching END.
+  #   ORPHAN_END       — END appeared outside a fence with no preceding BEGIN.
+  #   SAME_LINE_MARKERS — BEGIN and END markers were on the same line outside
+  #                       any fence (malformed input).
+  #
+  # ENVIRON[] passes raw bytes; `awk -v` would escape-process the value and
+  # corrupt content containing backslashes or other awk escapes.
+  BLOCK="$src_content" \
+  BEGIN_MARKER="$begin_marker" \
+  END_MARKER="$end_marker" \
+  STATUS_FILE="$status_file" \
+  awk '
+    BEGIN {
+      inside_block = 0
+      inside_fence = 0
+      fence_char = ""
+      fence_len = 0
+      saw_begin = 0
+      saw_end = 0
+      saw_stray_end = 0
+      same_line_markers = 0
+      result = "NONE"
+    }
+    {
+      line = $0
+
+      # In-block lines (between real BEGIN and END markers) are ALWAYS dropped,
+      # regardless of any apparent fence characters they may contain. Fence
+      # tracking is suspended while inside_block == 1; we replace the body
+      # wholesale from the source file, so the stale content has no semantic
+      # value at all.
+      if (inside_block == 1) {
+        if (index(line, ENVIRON["END_MARKER"]) > 0) {
+          saw_end++
+          inside_block = 0
+          # Re-enter outside-block mode; ensure fence state stays reset.
+          inside_fence = 0
+          fence_char = ""
+          fence_len = 0
+          print line
+          next
+        }
+        # Stale in-block content. Drop unconditionally.
+        next
+      }
+
+      # Detect a fence line. CommonMark §4.5 allows up to 3 leading spaces of
+      # indentation, then a run of 3+ backticks or 3+ tildes. Strip up to 3
+      # leading spaces and inspect the result.
+      stripped = line
+      if (substr(stripped, 1, 1) == " ") {
+        sub(/^ {1,3}/, "", stripped)
+      }
+
+      is_fence = 0
+      this_char = ""
+      this_len = 0
+      first = substr(stripped, 1, 1)
+      if (first == "`" || first == "~") {
+        # Count run length of the leading fence char.
+        n = length(stripped)
+        i = 1
+        while (i <= n && substr(stripped, i, 1) == first) {
+          i++
+        }
+        run = i - 1
+        if (run >= 3) {
+          # Info string is anything after the fence-char run.
+          rest = substr(stripped, i)
+          # Closers cannot have an info string (non-whitespace after the run).
+          # Trim trailing whitespace from rest to test for emptiness.
+          tmp = rest
+          sub(/[ \t]+$/, "", tmp)
+          sub(/^[ \t]+/, "", tmp)
+          has_info = (tmp == "" ? 0 : 1)
+
+          if (inside_fence == 0) {
+            # Opener: any 3+ run of backticks or tildes, with or without info.
+            # Backtick fence openers cannot contain backticks in the info string
+            # per CommonMark, but for our purposes the info string is opaque.
+            is_fence = 1
+            this_char = first
+            this_len = run
+          } else {
+            # Closer rules: same fence char, run >= opener length, no info string.
+            if (first == fence_char && run >= fence_len && has_info == 0) {
+              is_fence = 1
+              this_char = first
+              this_len = run
+            }
+          }
+        }
+      }
+
+      if (is_fence == 1) {
+        if (inside_fence == 0) {
+          inside_fence = 1
+          fence_char = this_char
+          fence_len = this_len
+        } else {
+          inside_fence = 0
+          fence_char = ""
+          fence_len = 0
+        }
+        # Fence lines are always literal output; they never act as markers.
+        print line
+        next
+      }
+
+      # Marker handling: markers only count when OUTSIDE a fence.
+      if (inside_fence == 0) {
+        has_begin = (index(line, ENVIRON["BEGIN_MARKER"]) > 0)
+        has_end = (index(line, ENVIRON["END_MARKER"]) > 0)
+
+        # BEGIN and END on the same line is malformed input.
+        if (has_begin && has_end) {
+          same_line_markers = 1
+          # Stop further processing; END block will report.
+          exit 0
+        }
+
+        if (has_begin) {
+          saw_begin++
+          inside_block = 1
+          # Reset fence state on entering a real block; in-block content does
+          # not contribute to outside-block fence tracking.
+          inside_fence = 0
+          fence_char = ""
+          fence_len = 0
+          print line
+          printf "%s", ENVIRON["BLOCK"]
+          next
+        }
+        if (has_end) {
+          # END seen outside any block — stray END before/without a BEGIN.
+          saw_stray_end = 1
+          print line
+          next
+        }
+      }
+
+      # Everything else (outside-block, non-marker, non-fence content, or
+      # inside-fence content) passes through.
+      print line
+    }
+    END {
+      if (same_line_markers == 1) {
+        result = "SAME_LINE_MARKERS"
+      } else if (saw_stray_end == 1) {
+        # A stray END outside any block trumps the otherwise-OK case: a file
+        # with `END...BEGIN...END` shape is structurally broken even though
+        # the begin/end count looks balanced.
+        result = "ORPHAN_END"
+      } else if (saw_begin == 0 && saw_end == 0) {
+        result = "NONE"
+      } else if (saw_begin > 0 && saw_end == 0) {
+        result = "ORPHAN_BEGIN"
+      } else if (saw_begin == 0 && saw_end > 0) {
+        result = "ORPHAN_END"
+      } else if (inside_block == 1) {
+        # Started a block but never closed it.
+        result = "ORPHAN_BEGIN"
+      } else {
+        result = "OK"
+      }
+      print result > ENVIRON["STATUS_FILE"]
+    }
+  ' "$file" > "$tmp_file"
+
+  status="$(cat "$status_file")"
+  rm -f "$status_file"
+
+  case "$status" in
+    NONE)
+      # No real markers in this agent file. Leave it untouched.
+      rm -f "$tmp_file"
+      ;;
+    ORPHAN_BEGIN)
+      rm -f "$tmp_file"
+      echo "[pre-commit] error: $file has '$begin_marker' but no '$end_marker'" >&2
+      exit 1
+      ;;
+    ORPHAN_END)
+      rm -f "$tmp_file"
+      echo "[pre-commit] error: $file has '$end_marker' but no '$begin_marker'" >&2
+      exit 1
+      ;;
+    SAME_LINE_MARKERS)
+      rm -f "$tmp_file"
+      echo "[pre-commit] error: $file has '$begin_marker' and '$end_marker' on the same line (not supported)" >&2
+      exit 1
+      ;;
+    OK)
+      if ! cmp -s "$tmp_file" "$file"; then
+        mv "$tmp_file" "$file"
+        git add -- "$file"
+        rel="${file#$repo_root/}"
+        echo "[pre-commit] synced common-constraints -> $rel" >&2
+      else
+        rm -f "$tmp_file"
+      fi
+      ;;
+    *)
+      rm -f "$tmp_file"
+      echo "[pre-commit] error: unexpected status '$status' for $file" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# =============================================================================
+# ICON-0032: additional invariants
+# =============================================================================
+#
+# Compute staged-file list once. Used to scope the dead-ref check and to
+# decide whether the script-parity check needs to run.
+#
+# --diff-filter=ACMR excludes Deleted entries (a deleted file can't be
+# checked) and the rarely-used T/U/X/B types. mapfile -t handles paths
+# with spaces safely; avoid `for f in $(...)` which would word-split.
+mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR)
+
+# -----------------------------------------------------------------------------
+# Path-prefix branching
+# -----------------------------------------------------------------------------
+ref_check_files=()
+script_parity_needed=0
+placeholder_check_files=()
+cap_check_files=()
+skill_registration_check_needed=0
+rules_index_check_needed=0
+shellcheck_needed=0          # ICON-0075: armed when a staged file is a shell script or git hook
+
+for f in "${staged[@]}"; do
+  # Dead-ref check scope: staged files under agents/, skills/, shared/,
+  # commands/ with extension .md, .sh, .ps1, or .js.
+  case "$f" in
+    agents/*.md|skills/*.md|shared/*.md|commands/*.md)
+      ref_check_files+=("$f") ;;
+    agents/*.sh|skills/*.sh|shared/*.sh|commands/*.sh)
+      ref_check_files+=("$f") ;;
+    agents/*.ps1|skills/*.ps1|shared/*.ps1|commands/*.ps1)
+      ref_check_files+=("$f") ;;
+    agents/*.js|skills/*.js|shared/*.js|commands/*.js)
+      ref_check_files+=("$f") ;;
+  esac
+
+  # Script-parity check fires if ANY of the six tracked copies is staged.
+  case "$f" in
+    skills/post-incident-review/scripts/append-retrospective-entry.sh|\
+    skills/post-incident-review/scripts/append-retrospective-entry.ps1|\
+    skills/task-retrospective/scripts/append-retrospective-entry.sh|\
+    skills/task-retrospective/scripts/append-retrospective-entry.ps1|\
+    skills/context-maintenance/scripts/append-retrospective-entry.sh|\
+    skills/context-maintenance/scripts/append-retrospective-entry.ps1)
+      script_parity_needed=1
+      ;;
+  esac
+
+  # O-M1a: placeholder sentinel check scope — skills/*.md and agents/*.md.
+  case "$f" in
+    skills/*.md|agents/*.md)
+      placeholder_check_files+=("$f") ;;
+  esac
+
+  # O-M1b: cap-literal consistency check — all staged text files that could
+  # carry cap-narrating prose (same scope as dead-ref: .md, .sh, .ps1, .js,
+  # plus context_template/ and .context/ text files, excluding .context/tasks/
+  # which archives historical cap values as audit evidence).
+  case "$f" in
+    agents/*.md|skills/*.md|shared/*.md|commands/*.md|\
+    agents/*.sh|skills/*.sh|shared/*.sh|commands/*.sh|\
+    agents/*.ps1|skills/*.ps1|shared/*.ps1|commands/*.ps1|\
+    agents/*.js|skills/*.js|shared/*.js|commands/*.js)
+      cap_check_files+=("$f") ;;
+    context_template/*.md|context_template/*.sh|context_template/*.ps1|context_template/*.js)
+      cap_check_files+=("$f") ;;
+    .context/*.md|.context/*.sh|.context/*.ps1|.context/*.js)
+      case "$f" in .context/tasks/*) ;; *) cap_check_files+=("$f") ;; esac ;;
+  esac
+
+  # O-V1: skill-registration check fires when any skills/** path or README.md
+  # is staged.
+  case "$f" in
+    skills/*|README.md)
+      skill_registration_check_needed=1 ;;
+  esac
+
+  # rules-index freshness check fires when ANY staged file under
+  # .context/standards/ or .context/workflows/ (top-level OR sub-directory),
+  # any numbered .context/decisions/ ADR, or .context/rules-index.md itself is
+  # staged. Sub-dir files MUST arm the trigger (ICON-0069 gap fix): a new
+  # split-folder (standards/<name>/README.md, no top-level <name>.md) would
+  # otherwise never run the now-folder-aware/bidirectional check. The script
+  # itself enforces folder-awareness, ADR inclusion, and dead-row detection.
+  case "$f" in
+    .context/decisions/README.md) ;;           # not a rule row
+    .context/standards/*) rules_index_check_needed=1 ;;
+    .context/workflows/*) rules_index_check_needed=1 ;;
+    .context/decisions/*.md) rules_index_check_needed=1 ;;
+    .context/rules-index.md) rules_index_check_needed=1 ;;
+  esac
+
+  # ICON-0075: shellcheck gate fires on staged shell scripts or git hooks.
+  case "$f" in
+    *.sh|.githooks/pre-commit|.githooks/post-commit)
+      shellcheck_needed=1 ;;
+  esac
+done
+
+# -----------------------------------------------------------------------------
+# Script-parity check (fail-fast)
+# -----------------------------------------------------------------------------
+# Three copies of append-retrospective-entry.{sh,ps1} must stay byte-identical.
+# Canonical source: post-incident-review. `diff -q` exit codes: 0 identical,
+# 1 differ, 2 error — `if ! diff -q` collapses 1 and 2 to "fail", which is
+# correct. No 2>/dev/null: diagnostic output stays visible (ICON-0030).
+if (( script_parity_needed == 1 )); then
+  canonical_sh="$repo_root/skills/post-incident-review/scripts/append-retrospective-entry.sh"
+  canonical_ps1="$repo_root/skills/post-incident-review/scripts/append-retrospective-entry.ps1"
+  script_copies_sh=(
+    "$repo_root/skills/task-retrospective/scripts/append-retrospective-entry.sh"
+    "$repo_root/skills/context-maintenance/scripts/append-retrospective-entry.sh"
+  )
+  script_copies_ps1=(
+    "$repo_root/skills/task-retrospective/scripts/append-retrospective-entry.ps1"
+    "$repo_root/skills/context-maintenance/scripts/append-retrospective-entry.ps1"
+  )
+
+  parity_fail=0
+  for copy in "${script_copies_sh[@]}"; do
+    if ! diff -q "$canonical_sh" "$copy" >&2; then
+      echo "[pre-commit] error: $copy diverges from $canonical_sh" >&2
+      echo "  fix: re-sync the copies (all three must be byte-identical)" >&2
+      parity_fail=1
+    fi
+  done
+  for copy in "${script_copies_ps1[@]}"; do
+    if ! diff -q "$canonical_ps1" "$copy" >&2; then
+      echo "[pre-commit] error: $copy diverges from $canonical_ps1" >&2
+      echo "  fix: re-sync the copies (all three must be byte-identical)" >&2
+      parity_fail=1
+    fi
+  done
+  if (( parity_fail == 1 )); then
+    exit 1
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# O-M1a: placeholder sentinel check (accumulate-then-report)
+# -----------------------------------------------------------------------------
+# Scans staged skills/*.md and agents/*.md for the literal marker
+# <!-- ICON-PLACEHOLDER -->, which signals an unresolved template slot that
+# was never filled in before the author staged the file. Findings accumulate
+# so all occurrences are reported in one run.
+if (( ${#placeholder_check_files[@]} > 0 )); then
+  placeholder_findings=()
+
+  for file in "${placeholder_check_files[@]}"; do
+    abs_path="$repo_root/$file"
+    if [[ ! -f "$abs_path" ]]; then
+      continue
+    fi
+    while IFS= read -r hit; do
+      lineno="${hit%%:*}"
+      placeholder_findings+=("  $file:$lineno: <!-- ICON-PLACEHOLDER -->")
+    done < <(grep -nF '<!-- ICON-PLACEHOLDER -->' "$abs_path" | cut -d: -f1)
+  done
+
+  if (( ${#placeholder_findings[@]} > 0 )); then
+    echo "[pre-commit] error: unresolved placeholder sentinel:" >&2
+    for hit in "${placeholder_findings[@]}"; do
+      echo "$hit" >&2
+    done
+    echo "  fix: replace the sentinel with the intended value before committing." >&2
+    exit 1
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# O-M1b: cap-literal consistency check (accumulate-then-report)
+# -----------------------------------------------------------------------------
+# The canonical entry cap is defined by ENTRY_CAP in the parity-canonical
+# append-retrospective-entry.sh. Any cap-NARRATING patterns in staged text
+# files must agree with that value. Patterns matched are context-specific:
+#   cap (<N>)            — inline script comment
+#   older than the <N>th — upgrade-repo prose
+#   keep-last-<N>        — agent-vs-skill example
+#   <N> entries to scan  — any future prose referencing the scan count
+# These patterns are narrow enough that they will NOT match version strings
+# or token counts (e.g. "15,000 tokens"). plugin.json / semver are out of
+# scope (ADR-003, separate SSOT).
+ENTRY_CAP=$(grep -oP '^ENTRY_CAP=\K[0-9]+' \
+  "$repo_root/skills/post-incident-review/scripts/append-retrospective-entry.sh")
+
+if [[ -n "$ENTRY_CAP" ]] && (( ${#cap_check_files[@]} > 0 )); then
+  cap_findings=()
+
+  for file in "${cap_check_files[@]}"; do
+    abs_path="$repo_root/$file"
+    if [[ ! -f "$abs_path" ]]; then
+      continue
+    fi
+    # Read line-by-line; grep for each pattern and capture the integer N.
+    while IFS=: read -r lineno matched; do
+      # Extract the captured integer from the match.
+      if [[ "$matched" =~ cap\ \(([0-9]+)\) ]]; then
+        n="${BASH_REMATCH[1]}"
+      elif [[ "$matched" =~ older\ than\ the\ ([0-9]+)th ]]; then
+        n="${BASH_REMATCH[1]}"
+      elif [[ "$matched" =~ keep-last-([0-9]+) ]]; then
+        n="${BASH_REMATCH[1]}"
+      elif [[ "$matched" =~ ([0-9]+)\ entries\ to\ scan ]]; then
+        n="${BASH_REMATCH[1]}"
+      else
+        continue
+      fi
+      if [[ "$n" != "$ENTRY_CAP" ]]; then
+        cap_findings+=("  $file:$lineno: cap literal $n disagrees with ENTRY_CAP=$ENTRY_CAP")
+      fi
+    done < <(grep -nE \
+      'cap \([0-9]+\)|older than the [0-9]+th|keep-last-[0-9]+|[0-9]+ entries to scan' \
+      "$abs_path")
+  done
+
+  if (( ${#cap_findings[@]} > 0 )); then
+    echo "[pre-commit] error: cap literal disagrees with ENTRY_CAP=$ENTRY_CAP:" >&2
+    for hit in "${cap_findings[@]}"; do
+      echo "$hit" >&2
+    done
+    exit 1
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# O-V1: skill-registration invariant (accumulate-then-report)
+# -----------------------------------------------------------------------------
+# Every skills/<name>/ directory with a SKILL.md must have a corresponding
+# anchored table row in README.md: a line matching ^| `<name>` |
+# The anchored form avoids substring collisions (e.g. initialize-repo vs
+# initialize-monorepo). Triggers when any skills/** path or README.md is
+# staged. Findings accumulate so all unregistered skills are reported at once.
+if (( skill_registration_check_needed == 1 )); then
+  readme="$repo_root/README.md"
+  unregistered=()
+
+  for skill_dir in "$repo_root"/skills/*/; do
+    name=$(basename "$skill_dir")
+    skill_md="$skill_dir/SKILL.md"
+    if [[ ! -f "$skill_md" ]]; then
+      continue
+    fi
+    if ! grep -qE "^\| \`${name}\` \|" "$readme"; then
+      unregistered+=("$name")
+    fi
+  done
+
+  if (( ${#unregistered[@]} > 0 )); then
+    echo "[pre-commit] error: skill not registered in README.md:" >&2
+    for name in "${unregistered[@]}"; do
+      echo "  skills/$name/ has no row in the Skills or Internal Skills table" >&2
+    done
+    echo "  fix: add a \`| \`<name>\` | <purpose> |\` row to the appropriate README table." >&2
+    exit 1
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# rules-index freshness invariant (delegated to shared SSOT script)
+# -----------------------------------------------------------------------------
+# Completeness logic lives in skills/context-maintenance/scripts/check-rules-index.sh
+# (ICON-0069), the single source of truth shared with the context-maintenance
+# skill's task-close audit. This hook supplies the trigger (a staged top-level
+# rule file or the index itself) and the live working tree the script scans.
+# Parent-row granularity, ADR inclusion, and (dir/file) row-matching are all
+# enforced inside the script. No 2>/dev/null: diagnostics stay visible (ADR-007).
+if (( rules_index_check_needed == 1 )); then
+  check_script="$repo_root/skills/context-maintenance/scripts/check-rules-index.sh"
+
+  if [[ ! -f "$check_script" ]]; then
+    echo "[pre-commit] error: rules-index check script missing: $check_script" >&2
+    echo "  fix: restore skills/context-maintenance/scripts/check-rules-index.sh" >&2
+    exit 1
+  fi
+
+  bash "$check_script" "$repo_root" || exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# .context/ dead-ref resolver (accumulate-then-report)
+# -----------------------------------------------------------------------------
+# For each in-scope staged file, extract every `.context/<rest>.<ext>`
+# reference and verify it resolves under `context_template/context/`.
+# Runs FENCE-BLIND: references in backticks or inside ``` fences are
+# checked the same as references in plain prose, because all citation
+# styles are equally load-bearing for readers.
+#
+# Findings accumulate; if any exist after all files are processed, the
+# hook fails with a consolidated report listing all problems in one run
+# (better UX than fail-fast).
+if (( ${#ref_check_files[@]} > 0 )); then
+  findings_file="$(mktemp)"
+
+  for file in "${ref_check_files[@]}"; do
+    abs_path="$repo_root/$file"
+    if [[ ! -f "$abs_path" ]]; then
+      # Staged-but-missing should not happen with --diff-filter=ACMR,
+      # but guard anyway: skip rather than crash.
+      continue
+    fi
+
+    REL_PATH="$file" \
+    REPO_ROOT="$repo_root" \
+    FINDINGS_FILE="$findings_file" \
+    awk '
+      BEGIN { in_exempt = 0 }
+      {
+        line = $0
+
+        # Region-marker exemption (ICON-0040): blocks bracketed by
+        #   <!-- pre-commit:dead-ref-ok-start -->
+        #   <!-- pre-commit:dead-ref-ok-end -->
+        # suspend the dead-ref check. Intended for migration code in
+        # upgrade-repo (and similar) that legitimately references
+        # consumer-only paths — files being migrated FROM that have been
+        # removed from context_template/, or output-file placeholders
+        # (e.g., NNN-kebab-slug.md) that never exist in the template by
+        # definition. Use sparingly; the marker is an opt-out, not a
+        # general escape hatch for stale references.
+        if (line ~ /<!-- pre-commit:dead-ref-ok-start -->/) {
+          in_exempt = 1
+          next
+        }
+        if (line ~ /<!-- pre-commit:dead-ref-ok-end -->/) {
+          in_exempt = 0
+          next
+        }
+        if (in_exempt == 1) { next }
+
+        # Extract ALL `.context/<rest>.<ext>` matches from the line and
+        # verify each one resolves under context_template/context/. The
+        # regex requires a specific filename (must end in `.<ext>`); bare
+        # directory refs like `.context/architecture/` do not match.
+        scan = line
+        while (match(scan, /\.context\/[a-zA-Z0-9_/-]+\.[a-zA-Z0-9]+/)) {
+          ref = substr(scan, RSTART, RLENGTH)
+          rest_after_dot = substr(ref, length(".context/") + 1)
+          verify_path = ENVIRON["REPO_ROOT"] "/context_template/context/" rest_after_dot
+          # Portable existence test: system() returns the command exit code.
+          cmd = "test -f \"" verify_path "\""
+          rc = system(cmd)
+          if (rc != 0) {
+            printf "REF\t%s\t%d\t%s\n", ENVIRON["REL_PATH"], NR, ref \
+              >> ENVIRON["FINDINGS_FILE"]
+          }
+          scan = substr(scan, RSTART + RLENGTH)
+        }
+      }
+    ' "$abs_path"
+  done
+
+  if [[ -s "$findings_file" ]]; then
+    echo "[pre-commit] error: dead .context/ reference:" >&2
+    while IFS=$'\t' read -r _ path line ref; do
+      rest_after_dot="${ref#.context/}"
+      echo "  $path:$line: '$ref'" >&2
+      echo "    expected at: context_template/context/$rest_after_dot" >&2
+    done < "$findings_file"
+    echo "  fix: re-point the reference or add the file to context_template/" >&2
+
+    rm -f "$findings_file"
+    exit 1
+  fi
+
+  rm -f "$findings_file"
+fi
+
+# -----------------------------------------------------------------------------
+# ICON-0075: secret-scan (accumulate-then-report)
+# -----------------------------------------------------------------------------
+# Scans the STAGED CONTENT of every ACMR file for real-token-shaped credentials,
+# using the exact patterns enforced by hooks/guardrail-pretooluse.mjs (ICON-0073).
+# Tight patterns: verified to NOT match the guardrail's own regex literals or
+# security.md's pattern names, so no file is excluded. If a pattern is tuned,
+# keep it in sync with the guardrail RULES array.
+if (( ${#staged[@]} > 0 )); then
+  secret_findings=()
+  secret_patterns=(
+    "gitlab-pat:glpat-[A-Za-z0-9_-]{20,}"
+    "github-token:gh[pousr]_[A-Za-z0-9]{36,}"
+    "slack-token:xox[baprs]-[A-Za-z0-9-]{10,}"
+    "aws-access-key:AKIA[0-9A-Z]{16}"
+    "google-api-key:AIza[0-9A-Za-z_-]{35}"
+    "atlassian-token:ATATT[A-Za-z0-9_=.-]{20,}"
+    "pem-private-key:-----BEGIN [A-Z ]*PRIVATE KEY-----"
+  )
+  for f in "${staged[@]}"; do
+    blob="$(git show ":$f")" || continue
+    for entry in "${secret_patterns[@]}"; do
+      name="${entry%%:*}"
+      re="${entry#*:}"
+      if printf '%s' "$blob" | grep -Eq -e "$re"; then
+        secret_findings+=("  $f: possible committed secret ($name)")
+      fi
+    done
+  done
+  if (( ${#secret_findings[@]} > 0 )); then
+    echo "[pre-commit] error: possible committed secret:" >&2
+    for hit in "${secret_findings[@]}"; do
+      echo "$hit" >&2
+    done
+    echo "  fix: remove the credential and use a placeholder (ADR-006); rotate it if it was real." >&2
+    exit 1
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# ICON-0075: shellcheck gate (graceful skip if shellcheck absent)
+# -----------------------------------------------------------------------------
+# CI is the authoritative shellcheck gate; locally it is best-effort.
+if (( shellcheck_needed == 1 )); then
+  if ! command -v shellcheck >/dev/null 2>&1; then
+    echo "[pre-commit] notice: shellcheck not installed — skipping (CI enforces)" >&2
+  else
+    shellcheck_targets=()
+    for f in "${staged[@]}"; do
+      case "$f" in
+        *.sh|.githooks/pre-commit|.githooks/post-commit)
+          shellcheck_targets+=("$repo_root/$f") ;;
+      esac
+    done
+    if (( ${#shellcheck_targets[@]} > 0 )); then
+      # Gate on real issues (warning + error); style/info findings are advisory.
+      if ! shellcheck --severity=warning "${shellcheck_targets[@]}"; then
+        echo "[pre-commit] error: shellcheck reported issues (see output above)" >&2
+        echo "  fix: resolve the warnings, or add a justified inline # shellcheck disable." >&2
+        exit 1
+      fi
+    fi
+  fi
+fi
+
+exit 0
