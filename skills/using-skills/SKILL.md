@@ -69,9 +69,9 @@ If you catch yourself doing any of these, stop and run the Skill tool:
 When multiple skills apply, invoke in this order:
 
 1. **Process skills** — `systematic-debugging`, `characterization-testing`, `testing-discipline`, `task-retrospective`, `design-first` — determine HOW to approach the work. Use `characterization-testing` instead of `testing-discipline` when code already exists with no coverage — lock behavior first, then apply `testing-discipline` for new tests.
-2. **Discipline skills** — `verification-checklist`, `commit-discipline`, `mr-discipline` — enforce quality gates.
+2. **Discipline skills** — `verification-checklist`, `commit-discipline`, `pr-discipline` — enforce quality gates.
 3. **Maintenance skills** — `context-maintenance` — keep project knowledge current.
-4. **Formatting skills** — `jira-story`, `rfc` — shape the output.
+4. **Formatting skills** — `github-issue`, `rfc` — shape the output.
 
 Example: "Fix this bug and write tests for it" → `systematic-debugging` → `testing-discipline` → `verification-checklist`.
 Example: "Modify legacy code with no tests" → `characterization-testing` → `testing-discipline` → `verification-checklist`.
@@ -81,9 +81,9 @@ To find which skills apply for any task: read each skill's description. Descript
 
 ## Skill Types
 
-**Rigid** (systematic-debugging, characterization-testing, testing-discipline, verification-checklist, commit-discipline, mr-discipline): follow exactly. Don't adapt away the discipline.
+**Rigid** (systematic-debugging, characterization-testing, testing-discipline, verification-checklist, commit-discipline, pr-discipline): follow exactly. Don't adapt away the discipline.
 
-**Flexible** (initialize-repo, context-maintenance, rfc, jira-story, design-first): adapt structure to fit. The template is a starting point.
+**Flexible** (initialize-repo, context-maintenance, rfc, github-issue, design-first): adapt structure to fit. The template is a starting point.
 
 **Meta** (using-skills, writing-skills): system references.
 

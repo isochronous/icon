@@ -109,7 +109,7 @@ Required fields per action item:
 |-------|-------------|
 | **Action** | Concrete verb + deliverable (not "monitor", "improve", "consider") |
 | **Owner** | Named person or named role if person is unknown |
-| **Due date** | Specific date or milestone — not "soon" or "next sprint" |
+| **Due date** | Specific date or milestone — not "soon" or "later" |
 | **Verification** | How will completion be confirmed? |
 
 **No "we should monitor this" items** without a concrete follow-up that converts the monitoring signal into a specific action. If monitoring is the right response, define the threshold that triggers the next action.
@@ -158,7 +158,7 @@ If you catch yourself doing any of these, the review is incomplete:
 
 - About to close the incident without a retrospective entry in `.context/retrospectives.md`.
 - About to skip Phase 2 (timeline) because "everyone knows what happened".
-- Action items have shared owners, "soon" / "next sprint" due dates, or no verification step.
+- Action items have shared owners, "soon" / "later" due dates, or no verification step.
 - About to skip Phase 4 (comms) on a P1/P2 user-affecting incident.
 - Stopping the root-cause analysis at "human error" or "the deploy broke it".
 - About to re-classify severity downward after the fact.

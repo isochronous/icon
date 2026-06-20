@@ -1,7 +1,7 @@
 ---
 name: icon-status
 description: >
-  Use when re-orienting in a repo — shows active task, current branch, recent retrospectives, context coverage, and MCP credential status. Run when returning to a repo after a break or before planning new work.
+  Use when re-orienting in a repo — shows active task, current branch, recent retrospectives, and context coverage. Run when returning to a repo after a break or before planning new work.
 user-invocable: true
 ---
 
@@ -10,14 +10,13 @@ user-invocable: true
 ## Overview
 
 Emit a concise plugin-state dashboard for the current repo: active task, recent
-retrospectives, context health, and MCP credential availability. Use before
-planning new work or after returning to a repo after a break.
+retrospectives, and context health. Use before planning new work or after
+returning to a repo after a break.
 
 ## When to Use
 
 - Returning to a repo after a break and want to know where things stand
 - About to plan new work and need to check context health
-- Checking whether MCP credentials are configured
 
 **Do not use** to inspect a specific task's details — read `.context/tasks/<TASK-DIR>/plan.md`
 directly for that.
@@ -113,23 +112,6 @@ if [ -f ".context/iconrc.json" ]; then
 fi
 ```
 
-### MCP credentials
-
-Presence check only — NOT a live probe. Use `${VAR+x}` (presence test, not a `${VAR:-literal}` fallback — see the **shell-portability** standard).
-
-```bash
-if [ -n "${GITLAB_PERSONAL_ACCESS_TOKEN+x}" ]; then
-  echo "  gitlab: credentials set"
-else
-  echo "  gitlab: missing GITLAB_PERSONAL_ACCESS_TOKEN — run /setup-mcp-servers"
-fi
-if [ -n "${JIRA_API_TOKEN+x}" ]; then
-  echo "  atlassian: credentials set"
-else
-  echo "  atlassian: missing JIRA_API_TOKEN — run /setup-mcp-servers"
-fi
-```
-
 ### Suggestions
 
 Evaluate the following signals and collect any that apply into a suggestions list:
@@ -182,10 +164,6 @@ Context health:
   .context/standards/ — N files
   .context/iconrc.json — version X.Y
 
-MCP servers:
-  gitlab: credentials set
-  atlassian: credentials set
-
 Suggestions:
   - <zero or more>
 ```
@@ -208,5 +186,3 @@ Suggestions:
 |---------|-------------|-----------------|
 | Running on a repo with no `.context/` | Skill halts at Step 1 with the `/icon-init` suggestion | Correct — Step 1 is a hard stop |
 | Branch is `dev` or `main` | "No active task branch" appears | Correct — not an error |
-| Env-var presence check says "credentials set" but the server never starts | The output is intentionally honest: "credentials set" ≠ "server running" — the user must diagnose the server separately | Do not change to "gitlab ✓" or "server OK" |
-| Rewriting `${VAR+x}` to `${VAR:-not-set}` | `${VAR:-...}` is a fallback substitution, not a presence test — an empty-but-set variable is misread | Use `${VAR+x}` — presence test, not fallback |

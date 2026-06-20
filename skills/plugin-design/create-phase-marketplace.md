@@ -8,7 +8,7 @@ Prepare the plugin for listing in a Claude Code plugin marketplace. This phase p
 2. An expanded `README.md` with install instructions, usage examples, and a capability list.
 3. Documentation of the submission process.
 
-This phase **does not actually submit** anything. Marketplaces use their own PR/MR workflow against a separate registry repo; the user opens that PR manually.
+This phase **does not actually submit** anything. Marketplaces use their own PR workflow against a separate registry repo; the user opens that PR manually.
 
 ## Verify plugin.json
 
@@ -89,16 +89,16 @@ When generating the capability list, scan the actual files in `agents/`, `skills
 
 Most Claude Code plugin marketplaces work by:
 
-1. The plugin author opens a PR or MR against a registry repo that contains a `marketplace.json` (or equivalent) listing all plugins.
+1. The plugin author opens a PR against a registry repo that contains a `marketplace.json` (or equivalent) listing all plugins.
 2. The PR adds a new entry pointing at the plugin's git URL and a movable tag (commonly `latest` or a specific SemVer tag).
 3. The marketplace maintainers review and merge.
 
-Reference example: the `datascan-marketplace` registry at `gitlab.com/onedatascan/ai-platform/marketplace` lists ICON via the movable `latest` tag in the ICON repo. The exact registry workflow varies by marketplace — consult the target marketplace's contributing guide before opening the PR.
+Reference example: a marketplace registry repo lists a plugin via a movable `latest` tag in the plugin's own repo. The exact registry workflow varies by marketplace — consult the target marketplace's contributing guide before opening the PR.
 
 If the marketplace publishes a PR template or contributing guide, follow it. The skill cannot infer this — it varies per marketplace.
 
 ## What This Phase Does NOT Do
 
-- Does not open a PR or MR against any marketplace.
+- Does not open a PR against any marketplace.
 - Does not push the plugin's own repo to a remote (that is Phase 3).
 - Does not tag a release (use the consuming plugin's own release flow, e.g., ICON's `release-plugin` skill).

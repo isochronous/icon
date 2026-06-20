@@ -1,7 +1,7 @@
 ---
 name: commit-discipline
 description: >
-  Use when committing changes or when uncommitted changes span multiple concerns — including when "and" is needed to describe a single commit, when "wip" / "fix" / "updates" is being typed as a commit message, when changes have accumulated across days without commits, or when committing code that hasn't been verified to compile or pass tests. For merge-request workflow, see `mr-discipline`.
+  Use when committing changes or when uncommitted changes span multiple concerns — including when "and" is needed to describe a single commit, when "wip" / "fix" / "updates" is being typed as a commit message, when changes have accumulated across days without commits, or when committing code that hasn't been verified to compile or pass tests. For pull-request workflow, see `pr-discipline`.
 user-invocable: false
 ---
 
@@ -36,7 +36,7 @@ empty or ambiguous, fall back to the structure described in Rule 3 below.
 - You have completed a logical unit of work
 - You notice uncommitted changes accumulating across multiple concerns
 
-(For merge-request workflow — opening, descriptions, review feedback, merge conflicts — see `mr-discipline`.)
+(For pull-request workflow — opening, descriptions, review feedback, merge conflicts — see `pr-discipline`.)
 
 ## The Rules
 
@@ -83,7 +83,7 @@ Messages should explain WHAT changed and WHY, in a format useful to future devel
 
 **Default structure** (override with whatever `commit-conventions.md` specifies):
 ```
-<Jira Ticket ID>[, <Jira Ticket ID>]: Brief description of what changed
+<Issue ID>[, <Issue ID>]: Brief description of what changed
 
 <optional body: why this change was necessary, context that isn't obvious from the diff>
 
@@ -122,7 +122,7 @@ PROJ-101: Updates
 - Keep branches focused — one feature or fix per branch
 - Rebase or merge from main regularly to avoid drift
 
-**For merge-request workflow** (opening, descriptions, review feedback, merge conflicts): see `mr-discipline`.
+**For pull-request workflow** (opening, descriptions, review feedback, merge conflicts): see `pr-discipline`.
 
 ## Common Mistakes
 
@@ -133,7 +133,7 @@ PROJ-101: Updates
 | Empty or meaningless messages ("fix", "wip", "asdf") | Take 10 seconds to write a real message |
 | Committing secrets or credentials | Check diffs for API keys, passwords, tokens before every commit |
 | Mixing refactoring with feature work in one commit | Refactor first (commit), then add feature (commit) |
-| Deriving a Jira ticket ID from an MR number, PR number, issue number, or any other non-Jira reference (e.g., "MR 2942" → "PROJ-2942") | If no Jira ticket was provided by the user, use a local task ID (from `local_task_id_prefix` in `.iconrc`) or ask the user for the ticket ID before committing. Never construct a ticket ID by reusing a numeric identifier from another system. |
+| Deriving a GitHub issue reference from a PR number or any other unrelated identifier (e.g., "PR 2942" → "#2942") | If no issue reference was provided by the user, use a local task ID (from `local_task_id_prefix` in `.iconrc`) or ask the user for the issue number before committing. Never construct an issue reference by reusing a numeric identifier from another system. |
 
 ## Rationalization Prevention
 
@@ -159,6 +159,6 @@ If you catch yourself doing any of these, the commit is not ready:
 - About to `--amend` a commit that has already been pushed.
 - About to use `--force` or `--force-with-lease` without explicit user instruction.
 - About to leave newly-created files untracked instead of including them in the commit.
-- About to use a Jira-style ticket ID that was derived from an MR, PR, or issue number rather than provided by the user — fabricated IDs look legitimate but are unsearchable and misleading.
+- About to use an issue reference that was derived from a PR number rather than provided by the user — fabricated IDs look legitimate but are unsearchable and misleading.
 
 **All of these mean: stop, re-stage, and write the commit you would want to read on a debugging trail in six months.**

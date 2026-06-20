@@ -142,4 +142,3 @@ Exit code 0 with no output means the file is valid. Any exception means re-check
 ## Cross-references
 
 - Phase 2 (`create-phase-basic-info.md`) — fills in the placeholder `name`, `version`, `description`, and adds `author` / `license` / repository metadata.
-- `setup-mcp-servers` (sibling skill) — if your new plugin will bundle MCP servers, that skill documents the credential-setup flow consumers will follow.

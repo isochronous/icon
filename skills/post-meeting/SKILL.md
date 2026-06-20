@@ -1,7 +1,7 @@
 ---
 name: post-meeting
 description: >
-  Transforms meeting transcriptions into structured summaries with key points, Q&A, and action items. Use when processing voice/video meeting transcripts to create searchable documentation and track follow-ups. Extracts decisions, unresolved questions, and commitments from verbose recordings. Note: examples are DataScan-flavored (payment schedule API, sprint retrospective) but the transformation logic is generic.
+  Transforms meeting transcriptions into structured summaries with key points, Q&A, and action items. Use when processing voice/video meeting transcripts to create searchable documentation and track follow-ups. Extracts decisions, unresolved questions, and commitments from verbose recordings.
 user-invocable: true
 ---
 

@@ -30,7 +30,7 @@ There are skills the manager invokes without a specialist intermediary — they 
 
 - `task-plan` — writes `plan.md` and task-folder artifacts (manager-owned per `manager.agent.md`)
 - `commit-discipline` — wraps `git commit` (manager runs git directly)
-- `mr-discipline` — guides the manager's MR write-up
+- `pr-discipline` — guides the manager's PR write-up
 - `verification-checklist` — guides the manager's own success-claim discipline
 - `task-retrospective` — drives the retrospective ceremony; ITS guidance still routes `.context/` writes through `@context-specialist`
 
@@ -59,5 +59,5 @@ This standard codifies the decision reached in:
 
 - ICON-0003 audit, finding M-P2 (`task-plan-phase-completion` ⇄ `task-retrospective` divergence on `.context/` delegation)
 - ICON-0001 retrospective ("Repeat" note documenting the @context-specialist path)
-- GitLab issue #3
-- GitLab issue `onedatascan/ai-platform/plugins/icon#12` (M-CC-NET2 resolution — canonicalized `retrospectives.md` write path, ICON-0027)
+- GitHub issue #3
+- GitHub issue `isochronous/icon#12` (M-CC-NET2 resolution — canonicalized `retrospectives.md` write path, ICON-0027)

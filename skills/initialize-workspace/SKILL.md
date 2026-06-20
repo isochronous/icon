@@ -22,7 +22,7 @@ project polluting another. Folders that contain only documentation or data (no
 build manifests, no source code) are classified as resources and skipped.
 
 All work happens on a per-repo feature branch — nothing lands on an integration
-branch without a human reviewing and merging a merge request.
+branch without a human reviewing and merging a pull request.
 
 ---
 
@@ -300,9 +300,9 @@ Commit using the repo's commit convention. Run to completion without stopping.
 
 ---
 
-## initialize-workspace: Step 7: Push and open merge requests
+## initialize-workspace: Step 7: Push and open pull requests
 
-Push and MR creation is **per git repo** — one MR per unique git root:
+Push and PR creation is **per git repo** — one PR per unique git root:
 
 ```bash
 for GIT_ROOT in "${UNIQUE_GIT_ROOTS[@]}"; do
@@ -310,8 +310,8 @@ for GIT_ROOT in "${UNIQUE_GIT_ROOTS[@]}"; do
 done
 ```
 
-For each git repo, open a merge request targeting that repo's integration branch.
-Follow the MR description format from the `mr-discipline` skill (Summary,
+For each git repo, open a pull request targeting that repo's integration branch.
+Follow the PR description format from the `pr-discipline` skill (Summary,
 Why, How to Test, Risks). For example:
 
 ```markdown
@@ -335,7 +335,7 @@ AI-inferred context may contain inaccuracies. Each file should be reviewed by
 a developer who knows the codebase before merging.
 ```
 
-**Do not merge these MRs yourself.** Surface all MR URLs to the user and stop.
+**Do not merge these PRs yourself.** Surface all PR URLs to the user and stop.
 
 ---
 
@@ -346,7 +346,7 @@ Summarize:
 - Projects initialized: list with `initialize-repo` or `upgrade-repo` label
 - Resources skipped: list with reason
 - Verification: pass/fail per project
-- MR URLs (one per git repo)
+- PR URLs (one per git repo)
 - Any failures requiring manual follow-up
 
 ---
@@ -360,6 +360,6 @@ Summarize:
 | Creating one branch across all repos | Branch management is per-repo (Step 1) — a workspace spans multiple git roots |
 | Running `git log` from `PROJECT_PATH` instead of `GIT_ROOT` | The project folder may not be the repo root; use `GIT_ROOT` for full history |
 | Starting Step 6 before all project sessions pass Step 5 | Workspace session reads each project's `overview.md` — missing files cause gaps |
-| Opening one MR for the whole workspace | Open one MR per git repo targeting that repo's integration branch |
+| Opening one PR for the whole workspace | Open one PR per git repo targeting that repo's integration branch |
 | Resolving relative `.code-workspace` paths relative to CWD | Relative paths are relative to the `.code-workspace` file's own directory — use `os.path.realpath` |
-| Merging MRs without human review | Always surface MR URLs and stop — do not self-merge |
+| Merging PRs without human review | Always surface PR URLs and stop — do not self-merge |
