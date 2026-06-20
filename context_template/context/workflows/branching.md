@@ -70,7 +70,7 @@ git commit -m "TICKET-123: Add user validation"
 git fetch origin
 git rebase origin/develop
 
-# 4. Push and create merge request
+# 4. Push and create pull request
 git push origin feature/TICKET-123-new-feature
 ```
 
@@ -142,15 +142,15 @@ incorrect token expiry configuration.
 PROJ-789, PROJ-790: Update registration and profile email validation
 ```
 
-## Merge Request Guidelines
+## Pull Request Guidelines
 
-### Before Creating MR
+### Before Creating PR
 - [ ] Branch is up to date with target branch
 - [ ] All tests pass
 - [ ] Linting passes
 - [ ] Self-review completed
 
-### MR Description Template
+### PR Description Template
 ```markdown
 ## Summary
 [Brief description of changes]
@@ -175,10 +175,10 @@ PROJ-789, PROJ-790: Update registration and profile email validation
 
 | Branch | Protection Rules |
 |--------|-----------------|
-| main | Require MR, require approvals, no force push |
-| develop | Require MR, require passing CI |
+| main | Require PR, require approvals, no force push |
+| develop | Require PR, require passing CI |
 
-Configuring these protection rules on the main branch is a required setup prerequisite — protect the branch (no direct pushes), require a merge request, require at least one approval from someone other than the author, reject force-push, and have a human perform the merge. Where your GitLab plan supports it, also require (or at least recommend) **signed commits**: enable a push rule that rejects unsigned commits so cryptographic authorship is enforced on the main branch.
+Configuring these protection rules on the main branch is a required setup prerequisite — add a GitHub branch protection rule (or ruleset) on the branch (no direct pushes), require a pull request, require at least one approving review from someone other than the author, reject force-push, and have a human perform the merge. Where your GitHub plan supports it, also require (or at least recommend) **signed commits**: enable the "Require signed commits" branch protection setting so cryptographic authorship is enforced on the main branch.
 
 ## Git Configuration
 

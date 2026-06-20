@@ -6,9 +6,9 @@
 
 ## Reconcile plan.md
 
-> **First step of the completion phase. Runs before review, context-update, retrospective, and commit.** This is the single source of truth for plan.md reconciliation; other surfaces (`agents/manager.agent.md`, `skills/mr-discipline/SKILL.md`, `skills/task-retrospective/SKILL.md`) refer to this section by name rather than re-describing the checks.
+> **First step of the completion phase. Runs before review, context-update, retrospective, and commit.** This is the single source of truth for plan.md reconciliation; other surfaces (`agents/manager.agent.md`, `skills/pr-discipline/SKILL.md`, `skills/task-retrospective/SKILL.md`) refer to this section by name rather than re-describing the checks.
 >
-> Reconciliation is gated, not encouraged. Author-discipline checks degrade quickly — a "remember to update plan.md" rule does not fire on the 30% of tasks where it matters most (the messy ones). Run the five sub-checks below before any review/MR/retro work; each should take under two minutes.
+> Reconciliation is gated, not encouraged. Author-discipline checks degrade quickly — a "remember to update plan.md" rule does not fire on the 30% of tasks where it matters most (the messy ones). Run the five sub-checks below before any review/PR/retro work; each should take under two minutes.
 
 Re-read `plan.md` end-to-end against the actual final state, and update each section:
 
