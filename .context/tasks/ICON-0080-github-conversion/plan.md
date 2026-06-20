@@ -46,12 +46,20 @@ Grouped by work batch (full per-file inventory in this folder's discovery notes 
 - [x] Git init + remote + re-root onto origin/main starter; baseline committed; feature branch — done
 - [x] Discovery inventory of all references (~75–80 files) — done
 - [x] Write plan.md — done
-- [ ] Phase 1: infra removal/port + skill renames/removals/reframes ← IN PROGRESS
-- [ ] Phase 2: parallel reference sweeps (agents / skills / docs / .claude / context_template)
-- [ ] Phase 3: `/context-maintenance` over `.context/`
-- [ ] Review Checkpoint (@reviewer over full changed-file set)
-- [ ] Task retrospective + CHANGELOG entry
-- [ ] Commit all artifacts; push; open PR (SSH now working)
+- [x] Phase 1: infra removal/port + skill renames/removals/reframes — done (3 commits: CI port, MCP/manifest removal, skills handled in Phase 2 due to README-registration hook gate)
+- [x] Phase 2: parallel reference sweeps (agents / skills / docs / .claude / context_template) + gap cleanup (find-context-template, context-maintenance) — done (5 commits). All coder grep evidence clean.
+- [x] Phase 3: `/context-maintenance` over `.context/` — done (commit 9366e0d). Superseded ADR-006/011; mcp-servers.md→github-access.md; rules-index reconciled (check-rules-index exit 0); retros + 71 task folders preserved.
+- [x] Review Checkpoint + ICON security-review — done. @reviewer APPROVED, zero Critical/Moderate across 7 dimensions; security.yml scanners version-pinned, hooks byte-identical to baseline (pre-commit change comment-only), secret patterns retained. One Minor (ADR-006 present-tense prose) = intentional preserved history, no change.
+- [x] Task retrospective — done. Entry in retrospectives.md; promoted pre-commit-gate-coupling lesson to domains/hooks.md; ICON-0070 rotated to archive. CHANGELOG [Unreleased] entry added during docs sweep.
+- [ ] Commit task artifacts (retro files + plan.md); push; open PR (SSH working) ← IN PROGRESS
+
+## Review Checkpoint
+- Reviewed: full diff `22d5b4c...9366e0d` (all ICON-0080 commits) by @reviewer + ICON security-review. Verdict: Approved, no fixes routed back. No @coder/@tester steps ran after this checkpoint.
+
+## Commits so far (on feature/ICON-0080-github-conversion, base = baseline import @22d5b4c)
+- 7e72f41 add task plan · b879055 port CI to GitHub Actions · 4766e32 remove MCP servers + retarget manifests
+- 9ec97d8 agents · d7e7720 docs · 69ac768 skills · 489ee51 maintainer tooling · 3418e84 context_template (+template version 1.7→1.8)
+- 9366e0d .context/ reconciliation
 
 ## Open Questions / Blockers
 - Skill rename targets (`pr-discipline`, `pr-feedback-triage`, `github-issue`) are my defaults — flag if you'd prefer different names.
