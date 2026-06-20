@@ -1,18 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "ICON",
-  "description": "ICON (Independent Context Orchestration Network) — A project-agnostic multi-agent orchestration system. Includes manager, planner, architect, coder, tester, reviewer, researcher, context-specialist, and product-manager agents with supporting skills for Jira story writing, sprint goals, RFC authoring, post-meeting summaries, and more.",
+  "description": "ICON (Independent Context Orchestration Network) — A project-agnostic multi-agent orchestration system. Includes manager, planner, architect, coder, tester, reviewer, researcher, context-specialist, and product-manager agents with supporting skills for GitHub issue writing, RFC authoring, post-meeting summaries, and more.",
   "version": "1.22.0",
   "author": {
-    "name": "DataScan Engineering"
+    "name": "isochronous"
   },
-  "repository": "git@gitlab.com:onedatascan/ai-platform/plugins/icon.git",
+  "repository": "git@github.com:isochronous/icon.git",
   "keywords": [
     "agents",
     "multi-agent",
     "orchestration",
     "workflow",
     "context"
-  ],
-  "mcpServers": "./.mcp.json"
+  ]
 }
