@@ -27,7 +27,7 @@ The canonical skill registry is `ls skills/` for shipped skills and `ls .claude/
 ### Rigid Discipline Skills
 Process gates that enforce non-negotiable behavior. They have specific phases, checklists, or required outputs.
 
-Examples: `commit-discipline`, `mr-discipline`, `testing-discipline`, `verification-checklist`, `systematic-debugging`, `code-quality-rules`.
+Examples: `commit-discipline`, `pr-discipline`, `testing-discipline`, `verification-checklist`, `systematic-debugging`, `code-quality-rules`.
 
 ### Flexible Process Skills
 Guidance for open-ended work where judgment is required. Less prescriptive than discipline skills.
@@ -52,10 +52,10 @@ Every agent definition runs with two non-optional pieces of always-loaded text:
 ### Output / Formatting Skills
 Transform content into structured formats.
 
-Examples: `jira-story`, `sprint-goals`, `rfc`, `post-meeting`.
+Examples: `github-issue`, `rfc`, `post-meeting`.
 
 ### Setup / Maintenance Skills
-One-time or periodic operations on consumer repos. Includes the initialization family (`initialize-repo`, `initialize-monorepo`, `initialize-multimodule`, `initialize-workspace`), the umbrella `icon-init` dispatcher, `upgrade-repo`, `create-iconrc`, the runtime helpers `find-context-template` and `resolve-repo-context`, `icon-status`, `setup-mcp-servers`, and `start-worktree`.
+One-time or periodic operations on consumer repos. Includes the initialization family (`initialize-repo`, `initialize-monorepo`, `initialize-multimodule`, `initialize-workspace`), the umbrella `icon-init` dispatcher, `upgrade-repo`, `create-iconrc`, the runtime helpers `find-context-template` and `resolve-repo-context`, `icon-status`, and `start-worktree`.
 
 ### Task-Plan Family
 The `task-plan` skill and its phase skills (`task-plan-phase-investigation`, `-architecture`, `-implementation`, `-testing`, `-completion`) plus `task-retrospective` structure how the manager drives a single task end-to-end.

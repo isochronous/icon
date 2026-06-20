@@ -1,7 +1,16 @@
 # ADR-006: MCP credentials use `${VAR}` placeholders only — never committed
 
 **Date**: 2026-04-06
-**Status**: Accepted
+**Status**: Superseded by ICON-0080 (MCP servers removed)
+
+> **Superseded (2026-06-20, ICON-0080).** This ADR governed credential handling for the
+> bundled MCP servers in `.mcp.json` (GitLab + Atlassian). The GitHub-only conversion
+> removed both servers and deleted `.mcp.json` entirely — the plugin ships no MCP servers
+> and no credential placeholders. GitHub access is now via the `gh` CLI, which manages its
+> own auth outside this repo. The `${VAR}`-placeholder rule below is therefore moot. The
+> never-commit-real-credentials principle survives as a general secure-coding rule (see
+> `standards/secure-coding.md` and the secret-in-write guardrail in `standards/security.md`);
+> this record is retained to explain why `.mcp.json` never carried inline tokens.
 
 ## Context
 
@@ -9,7 +18,7 @@
 
 ## Decision
 
-All credentials in `.mcp.json` use `${ENV_VAR}` placeholder syntax, resolved by the runtime at server-start time from the user's shell environment. Users export the required vars from their shell profile; the `setup-mcp-servers` skill walks them through it. Real credentials are **never** committed to this repo. See `domains/mcp-servers.md` for the full credential pattern.
+All credentials in `.mcp.json` use `${ENV_VAR}` placeholder syntax, resolved by the runtime at server-start time from the user's shell environment. Users export the required vars from their shell profile; the `setup-mcp-servers` skill walks them through it. Real credentials are **never** committed to this repo. (The `domains/mcp-servers.md` doc that described the full credential pattern was removed in ICON-0080; see `domains/github-access.md` for the current GitHub-access model.)
 
 ## Consequences
 

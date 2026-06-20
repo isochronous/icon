@@ -8,16 +8,16 @@ How users hand work to the ICON system, and how the manager interprets requests 
 
 | Form | Meaning |
 |------|---------|
-| `New task: <Jira ID>` | The manager pulls the ticket and plans from it. |
-| `New task: No Jira ticket. <description>` | A local task with no Jira ticket; plan from the description. |
-| `New task: <Jira ID>. <extra context>` | The ticket plus details not written in it; plan from both. |
+| `New task: <issue #>` | The manager pulls the GitHub issue (`gh issue view <#>`) and plans from it. |
+| `New task: No issue. <description>` | A local task with no GitHub issue; plan from the description. |
+| `New task: <issue #>. <extra context>` | The issue plus details not written in it; plan from both. |
 
 ## Planning from a ticket: two pre-flight checks
 
 Before planning work from a ticket — especially an audit follow-up — run these two checks against the live repo first.
 
 - **Stale-ticket current-state check.** If the ticket predates recent related commits, do a read-only enumerate-and-classify pass to confirm each finding still applies against the live files before planning. Commits filed since the ticket may have resolved, worsened, or shifted the findings; planning cold risks re-doing fixed work or editing against drifted line numbers.
-- **Embedded-ID drift / collision.** A ticket (especially an audit follow-up) may bake in an audit-time task ID that has since drifted from the local `.context/tasks/` sequence. Verify the embedded ID against existing task folders; on collision, use the next free local ID (per the `## Task ID Generation` procedure in `.context/workflows/commit-conventions.md`) and reference the originating work-item number for traceability rather than reusing the colliding ID. This complements that file's rule that MR/PR/issue numbers are not task IDs.
+- **Embedded-ID drift / collision.** A ticket (especially an audit follow-up) may bake in an audit-time task ID that has since drifted from the local `.context/tasks/` sequence. Verify the embedded ID against existing task folders; on collision, use the next free local ID (per the `## Task ID Generation` procedure in `.context/workflows/commit-conventions.md`) and reference the originating work-item number for traceability rather than reusing the colliding ID. This complements that file's rule that PR/issue numbers are not task IDs.
 - **Referenced-artifact existence check (ICON-0072).** A ticket may name an artifact as the target of an edit — "add a note to the security doc", "update the X config" — as if that artifact already exists. Verify it actually exists before planning the edit. If it is absent, creating it is in-scope; shape the new file for known sibling or follow-up work (e.g., one `## <Topic>` section per concern so future issues can extend it without restructuring) rather than writing a one-off note.
 
 ## Resume vs Reopen

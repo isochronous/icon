@@ -13,9 +13,9 @@ This repo is a pure-content plugin (markdown + JSON + a single Node.js hook wrap
 | | `.claude/claude.md` (or `.github/copilot-instructions.md`) | `.context/` |
 |---|---|---|
 | **Scope** | Big picture | Detailed, area-specific |
-| **Content** | Plugin overview, key directories, top-level conventions | Skill-system mechanics, MCP credential rules, plugin-authoring standards, ADRs |
+| **Content** | Plugin overview, key directories, top-level conventions | Skill-system mechanics, GitHub-access rules, plugin-authoring standards, ADRs |
 | **Size** | Short (one file, quick to scan) | Structured (many files, read as needed) |
-| **Example** | "ICON is a pure-content plugin; the version lives in `.claude-plugin/plugin.json`" | Detailed credential-placeholder + version-pinning rules in `domains/mcp-servers.md` |
+| **Example** | "ICON is a pure-content plugin; the version lives in `.claude-plugin/plugin.json`" | Detailed `gh`-CLI GitHub-access notes in `domains/github-access.md` |
 | **Example** | "Skills live under `skills/<name>/SKILL.md`" | Detailed thin-router, invisible-skill, and distribution-layout rules in `standards/skill-decomposition.md` |
 
 When updating documentation, ask: is this a project-wide fact or convention? → `.claude/claude.md`. Is this detailed guidance for a specific area? → `.context/`.

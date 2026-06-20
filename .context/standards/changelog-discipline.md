@@ -14,7 +14,7 @@ Each bullet under `### Added` / `### Changed` / `### Fixed` / `### Removed` is a
 
 ✓ `Fixed silent skill-loader parse failures in three SKILL.md files whose plain-scalar descriptions contained colon-space mid-value. (MKT-0078)`
 
-✗ `Fixed silent skill-loader parse failures. The descriptions in jira-story, post-meeting, and sprint-goals contained ': ' (colon + space) which the YAML parser treated as a nested mapping. The conversion is content-lossless and idempotent. (MKT-0078)` ← four sentences; sentences 2-4 are implementation/QA detail that belong in the retrospective
+✗ `Fixed silent skill-loader parse failures. The descriptions in github-issue, post-meeting, and rfc contained ': ' (colon + space) which the YAML parser treated as a nested mapping. The conversion is content-lossless and idempotent. (MKT-0078)` ← four sentences; sentences 2-4 are implementation/QA detail that belong in the retrospective
 
 **Sweep PRs: one bullet per distinct fix-class.** When a single task closes multiple unrelated findings, write one `### Fixed` (or `### Changed`, etc.) bullet per distinct fix-class — not one semicolon-chained run-on summarizing the whole task. Same fix-class across multiple files is fine in one bullet; different fix-classes get different bullets. The reader scans for "what changed and does this affect me," which a per-fix-class slicing serves and a per-task summary does not.
 
@@ -46,7 +46,7 @@ If a change is associated with a ticket, append `(TICKET-ID)` at the end. Never 
 
 ### 4. Only user-relevant changes
 
-The changelog describes changes to the **ICON plugin release** — what consumers see when they install or update the plugin via the `latest` tag at `gitlab.com/onedatascan/ai-platform/plugins/icon.git`. If a task touched only repo-internal artifacts, the changelog gets no entry for it (this is the `changelog-entry` skill's "legitimate skip" case).
+The changelog describes changes to the **ICON plugin release** — what consumers see when they install or update the plugin via the `latest` tag at `github.com/isochronous/icon`. If a task touched only repo-internal artifacts, the changelog gets no entry for it (this is the `changelog-entry` skill's "legitimate skip" case).
 
 **The reusable test**: "Does this change affect what consumers DO?" Because ICON installs by full git clone there is no packaging boundary — everything ships. Shipping alone is therefore not the criterion. An entry is required when the change affects **plugin behavior** (`agents/`, `skills/`, `commands/`, `hooks/`, `.mcp.json`, `.claude-plugin/`) or **process/usage docs consumers follow** (`README.md` install instructions, `CONTRIBUTING.md` contribution flow). It is NOT required for supplementary references that change no behavior or process — e.g. `CHEATSHEET.md` — even though they ship via git clone.
 
@@ -82,4 +82,4 @@ This keeps the next `## [X.Y.Z]` heading out of the diff boundary entirely. Alte
 
 ## Pattern observed
 
-MKT-0078's first changelog draft was four sentences, included an internal mirror invariant, and had to be cleaned up in a follow-up commit and reposted to Slack. The cleanup edit is the diff to study: it kept the user-relevant claim ("fixes silent parse failures in jira-story / post-meeting / sprint-goals") and discarded the QA reassurances and process detail.
+MKT-0078's first changelog draft was four sentences, included an internal mirror invariant, and had to be cleaned up in a follow-up commit and reposted to Slack. The cleanup edit is the diff to study: it kept the user-relevant claim ("fixes silent parse failures in github-issue / post-meeting / rfc") and discarded the QA reassurances and process detail.

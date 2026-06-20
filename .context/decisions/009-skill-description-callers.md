@@ -44,7 +44,7 @@ This decision does not prohibit caller mentions in `description` — a skill aut
 
 ## Cross-references
 
-- Maintainer rationale: GitLab issue #20 comment, 2026-05-22.
+- Maintainer rationale: issue #20 comment, 2026-05-22.
 - Sister scope-carveout ADR: [ADR-007](007-devnull-ban-scope.md) — both ADRs are scope carve-outs that prevent audit cycles from re-flagging findings the maintainer has consciously declined to act on. ADR-007 carves out a domain (autonomous scripts); ADR-009 carves out a check pattern (caller-listing).
 - Affected briefs (all updated in the same commit):
   - `skills/plugin-audit/briefs/01-agents.md`

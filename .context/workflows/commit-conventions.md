@@ -132,7 +132,7 @@ The `release-plugin` skill's Step 7 includes this trailer by default. Manual com
 
 ## Commit Signing
 
-The `Co-authored-by` trailer and the `ICON-NNNN:` prefix are provenance *claims* written into the commit text — anyone can type them, so they are forgeable. Cryptographic commit signing (GPG or SSH) is verifiable *proof* of authorship that GitLab checks and surfaces as a **Verified** badge. Sign commits wherever signing is configured. For the one-time setup (SSH and GPG options) and the server-side enforcement, see the **Commit Signing** section of `.context/workflows/branching.md`.
+The `Co-authored-by` trailer and the `ICON-NNNN:` prefix are provenance *claims* written into the commit text — anyone can type them, so they are forgeable. Cryptographic commit signing (GPG or SSH) is verifiable *proof* of authorship that GitHub checks and surfaces as a **Verified** badge. Sign commits wherever signing is configured. For the one-time setup (SSH and GPG options) and the server-side enforcement, see the **Commit Signing** section of `.context/workflows/branching.md`.
 
 ## Well-formed Examples
 

@@ -5,11 +5,11 @@
 
 ## Context
 
-ICON originally lived under `plugins/ICON/` inside the `datascan-marketplace` monorepo. Versioning the plugin required tagging the monorepo, which coupled ICON releases to unrelated marketplace listings and surfaced misleading diffs at install time. Marketplace consumers also could not see ICON's commit history without cloning the whole monorepo.
+ICON originally lived under `plugins/ICON/` inside the marketplace monorepo. Versioning the plugin required tagging the monorepo, which coupled ICON releases to unrelated marketplace listings and surfaced misleading diffs at install time. Marketplace consumers also could not see ICON's commit history without cloning the whole monorepo.
 
 ## Decision
 
-Split ICON into a standalone GitLab repository at `gitlab.com/onedatascan/ai-platform/plugins/icon` (this repo). The marketplace listing references this repo with `ref: "latest"` (a movable git tag), so installs resolve to the most recent ICON-tagged commit without a marketplace edit.
+Split ICON into a standalone repository at `github.com/isochronous/icon` (this repo). The marketplace listing references this repo with `ref: "latest"` (a movable git tag), so installs resolve to the most recent ICON-tagged commit without a marketplace edit.
 
 ## Consequences
 
