@@ -67,4 +67,4 @@ A maintainer will review. Expect questions about cross-skill impact — come pre
 
 ## Maintainers: cutting a release
 
-Releases are cut with the `release-plugin` skill. The only machine-local setup is the Slack announcement (the final step): export `SLACK_WEBHOOK_URL` in your shell profile (`~/.bashrc` or `~/.zshrc`) so the release can post to the channel automatically. The webhook is a shared secret — obtain its value from the **"shared" canvas in the AI-Council Slack channel**, and never commit it. If the variable is unset the release still completes; the skill skips the automated post and prints the notes for you to paste manually. See the *Maintainer setup (one-time)* section in `release-plugin` for details.
+Releases are cut with the `release-plugin` skill — it bumps the plugin manifest, rewrites `CHANGELOG.md`, and tags `vX.Y.Z` while force-moving `latest`. No machine-local setup is required.

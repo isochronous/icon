@@ -23,34 +23,6 @@ Run all commands from the repository root.
 
 This repo uses a **`main`-only** branch model. Release housekeeping commits land directly on `main`; the release itself is the `vX.Y.Z` tag push plus the force-move of `latest`.
 
-## Maintainer setup (one-time)
-
-The only release step that needs machine-local configuration is the Slack
-announcement (Step 10). **The Slack announcement is a personal/org-specific
-integration (the AI-Council channel webhook) carried over from this plugin's
-origin — you may want to reconfigure it to your own channel or remove it
-entirely.** It reads the Slack incoming-webhook URL from the
-`SLACK_WEBHOOK_URL` environment variable. **This is a shared secret — it is
-deliberately not stored in the repo.** Without it the release still completes;
-only the automated announcement is skipped (Step 10 degrades gracefully).
-
-To enable the announcement on your machine, add the export to your shell profile
-(`~/.bashrc`, or `~/.zshrc` on zsh) and restart your shell:
-
-```bash
-export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/…"
-```
-
-Obtain the value from the **"shared" canvas in the AI-Council Slack channel**.
-Do not paste the webhook URL into any committed file, commit message, or chat
-transcript — only into your local shell profile.
-
-Verify it is live in a new shell:
-
-```bash
-[[ -n "$SLACK_WEBHOOK_URL" ]] && echo "SLACK_WEBHOOK_URL: (set)" || echo "SLACK_WEBHOOK_URL: (not set)"
-```
-
 ## release-plugin: Step 1: Confirm Ready State
 
 Verify you are on `main` and the working tree is clean:
@@ -293,64 +265,9 @@ Tags pushed: vX.Y.Z, latest (force-moved)
 Changes included: [one-line summary]
 ```
 
----
-
-## release-plugin: Step 10: Post release to Slack (announcement — non-blocking)
-
-**The release is already complete after Step 9.** This step is the Slack
-announcement only. A missing webhook or a failed post does **not** invalidate the
-release and must **not** be reported as a release failure — fall through to the
-manual-post fallback and continue to Step 11.
-
-Always extract the latest versioned section from the changelog first:
-
-```bash
-NOTES=$(awk '/^## \[[0-9]/{if(found){exit}; found=1} found{print}' CHANGELOG.md)
-```
-
-If `$NOTES` is empty, the changelog section was not found — skip the automated
-post and tell the user to announce manually; the release still stands.
-
-Check whether the webhook is configured:
-
-```bash
-[[ -n "$SLACK_WEBHOOK_URL" ]] && echo "SLACK_WEBHOOK_URL: (set)" || echo "SLACK_WEBHOOK_URL: (not set)"
-```
-
-**If `$SLACK_WEBHOOK_URL` is not set** — do not stop. The webhook is a shared
-secret that lives in your local shell profile (see *Maintainer setup (one-time)*
-at the top of this skill); a maintainer who has not configured it yet can still
-release. Print the formatted announcement so the user can paste it into the
-channel by hand, then proceed to Step 11:
-
-```bash
-echo "Slack: SLACK_WEBHOOK_URL not set — skipping automated post (release is complete)."
-echo "To enable automated posts, see 'Maintainer setup (one-time)' in this skill."
-echo "--- paste this into the release channel manually ---"
-echo "🚀"; echo "$NOTES"
-```
-
-**If `$SLACK_WEBHOOK_URL` is set**, post to Slack:
-
-```bash
-curl -s -X POST "$SLACK_WEBHOOK_URL" \
-  -H 'Content-Type: application/json' \
-  -d "{\"text\": \"🚀 $(echo "$NOTES" | bash .claude/skills/release-plugin/scripts/format-slack.sh)\"}" \
-  && echo "Slack: posted successfully" \
-  || echo "Slack: curl failed — release still stands; post manually (check SLACK_WEBHOOK_URL and network)"
-```
-
-A "posted successfully" line confirms the announcement. If the post failed,
-report that the announcement needs a manual post — **not** that the release
-failed.
-
----
-
-## release-plugin: Step 11: Verify marketplace pickup
-
 No marketplace edit is required. The marketplace listing's marketplace.json
-references this repo with `ref: "latest"`, and Step 9 force-moved the
-`latest` tag to the new release commit. The marketplace listing will resolve
+references this repo with `ref: "latest"`, and the tag push above force-moved
+the `latest` tag to the new release commit. The marketplace listing will resolve
 to the new version automatically on the next `/plugin update` from a consumer.
 
 Tell the user explicitly: "The `latest` tag now points at `vX.Y.Z`. No
@@ -370,5 +287,3 @@ their next plugin update."
 | `git push` fails | Report the error verbatim; do not retry silently |
 | `git push -f origin latest` fails | Stop. Report verbatim — without the moved `latest` tag, marketplace consumers will not see the new version |
 | User-supplied bump arg is not `patch`/`minor`/`major` | Stop and ask for a valid value |
-| `SLACK_WEBHOOK_URL` not set (Step 10) | **Do not stop** — the release is already complete. Skip the automated post, print the notes for manual posting, point the user at *Maintainer setup (one-time)*, and continue |
-| Slack post (`curl`) fails (Step 10) | **Do not stop** — report that the announcement needs a manual post; the release still stands |
