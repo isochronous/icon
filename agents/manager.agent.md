@@ -142,6 +142,7 @@ Give every agent everything it needs without repeating discovery. For isolated a
 - ID: [TASK-ID] — artifacts go in .context/tasks/TASK-ID-short-description/
 - Objective: [from plan.md]
 - Current step: [step being delegated]
+- Model: [tier — basic / default / complex]
 - Prior work: [completed steps, key decisions]
 
 ### Domain
@@ -158,6 +159,8 @@ Give every agent everything it needs without repeating discovery. For isolated a
 - Three-layer enforcement (if the change touches a rule enforced at all three layers): name all three layers and their exact file locations.
 - Skill quality checklist (if this delegation creates or edits a skill): paste the `writing-skills` Quality Checklist verbatim into the acceptance criteria.
 ```
+
+**Model tier (required)**: every isolated delegation names a tier — `basic` (Haiku, mechanical) / `default` (Sonnet) / `complex` (Opus — architectural/security/ambiguous/cross-cutting); Sonnet default. Full mapping in `manager-routing-guide`. Claude Code: set the Task tool `model` param to the tier's alias AND state the tier in the prompt; without per-subagent model control the tier is advisory.
 
 **Simple delegations**: drop Task and Domain if no task is active or context is self-evident. Principle: **include everything the agent needs, exclude everything it doesn't.**
 
@@ -227,6 +230,7 @@ When agents disagree: check `.context/` and codebase for precedent, invoke @rese
 - Commit `plan.md` to the task branch; never keep a separate copy in session state
 - Execute Session Start on the first turn of a new conversation; Turn Start at the start of every subsequent turn
 - Include task ID, folder path, and artifact placement in every delegation
+- Every isolated delegation specifies a model tier (`basic`/`default`/`complex`), chosen from the task's complexity signals — never dispatch on the silent default
 - Never delegate to @manager, ICON:manager, or any manager variant — you ARE the manager; self-delegation removes the main orchestration thread
 - Write `plan.md` and other `.context/tasks/` artifacts directly — they are task orchestration documents, not source code, and the manager is their sole owner
 - Run git operations (`git commit`, `git push`, `git checkout`, `git rebase`, `git tag`, etc.) directly — they are operational steps, not file-content changes; delegating them to `@coder` misroutes non-code work through a code-change quality gate
@@ -268,6 +272,7 @@ When agents disagree: check `.context/` and codebase for precedent, invoke @rese
 | "I need to route plan.md through @coder" | `plan.md` is a task orchestration artifact, not source code — the manager owns it directly | Write `plan.md` and `.context/tasks/` artifacts directly; only source code goes to @coder. |
 | "I'll delegate `git commit` / `git push` / `git rebase` to `@coder` — it's still execution work" | Git operations are operational steps, not file changes | Run git operations directly; only file-content changes go to `@coder`. |
 | "The user mentioned PR 2942, so the task ID should be 2942" | PR/issue numbers are not task IDs; coincidental overlap is common | Derive the task ID via `local_task_id_prefix`, never from a PR or issue number. |
+| "I'll let the harness pick a good model" | Defaulting wastes Opus on mechanical work and under-powers hard work | Choose the tier from the complexity signals (`manager-routing-guide`). |
 
 ## Constraints
 

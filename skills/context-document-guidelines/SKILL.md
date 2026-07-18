@@ -123,6 +123,7 @@ ADRs extend their existing bold-field metadata idiom (`**Date**:`, `**Status**:`
 - **`**Supersedes**`** and **`**Superseded-by**`** are bold-fields, not frontmatter — consistent with today's ADR format.
 - **Value is `ADR-NNN`** (which maps deterministically to `decisions/NNN-*.md`) **or `none`.**
 - `**Superseded-by**` is the parseable mirror of the human `**Status**: Superseded by …` prose; keep the `**Status**` line for humans.
+- **ADR cross-references live in these bold-fields + plain prose — an ADR does NOT get a `## Related` footer (ICON-0081 F1, ICON-0084).** Record supersede relationships in the `**Supersedes**` / `**Superseded-by**` fields above, and reference any OTHER ADR in plain prose as `ADR-NNN` (which maps to `decisions/NNN-*.md`). The `## Related` footer seam is for **content docs only** (`domains/`, `standards/`, `workflows/`, `architecture/`, `testing/`, `styling/`) — do not append one to an ADR.
 
 ### Escape-hatch markers (use sparingly)
 
