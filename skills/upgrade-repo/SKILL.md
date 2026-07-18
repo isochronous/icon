@@ -11,7 +11,7 @@ user-invocable: true
 
 ## Overview
 
-Bring an already-initialized `.context/` up to current spec without losing any
+Bring an already-initialized `.context/` up to current spec without losing
 customized content. **Audit first, act second, always confirm before replacing.**
 
 ## When to Use
@@ -19,7 +19,7 @@ customized content. **Audit first, act second, always confirm before replacing.*
 - `.context/` exists but `prune-context.sh` lacks the `INTEGRATION_BRANCHES` variable
 - `commit-conventions.md` or `branching.md` are missing from `.context/workflows/`
 - The git hook is missing or not wired (`git config core.hooksPath`)
-- You've just run `upgrade-repo` on another repo in this workspace and want consistency
+- You just ran `upgrade-repo` on another repo in this workspace and want consistency
 
 **Do not use** if `.context/` doesn't exist yet — use `initialize-repo` instead.
 
@@ -27,14 +27,13 @@ customized content. **Audit first, act second, always confirm before replacing.*
 
 ### upgrade-repo: Phase 0: Detect and Migrate Instructions File
 
-Check whether the repository is using the legacy `.github/copilot-instructions.md`
-path and offer to migrate it to the canonical `.claude/claude.md` location.
-Claude Code loads from `.claude/claude.md` automatically. Copilot CLI requires a
-root-level `claude.md` redirect (created below) to reach the same file.
+Offer to migrate the legacy `.github/copilot-instructions.md` to the canonical
+`.claude/claude.md`. Claude Code loads `.claude/claude.md` automatically; Copilot CLI
+reaches it via a root-level `claude.md` redirect (created below).
 
 **Case 1: Needs migration** — `.github/copilot-instructions.md` exists AND `.claude/claude.md` does not.
 
-Show the user what will happen and **get confirmation before acting**:
+Show what will happen and **get confirmation before acting**:
 
 > Ready to migrate instructions file:
 > - `mkdir -p .claude`
@@ -49,8 +48,8 @@ mkdir -p .claude
 git mv .github/copilot-instructions.md .claude/claude.md
 ```
 
-Then check for the optional sibling directories and offer to migrate each with
-the same show-and-confirm pattern (one confirmation per directory):
+Then offer to migrate any optional sibling directories with the same
+show-and-confirm pattern (one confirmation per directory):
 
 ```bash
 # If .github/skills/ exists — offer:
@@ -70,14 +69,14 @@ Skip this phase and note: *"`.claude/claude.md` already exists — migration com
 **Case 3: Neither exists** — neither `.github/copilot-instructions.md` nor `.claude/claude.md` is present.
 
 Skip this phase and note: *"No instructions file found. Create `.claude/claude.md`
-before running `upgrade-repo`, or run `initialize-repo` to set up the repository
-from scratch. Continuing to Phase 1."*
+before running `upgrade-repo`, or run `initialize-repo` to set up from scratch.
+Continuing to Phase 1."*
 
 ### upgrade-repo: Ensure root-level `claude.md` redirect
 
-After handling Cases 1 and 2, check whether a root-level `claude.md` redirect
-exists. Skip this step in Case 3 — a redirect pointing at a non-existent
-`.claude/claude.md` would silently mislead Copilot CLI users.
+After Cases 1 and 2, check whether a root-level `claude.md` redirect exists. Skip
+in Case 3 — a redirect pointing at a non-existent `.claude/claude.md` would mislead
+Copilot CLI users.
 
 ```bash
 if [ -f ".claude/claude.md" ]; then
@@ -102,21 +101,20 @@ Skip silently if `claude.md` already exists.
 
 ### upgrade-repo: Phase 1: Audit (no changes yet)
 
-Invoke the `find-context-template` skill to locate the template directory and establish `$TEMPLATE_DIR`.
+Invoke `find-context-template` to locate the template directory and establish `$TEMPLATE_DIR`.
 
-Read `.context/iconrc.json` if it exists. Extract the `excludes` array (treat as empty if the file is absent or has no `excludes` key). Any directory whose name appears in `excludes` is intentionally omitted — do not flag it as missing in the audit report and do not create or update it in any later phase.
+Read `.context/iconrc.json` if it exists and extract the `excludes` array (empty if absent or no `excludes` key). Any directory named in `excludes` is intentionally omitted — never flag it as missing or create/update it in any later phase.
 
 Check and report:
 - **Infrastructure files**: `prune-context.sh`, `.githooks/post-commit` — present and current?
-- **Directories**: all of `standards/ architecture/ testing/ tasks/ workflows/ domains/ styling/` exist? *(Skip any that appear in `excludes` — they are intentionally absent.)*
+- **Directories**: all of `standards/ architecture/ testing/ tasks/ workflows/ domains/ styling/` exist? *(Skip any in `excludes` — intentionally absent.)*
 
 **Special check — deprecated `task-workflow-template.md`**
 
-`task-workflow-template.md` has been replaced by the per-phase templates in
-`.context/workflows/task-plan/`. If the file is present in the repo it must be
-removed during this upgrade — but only after any team customizations are
-migrated to the phase files. Compare against the stock reference to decide
-whether migration is required first.
+`task-workflow-template.md` is replaced by the per-phase templates in
+`.context/workflows/task-plan/`. If present, remove it during this upgrade — but
+only after migrating any team customizations to the phase files. Compare against
+the stock reference to decide whether migration is required first.
 
 ```bash
 if [ -f ".context/workflows/task-workflow-template.md" ]; then
@@ -148,7 +146,7 @@ if (Test-Path ".context\workflows\task-workflow-template.md") {
 
 **Special check — flat `decisions.md` → `decisions/` folder migration**
 
-The `decisions.md` flat file has been replaced by the `decisions/` folder layout (one ADR per `NNN-kebab-slug.md` file, `README.md` index). Check whether migration is needed:
+The flat `decisions.md` is replaced by the `decisions/` folder layout (one ADR per `NNN-kebab-slug.md`, `README.md` index). Check whether migration is needed:
 
 <!-- pre-commit:dead-ref-ok-start -->
 ```bash
@@ -173,23 +171,23 @@ if (Test-Path ".context\decisions") {
 <!-- pre-commit:dead-ref-ok-end -->
 
 - **New required files**: `workflows/commit-conventions.md`, `workflows/branching.md`, `.context/.gitignore`, `.context/iconrc.json`, `.context/rules-index.md` — present?
-- **`iconrc.json` schema version**: if present, compare the `version` field against the template value and report whether an update is needed.
-- **`local_task_id_prefix` collision check**: read the current value from `.context/iconrc.json`; sample recent commits with `git log --oneline -100`; extract any `[A-Za-z]{2,}-\d+` ticket-prefix patterns (case-insensitive extraction so a team that started lowercase is still caught); if the local prefix matches one of those (case-insensitive comparison), report it as a finding (`Local prefix '<X>' collides with detected external ticket prefix '<X>' — recommend changing to 'LOCAL' or another distinct value`). Reporting only — Phase 2 does not auto-rewrite the field.
-- **Task plan phase templates**: `.context/workflows/task-plan/` directory
-  exists? If yes, report which of the 6 phase files are present and their
-  `<!-- template-version: X.Y -->` markers. If the directory is absent, note it
-  as "awaiting installation" — it is a new addition and not a critical missing file.
+- **`iconrc.json` schema version**: if present, compare its `version` against the template and report whether an update is needed.
+- **`local_task_id_prefix` collision check**: read the current value; sample commits with `git log --oneline -100`; extract any `[A-Za-z]{2,}-\d+` ticket-prefix patterns (case-insensitive, to catch a team that started lowercase); if the local prefix matches one (case-insensitive), report a finding (`Local prefix '<X>' collides with detected external ticket prefix '<X>' — recommend changing to 'LOCAL' or another distinct value`). Reporting only — Phase 2 does not auto-rewrite the field.
+- **Task plan phase templates**: does `.context/workflows/task-plan/` exist? If yes,
+  report which of the 6 phase files are present and their `<!-- template-version: X.Y -->`
+  markers. If absent, note it as "awaiting installation" — a new addition, not a
+  critical missing file.
 - **Hook wiring**: `git config --get core.hooksPath` points at `.githooks/`?
-- **Root-level `.gitattributes`**: present and contains `merge=union` for the retrospective files (`retrospectives.md`, `retrospectives-archive.md`)?
+- **Root-level `.gitattributes`**: present, with `merge=union` for the retrospective files (`retrospectives.md`, `retrospectives-archive.md`)?
 
-Produce a summary and **get confirmation before touching any existing file**.
+Summarize and **get confirmation before touching any existing file**.
 
 ### upgrade-repo: Phase 2: Upgrade Infrastructure
 
 Replace outdated infrastructure files from the template. **Content files
 (`overview.md`, `decisions/`, domain files) are never touched here.**
-**Excluded directories** (names in `excludes` from Phase 1): do not create,
-restore, or populate them even if they are absent from the repository.
+**Excluded directories** (names in `excludes` from Phase 1): never create, restore,
+or populate them, even if absent.
 
 **Special case — delete deprecated `task-workflow-template.md`**
 
@@ -218,7 +216,7 @@ git rm .context/workflows/task-workflow-template.md
 
 If Phase 1 reported `decisions/: folder already present` or `decisions.md: not present`, skip this section.
 
-If Phase 1 reported `decisions.md: flat file present`, show the user what will happen and **get confirmation before acting**:
+If Phase 1 reported `decisions.md: flat file present`, show what will happen and **get confirmation before acting**:
 
 > Ready to migrate `.context/decisions.md` to `.context/decisions/`:
 > - Parse each `## ADR-NNN:` block → create `.context/decisions/NNN-kebab-slug.md`
@@ -434,17 +432,15 @@ git rm ".context\decisions.md"
 <!-- pre-commit:dead-ref-ok-end -->
 
 **Special case — `prune-context.sh` pre-`INTEGRATION_BRANCHES`** (or a still-present
-legacy `prune-old-tasks.sh`): if the old script uses a hardcoded `=~` regex
-without a named variable, extract that regex, copy the new script, and set
-`INTEGRATION_BRANCHES` to the extracted value. Do not reset to the generic
-default. If a legacy `prune-old-tasks.sh` is present in the `.context/workflows/`
-directory, rename it to `prune-context.sh` with a `git mv` so the
-`.githooks/post-commit` reference resolves. (If the legacy script was
-heavily customized and you want the rename + overwrite to show in the diff for
-review, `git rm` it instead before copying.) Then run the standard
-`cp $TEMPLATE_DIR/context/workflows/prune-context.sh .context/workflows/`
-step — the rename preserves the hook reference; the copy overwrites the stale
-logic with the current template.
+legacy `prune-old-tasks.sh`): if the old script uses a hardcoded `=~` regex without
+a named variable, extract that regex, copy the new script, and set
+`INTEGRATION_BRANCHES` to the extracted value — do not reset to the generic default.
+If a legacy `prune-old-tasks.sh` is present in `.context/workflows/`, `git mv` it to
+`prune-context.sh` so the `.githooks/post-commit` reference resolves. (If heavily
+customized and you want the rename + overwrite in the diff, `git rm` it instead before
+copying.) Then run the standard
+`cp $TEMPLATE_DIR/context/workflows/prune-context.sh .context/workflows/` — the rename
+preserves the hook reference; the copy overwrites stale logic with the current template.
 
 For any missing new required files, run the git log analysis from `initialize-repo`
 Step 1a to create them with real examples:
@@ -465,10 +461,9 @@ cp "$TEMPLATE_DIR/context/.gitignore" .context/
 
 **Ensure root-level `.gitattributes`**
 
-Migrate the repo to a root-level `.gitattributes` that gives retrospective logs
-the `union` merge driver. The grep-before-append guard makes this idempotent and
-preserves any pre-existing entries (Pattern D — create if absent, append if the
-entries are missing, skip if present):
+Migrate the repo to a root-level `.gitattributes` giving retrospective logs the
+`union` merge driver. The grep-before-append guard is idempotent and preserves
+pre-existing entries (Pattern D — create if absent, append if missing, skip if present):
 
 ```bash
 # Ensure repo-root .gitattributes gives retrospective logs a union merge driver,
@@ -518,16 +513,15 @@ if ($InstalledVer -ne $TemplateVer) {
 ```
 
 **`local_task_id_prefix` collision (manual resolution)** — if Phase 1 flagged the
-local prefix as colliding with a detected external ticket prefix, this
-upgrade does not rewrite the field. Resolving the collision is a manual choice:
-the user should re-invoke `create-iconrc` with the new prefix (and `forbidden_prefixes`
-populated from the audit finding) once they have decided on a replacement.
+local prefix as colliding with a detected external ticket prefix, this upgrade does
+not rewrite the field. Resolution is a manual choice: the user re-invokes
+`create-iconrc` with the new prefix (and `forbidden_prefixes` populated from the audit
+finding) once they have decided on a replacement.
 
 **New: Install task-plan phase templates**
 
-Process the `.context/workflows/task-plan/` directory as follows. These files are
-team-customizable; use the version-marker-aware logic below — never auto-overwrite
-a file that already exists.
+Process `.context/workflows/task-plan/` as follows. These files are team-customizable;
+use the version-marker-aware logic below — never auto-overwrite an existing file.
 
 | File | Condition | Action |
 |------|-----------|--------|
@@ -610,15 +604,15 @@ if (-not (Test-Path $TaskPlanDir)) {
 
 `.context/rules-index.md` is an on-demand router into `standards/`/`workflows/`/`decisions/`. **Create it only if absent — NEVER overwrite an existing copy.** Unlike the template-versioned infrastructure files above, it is not version-markered: it derives from the repo's own rule files, so the installed copy is always the source of truth.
 
-If `.context/rules-index.md` is missing, generate it by scanning the three directories and building the three-section table per `context-specialist-impl-leaf` Step 4.5 — one row per top-level `standards/`/`workflows/` file (a parent row for an indexed sub-directory), one row per `decisions/NNN-*.md` ADR, each with an "Applies when…" routing trigger and a link. If it is already present, skip — do not touch it.
+If missing, generate it by scanning the three directories and building the three-section table per `context-specialist-impl-leaf` Step 4.5 — one row per top-level `standards/`/`workflows/` file (a parent row for an indexed sub-directory), one row per `decisions/NNN-*.md` ADR, each with an "Applies when…" trigger and a link. If present, skip.
 
 ### upgrade-repo: Phase 3: Content Currency (delegate)
 
-Infrastructure and content currency are separate concerns. After upgrading infrastructure, run the **content-currency sample check** below; only invoke `context-maintenance` if the sample indicates real drift. Do not touch `META.md`, `retrospectives.md`, or `tasks/` as part of this delegation.
+Infrastructure and content currency are separate concerns. After upgrading infrastructure, run the **content-currency sample check** below; only invoke `context-maintenance` if the sample indicates real drift. Do not touch `META.md`, `retrospectives.md`, or `tasks/` in this delegation.
 
 **Content-currency sample check** (canonical spec — orchestrators reference this section):
 
-Spot-check 5 random class names, function names, type names, or file paths from `.context/domains/*.md` against the codebase using `grep`. If at least 2 of the 5 are absent from the codebase, invoke `context-maintenance` to run a full audit; otherwise skip the content refresh. `context-maintenance` owns the full content refresh workflow when invoked.
+Spot-check 5 random class/function/type names or file paths from `.context/domains/*.md` against the codebase with `grep`. If at least 2 of the 5 are absent, invoke `context-maintenance` for a full audit; otherwise skip the content refresh. `context-maintenance` owns the full content refresh when invoked.
 
 ### upgrade-repo: Phase 4: Verify and Commit
 
@@ -637,22 +631,22 @@ Commit using this repo's format from `commit-conventions.md`.
 ## Retrospectives File Migration
 
 Repos initialized before MKT-0045 have a `retrospectives.md` with a preamble and
-`## Log` section header. The current format starts directly with the first `### `
-entry — no preamble, no `## Log` heading.
+`## Log` header. The current format starts directly with the first `### ` entry —
+no preamble, no `## Log` heading.
 
 **To migrate a repo**:
 
 1. Open `.context/retrospectives.md`.
-2. Delete everything from the top of the file through and including the `## Log`
-   line and the blank line that follows it, leaving the first `### ` entry as line 1.
+2. Delete everything from the top through and including the `## Log` line and its
+   following blank line, leaving the first `### ` entry as line 1.
 3. If the file has no `### ` entries yet (only the template placeholder), replace the
-   entire file content with just the trailing HTML comment:
+   whole file with just the trailing HTML comment:
    ```
    <!-- New entries go here, above older entries. Remove entries older than the 10th. -->
    ```
 
-This is a one-time migration. No script is provided — the deletion is a targeted
-manual edit (or a 2-line `sed` command targeting the specific heading).
+One-time migration. No script — the deletion is a targeted manual edit (or a 2-line
+`sed` command targeting the specific heading).
 
 ## Common Mistakes
 

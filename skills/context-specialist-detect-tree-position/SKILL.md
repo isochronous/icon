@@ -61,11 +61,10 @@ Returns one of `leaf`, `branch`, or `root`. On fallback, returns `leaf` and logs
 
 This skill is also the canonical home for the entry-point detection pattern used
 by the init orchestrators (`initialize-monorepo`, `initialize-workspace`,
-`initialize-multimodule`). The pattern checks whether a directory has a
-runtime-ready agent context (both an entry-point instructions file and a
-`.context/` directory) and is used in two places per orchestrator: once when
-classifying each area as `initialize-repo` vs `upgrade-repo`, and once during
-post-run completeness verification.
+`initialize-multimodule`). It checks whether a directory has a runtime-ready
+agent context (both an entry-point instructions file and a `.context/`
+directory), used in two places per orchestrator: classifying each area as
+`initialize-repo` vs `upgrade-repo`, and post-run completeness verification.
 
 **Detection form** — branches `initialize-repo` vs `upgrade-repo` for a single
 directory:

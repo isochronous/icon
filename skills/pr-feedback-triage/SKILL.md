@@ -9,7 +9,7 @@ user-invocable: true
 
 ## Overview
 
-**Unread reviewer feedback is debt. Mis-triaged reviewer feedback is waste.** This skill pulls all open review comments from a GitHub PR, assesses each for necessity, synthesizes what action is needed to close it, and produces a prioritized triage report the author can work from.
+**Unread reviewer feedback is debt. Mis-triaged reviewer feedback is waste.** This skill pulls all open review comments from a GitHub PR, assesses each for necessity, synthesizes the action needed to close it, and produces a prioritized triage report the author can work from.
 
 ## When to Use
 
@@ -17,7 +17,7 @@ user-invocable: true
 - You're unsure which reviewer threads are blocking merge versus optional
 - You want a structured summary before addressing feedback
 
-**When NOT to use**: For performing a code review yourself → use `code-quality-rules`. For PR authoring discipline → use `pr-discipline`.
+**When NOT to use**: To perform a code review yourself → `code-quality-rules`. For PR authoring discipline → `pr-discipline`.
 
 ---
 
@@ -31,23 +31,23 @@ gh auth status
 
 > The `gh` CLI is not available or not authenticated. Run `gh auth login`, then retry.
 
-**Identify the PR.** If not provided by the user, infer it from branch context (`gh pr view --json number,title,headRefName`) or ask:
-- `repo` — `owner/repo` (defaults to the current repository's `origin` remote)
+**Identify the PR.** If not provided, infer from branch context (`gh pr view --json number,title,headRefName`) or ask:
+- `repo` — `owner/repo` (defaults to the current repo's `origin` remote)
 - `pr` — the PR number
 
-**Fetch PR metadata:** Confirm the PR exists and capture its title, number, head branch, and base:
+**Fetch PR metadata:** Confirm the PR exists and capture title, number, head branch, base:
 
 ```bash
 gh pr view <pr> --json number,title,headRefName,baseRefName,url
 ```
 
-**Fetch all review comments.** GitHub has two distinct comment surfaces — fetch both, do not stop at one:
+**Fetch all review comments.** GitHub has two distinct comment surfaces — fetch both, don't stop at one:
 
 1. **Inline review comments** (anchored to a file/line in the diff) — paginate until exhausted:
    ```bash
    gh api --paginate "repos/{owner}/{repo}/pulls/<pr>/comments"
    ```
-2. **Review summaries** (the body a reviewer writes when submitting an Approve / Request-changes / Comment review):
+2. **Review summaries** (the body written when submitting an Approve / Request-changes / Comment review):
    ```bash
    gh api --paginate "repos/{owner}/{repo}/pulls/<pr>/reviews"
    ```
@@ -58,11 +58,11 @@ gh pr view <pr> --json number,title,headRefName,baseRefName,url
 
 `--paginate` walks every page; do not hand-roll page loops or stop at the first page.
 
-A GitHub review **thread** is the chain of inline comments sharing an `in_reply_to_id` lineage (the root comment plus its replies on the same `path`/`line`). Group the inline comments into threads by following `in_reply_to_id` back to each root.
+A GitHub review **thread** is the chain of inline comments sharing an `in_reply_to_id` lineage (the root comment plus its replies on the same `path`/`line`). Group inline comments into threads by following `in_reply_to_id` back to each root.
 
 **Filter to open human threads.** Exclude threads where:
-- Every comment's `user.login` matches a bot pattern (ends with `[bot]`, or is a known CI/service account)
-- The thread is resolved — GitHub marks resolution on the **review thread**, exposed via the GraphQL API (REST does not return `isResolved`). Fetch resolution state with:
+- Every comment's `user.login` matches a bot pattern (ends with `[bot]`, or a known CI/service account)
+- The thread is resolved — GitHub marks resolution on the **review thread**, exposed via GraphQL (REST does not return `isResolved`). Fetch resolution state with:
   ```bash
   gh api graphql -f query='
     query($owner:String!,$repo:String!,$pr:Int!){
@@ -77,7 +77,7 @@ A GitHub review **thread** is the chain of inline comments sharing an `in_reply_
   ```
   Match each REST comment thread to its GraphQL `reviewThread` by the root comment's `databaseId`, and drop threads where `isResolved == true`.
 
-Retain both unresolved inline threads and unresolved general/review-summary comments that carry actionable feedback.
+Retain both unresolved inline threads and unresolved general/review-summary comments carrying actionable feedback.
 
 If zero threads remain after filtering, report:
 > No open human review threads found on this PR.
@@ -86,17 +86,17 @@ If zero threads remain after filtering, report:
 
 ## pr-feedback-triage: Phase 2: Gather Code Context
 
-For each retained inline thread, the root comment carries `path`, `line` (or `original_line`), and a `diff_hunk` field — GitHub embeds the surrounding diff hunk directly in the comment payload. Use `diff_hunk` as the primary context source; no extra fetch is needed.
+For each retained inline thread, the root comment carries `path`, `line` (or `original_line`), and a `diff_hunk` field — GitHub embeds the surrounding diff hunk in the payload. Use `diff_hunk` as the primary context; no extra fetch needed.
 
-When `diff_hunk` is insufficient (the comment is `outdated`, the line shifted, or you need more surrounding code), pull the file's current diff:
+When `diff_hunk` is insufficient (comment is `outdated`, line shifted, or you need more surrounding code), pull the file's current diff:
 
 ```bash
 gh pr diff <pr>
 ```
 
-For each thread, locate the hunk containing the referenced line. If the diff cannot be matched (file renamed, deleted, position outdated per the GraphQL `isOutdated` flag, or line not found):
+For each thread, locate the hunk containing the referenced line. If the diff cannot be matched (file renamed, deleted, position outdated per GraphQL `isOutdated`, or line not found):
 - Mark context as **outdated or unavailable**
-- Do not fabricate a resolution; instead propose investigation
+- Do not fabricate a resolution; propose investigation
 
 For general (non-inline) comments and review summaries, mark as **No code location — general comment**.
 
@@ -114,21 +114,21 @@ Assign a necessity tier:
 | 🟡 | **Recommended** | Performance concern, readability issue, design inconsistency, strong reviewer preference |
 | ⚪ | **Optional** | Explicit `nit:` prefix, style preference, speculative future concern, rhetorical question without fix request |
 
-**Reviewer tone is a signal, not a rule.** A reviewer saying "please fix" on a style preference is Recommended. A quiet diff comment flagging a null-dereference is Blocking. A comment attached to a review submitted as **Request changes** weighs toward Blocking.
+**Reviewer tone is a signal, not a rule.** "Please fix" on a style preference is Recommended. A quiet diff comment flagging a null-dereference is Blocking. A comment on a review submitted as **Request changes** weighs toward Blocking.
 
 For the **Proposed action**, choose the most appropriate response type:
 - **Code change**: specific edit that would close the thread
 - **Reply**: clarification or rebuttal where no code change is needed
-- **Investigation**: context is unclear or outdated — investigate before deciding
-- **Already addressed**: if the code was already changed; propose a "resolved by commit [sha]" reply
+- **Investigation**: context unclear or outdated — investigate before deciding
+- **Already addressed**: code already changed; propose a "resolved by commit [sha]" reply
 
-> **As part of this skill, never resolve threads or post replies on behalf of the author.** For threads where code has already been addressed, include suggested reply text in the report (e.g., "resolved by commit [sha]") for the author to post. The reviewer who raised the concern is the one who resolves it — posting replies or resolving threads automatically skips their validation step and may cause feedback to be silently dropped. Do **not** run `gh pr review`, `gh pr comment`, `gh api ... -X POST .../comments`, or the GraphQL `resolveReviewThread` mutation as part of this skill.
+> **As part of this skill, never resolve threads or post replies on behalf of the author.** For threads already addressed in code, include suggested reply text in the report (e.g., "resolved by commit [sha]") for the author to post. The reviewer who raised the concern resolves it — posting replies or resolving threads automatically skips their validation step and may silently drop feedback. Do **not** run `gh pr review`, `gh pr comment`, `gh api ... -X POST .../comments`, or the GraphQL `resolveReviewThread` mutation as part of this skill.
 
 ---
 
 ## pr-feedback-triage: Phase 4: Report
 
-Produce the triage report grouped by tier (Blocking first, then Recommended, then Optional). Preserve original PR thread order within each tier.
+Produce the report grouped by tier (Blocking, then Recommended, then Optional). Preserve original PR thread order within each tier.
 
 **Header:**
 ```
@@ -148,7 +148,7 @@ Produce the triage report grouped by tier (Blocking first, then Recommended, the
 **Context:** [full / partial / outdated — note if diff context was unavailable]
 ```
 
-If a thread has multiple comments and the last one changes the thread's intent (e.g., reviewer withdrew the request), note it:
+If a thread's last comment changes its intent (e.g., reviewer withdrew the request), note it:
 > _Reviewer follow-up softened this to a suggestion. Re-classified as Recommended._
 
 **Report footer — include at the end of every triage report:**
@@ -165,4 +165,4 @@ If a thread has multiple comments and the last one changes the thread's intent (
 - **Skipping pagination on busy PRs** — without `--paginate` a single page read silently drops threads; always exhaust pages
 - **Using REST to judge resolution** — REST does not expose thread resolution; only the GraphQL `reviewThreads.isResolved` flag does. Reading REST alone treats resolved threads as still-open
 - **Fabricating a resolution when diff context is missing** — mark as "Investigation" instead
-- **Resolving threads, posting replies, or adding comments directly** — do not run `gh pr review`, `gh pr comment`, a POST to the comments API, or the GraphQL `resolveReviewThread` mutation as part of this skill, including after pushing fixes to address feedback. Resolving is the reviewer's prerogative; this skill produces a report with suggested reply text for the author to post — all PR interactions are the author's responsibility, and the reviewer closes the thread when satisfied
+- **Resolving threads, posting replies, or adding comments directly** — do not run `gh pr review`, `gh pr comment`, a POST to the comments API, or the GraphQL `resolveReviewThread` mutation as part of this skill, including after pushing fixes. Resolving is the reviewer's prerogative; this skill produces a report with suggested reply text for the author to post — all PR interactions are the author's responsibility, and the reviewer closes the thread when satisfied

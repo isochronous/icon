@@ -7,7 +7,7 @@ user-invocable: false
 
 # Task Plan
 
-`plan.md` is a handoff document, not a progress tracker. It must contain enough context for a different person or agent on a different machine to resume the task cold — without access to conversation history.
+`plan.md` is a handoff document, not a progress tracker. It must hold enough context for a different person or agent on a different machine to resume the task cold — without conversation history.
 
 ## Format Selection
 
@@ -18,7 +18,7 @@ Before using the format below, check in this order:
 
 ## Phase Skills (On-Demand)
 
-For medium and complex tasks, phase skills provide structured guidance for the
+For medium and complex tasks, phase skills give structured guidance for the
 task's primary concern. The manager identifies the concern at task start and
 loads ONE matching skill — not all skills in sequence.
 
@@ -30,11 +30,10 @@ loads ONE matching skill — not all skills in sequence.
 | Primary work is tests | `task-plan-phase-testing` | Fixing tests, adding coverage, TDD |
 | Closing any task | `task-plan-phase-completion` | After primary work is done |
 
-Phase skills are `user-invocable: false`. They are invoked by the manager agent,
-not by users directly.
+Phase skills are `user-invocable: false` — invoked by the manager agent, not by
+users directly.
 
-For simple tasks, use the plan format below directly without invoking any phase
-skills.
+For simple tasks, use the plan format below directly without any phase skills.
 
 ## task-plan: Phase Plan & Phase-Per-Session Model
 
@@ -43,8 +42,8 @@ Medium and complex tasks record a **per-task phase plan** in `plan.md`
 (`investigation → architecture → implementation → testing → completion`), with
 `completion` always last. A pure refactor might be
 `[implementation, testing, completion]`; an investigation-heavy task uses all
-five. The manager writes the phase plan when the task is created; it changes only
-on an explicit re-open (re-mark the target phase `pending` and re-append it — an
+five. The manager writes the phase plan at task creation; it changes only on an
+explicit re-open (re-mark the target phase `pending` and re-append it — an
 explicit, recorded edit, not an implicit jump).
 
 Each phase can run in its own **fresh session**. This is opt-in and
@@ -55,9 +54,9 @@ but **always writes the `## Phase Handoff Log` block + `## Phase State` update a
 each boundary**, so the hardened, resumable artifact is produced universally.
 
 Every phase resumes **reconstruct-first**: its opening step reads `## Phase State`
-+ the preceding handoff and validates a fail-closed entry contract before doing
-any work; its closing step writes the handoff block, updates Phase State, and
-commits with a `Phase-Handoff: <phase>` trailer. This skill is a router — the
++ the preceding handoff and validates a fail-closed entry contract before any
+work; its closing step writes the handoff block, updates Phase State, and commits
+with a `Phase-Handoff: <phase>` trailer. This skill is a router — the
 `## Phase State` / `## Phase Handoff Log` shape and Section Guidance live in
 `.context/workflows/task-plan/base.md`; the per-phase entry contract and
 write/commit steps live in each phase's `phase-<name>.md` template and its
@@ -68,12 +67,11 @@ write/commit steps live in each phase's `phase-<name>.md` template and its
 If the repo has a local `.context/workflows/task-plan/phase-<name>.md`
 (for any phase: `phase-investigation`, `phase-architecture`,
 `phase-implementation`, `phase-testing`, `phase-completion`), read and
-apply it — the local file supersedes the guidance in the corresponding
-phase skill (including any triggers, delegation templates, checklists,
-decision-capture blocks, or status-tracking tables defined in the skill).
-Repos customize these templates to match team conventions. This rule
-applies to every section in every phase skill; individual sections do not
-restate it.
+apply it — the local file supersedes the corresponding phase skill's guidance
+(including any triggers, delegation templates, checklists, decision-capture
+blocks, or status-tracking tables in the skill). Repos customize these templates
+to match team conventions. This rule applies to every section in every phase
+skill; individual sections do not restate it.
 
 ## Built-in Format (Fallback)
 
@@ -103,7 +101,7 @@ restate it.
 
 ## Investigation-First Plans
 
-Plans do not need to be fully formed at creation. For bugs and investigation-heavy tasks where the root cause is unknown, a two-step plan is valid and correct:
+Plans need not be fully formed at creation. For bugs and investigation-heavy tasks where the root cause is unknown, a two-step plan is valid and correct:
 
 ```markdown
 ## Progress
@@ -111,7 +109,7 @@ Plans do not need to be fully formed at creation. For bugs and investigation-hea
 - [ ] Update this plan with findings and next steps from investigation
 ```
 
-Do not defer creating the task folder and `plan.md` until the investigation is complete. Create it immediately with these two steps, then revise it once you know what you're dealing with. The second step is a standing commitment: after investigation, the plan gets updated before any fix work begins.
+Do not defer creating the task folder and `plan.md` until the investigation is complete. Create it immediately with these two steps, then revise once you know what you're dealing with. The second step is a standing commitment: after investigation, the plan gets updated before any fix work begins.
 
 ## task-plan: When to Update
 

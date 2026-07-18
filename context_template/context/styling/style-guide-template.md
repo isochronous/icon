@@ -4,7 +4,7 @@
 
 ## Purpose
 
-This document defines CSS/SCSS patterns, naming conventions, and best practices for maintaining consistent and maintainable styles across the project.
+Defines CSS/SCSS patterns, naming conventions, and best practices for consistent, maintainable styles.
 
 ## How to Use This Template
 

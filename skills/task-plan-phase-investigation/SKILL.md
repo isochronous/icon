@@ -8,27 +8,25 @@ user-invocable: false
 # Phase: Investigation
 
 Load this skill when the task's **primary concern is understanding scope or
-gathering research**. For tasks where the path is already clear (implementation,
-testing), skip this skill and load the appropriate concern skill directly. For
-simple tasks (single-component fix, established pattern), skip phase skills
-entirely.
+gathering research**. Where the path is already clear (implementation, testing),
+skip this and load the appropriate concern skill directly. For simple tasks
+(single-component fix, established pattern), skip phase skills entirely.
 
 **Template-override rule**: apply `.context/workflows/task-plan/phase-<name>.md` if present — see `task-plan` for the full policy.
 
 ## task-plan: Investigation: Phase Entry (Reconstruct-First)
 
 **Run this FIRST, before any investigation work.** Each phase resumes from the
-committed `plan.md`, not from session memory. Read `## Phase State`, confirm this
-run's phase matches `Current`/`Next` and that every earlier phase in the Phase
-plan is `done`, then read the preceding handoff block plus the cumulative
-`## Decisions` / `## Key Files` / `## Constraints`. Validate this phase's entry
-contract and **fail closed** — if a required input is missing, a prerequisite
-phase is not `done`, `HEAD` lacks the expected `Phase-Handoff:` trailer, or the
-tree is unexpectedly dirty, STOP and surface the gap; do not re-derive to
-backfill. Investigation is the entry phase, so it usually has no preceding
-handoff or trailer. The full protocol and per-phase entry contract live in the
-`phase-investigation.md` template `## Phase Entry` section; the `## Phase State`
-and `## Phase Handoff Log` shapes are defined in `base.md` Section Guidance.
+committed `plan.md`, not session memory. Read `## Phase State`, confirm this run's
+phase matches `Current`/`Next` and every earlier phase is `done`, then read the
+preceding handoff block plus the cumulative `## Decisions` / `## Key Files` /
+`## Constraints`. Validate this phase's entry contract and **fail closed** — if a
+required input is missing, a prerequisite phase is not `done`, `HEAD` lacks the
+expected `Phase-Handoff:` trailer, or the tree is unexpectedly dirty, STOP and
+surface the gap; do not re-derive to backfill. Investigation is the entry phase,
+so it usually has no preceding handoff or trailer. Full protocol and entry
+contract: `phase-investigation.md` `## Phase Entry`; `## Phase State` /
+`## Phase Handoff Log` shapes: `base.md` Section Guidance.
 
 ## task-plan: Investigation: Context Gathering Checklist
 
@@ -52,7 +50,7 @@ Rate before planning:
 | **Complex** | Module-level changes, new patterns, migrations, cross-service boundaries, significant unknowns |
 
 - Simple → skip task folder, track inline.
-- Medium or Complex → create task folder and `plan.md` immediately (invoke `task-plan` skill), before any other work.
+- Medium or Complex → create task folder and `plan.md` immediately (invoke `task-plan`), before any other work.
 
 ## task-plan: Investigation: When to Delegate to @researcher
 
@@ -99,7 +97,7 @@ Open questions for planner: [Anything still ambiguous that planner should addres
 
 ## task-plan: Investigation: Investigation-First Plans
 
-If the root cause or scope is unknown at the start (bugs, poorly-scoped requests), use a two-step plan immediately — do not wait for the investigation to complete:
+If the root cause or scope is unknown at the start (bugs, poorly-scoped requests), use a two-step plan immediately — do not wait for investigation to complete:
 
 ```markdown
 ## Progress
@@ -107,7 +105,7 @@ If the root cause or scope is unknown at the start (bugs, poorly-scoped requests
 - [ ] Update this plan with findings and next steps
 ```
 
-Create the task folder and `plan.md` with these two steps. After investigation, replace them with the full plan before any fix work begins.
+Create the task folder and `plan.md` with these two steps. After investigation, replace them with the full plan before any fix work.
 
 ## task-plan: Investigation: Exit Criteria
 
@@ -129,25 +127,23 @@ Append one `### Handoff: investigation → <next-phase>` block to
 sub-agent outputs, verification evidence, the Decisions/Key Files deltas, and
 **What the next phase needs**; mirror the deltas into their sections. Update
 `## Phase State` (advance `Completed`/`Current`/`Next`, set the `Current` status,
-record the next loaded skill, reset `Attempts` to `0`). Then commit `plan.md` plus all
-artifact deltas with the trailer `Phase-Handoff: investigation` — uncommitted
-work at a boundary is an incomplete handoff and the next phase fails closed. The
-full write/commit steps live in the `phase-investigation.md` template
-`## Phase Exit / Handoff` section; block shape is defined in `base.md` Section
-Guidance and `context-document-guidelines`.
+record the next loaded skill, reset `Attempts` to `0`). Then commit `plan.md` plus
+all artifact deltas with the trailer `Phase-Handoff: investigation` — uncommitted
+work at a boundary is an incomplete handoff and the next phase fails closed. Full
+write/commit steps: `phase-investigation.md` `## Phase Exit / Handoff`; block
+shape: `base.md` Section Guidance and `context-document-guidelines`.
 
 ## task-plan: Investigation: Relationship to Other Skills
 
-- **`systematic-debugging`**: When the task is a bug with unclear root cause,
-  invoke `systematic-debugging` during investigation to trace the root cause
-  before planning a fix.
+- **`systematic-debugging`**: For a bug with unclear root cause, invoke during
+  investigation to trace the root cause before planning a fix.
 - **`design-first`**: When investigation reveals multiple valid implementation
-  approaches, invoke `design-first` to explore and select one before planning.
+  approaches, invoke to explore and select one before planning.
 - **`task-plan`**: Governs `plan.md` format and update triggers. This skill
   governs HOW to investigate; `task-plan` governs the plan document.
-- **`task-plan-phase-implementation`**: Load after investigation when the
-  primary work shifts to writing code.
-- **`task-plan-phase-testing`**: Load after investigation when the primary work
+- **`task-plan-phase-implementation`**: Load after investigation when primary
+  work shifts to writing code.
+- **`task-plan-phase-testing`**: Load after investigation when primary work
   shifts to tests.
 
 **Does NOT cover:** architecture review, implementation phase, testing phase,

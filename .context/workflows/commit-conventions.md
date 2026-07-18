@@ -1,6 +1,6 @@
 # Commit Conventions
 
-Inferred from this repo's `git log --oneline -50` and the maintainer `release-plugin` skill. Two patterns are in active use; the right one depends on whether the commit is part of a tracked task or a release.
+Inferred from this repo's `git log --oneline -50` and the maintainer `release-plugin` skill. Two patterns are in active use; which one applies depends on whether the commit is part of a tracked task or a release.
 
 ## Format
 
@@ -10,15 +10,15 @@ Inferred from this repo's `git log --oneline -50` and the maintainer `release-pl
 ICON-NNNN: <description>
 ```
 
-Use for every commit made while executing a tracked ICON task — feature, fix, docs, chore, anything assigned an `ICON-NNNN` task ID via `.context/tasks/`. The description starts with a lowercase verb and reads as an imperative ("add X", "fix Y", "split Z").
+Use for every commit made while executing a tracked ICON task — feature, fix, docs, chore, anything assigned an `ICON-NNNN` task ID via `.context/tasks/`. The description starts with a lowercase imperative verb ("add X", "fix Y", "split Z").
 
-Examples from this repo:
+Example:
 
 ```
 ICON-0001: migrate 6 plugin-authoring .context files from marketplace
 ```
 
-Pre-split history (in this same repo, prior to MKT-0095) used the marketplace `MKT-NNNN` prefix for the same pattern; those commits are grandfathered:
+Pre-split history (this same repo, prior to MKT-0095) used the marketplace `MKT-NNNN` prefix for the same pattern; those commits are grandfathered:
 
 ```
 MKT-0094: split README skills table into user-invocable and internal sections
@@ -28,7 +28,7 @@ MKT-0091: emit manager role via JSON additionalContext for system-reminder frami
 MKT-0090: deprecate task-workflow-template install/upgrade flow
 ```
 
-**Do not use `MKT-NNNN` for new ICON work.** That prefix points at marketplace tasks. New work uses `ICON-NNNN`.
+**Do not use `MKT-NNNN` for new ICON work** — that prefix points at marketplace tasks. New work uses `ICON-NNNN`.
 
 ### Pattern 2 — Non-task / release commits
 
@@ -38,7 +38,7 @@ MKT-0090: deprecate task-workflow-template install/upgrade flow
 
 Used for release commits driven by `release-plugin` and for housekeeping commits not tied to a task ID.
 
-Examples from this repo:
+Examples:
 
 ```
 chore: split ICON to standalone repo at v1.15.3
@@ -50,7 +50,7 @@ feat: root-level claude.md redirect for Copilot CLI (1.15.0)
 
 **Types in use**: `feat`, `fix`, `chore`, `docs`, `refactor`.
 
-**Scopes in use**: `manager`, `agent-evaluation`, `upgrade-repo`, `marketplace` — match the component being changed. Optional; omit for cross-cutting changes.
+**Scopes in use**: `manager`, `agent-evaluation`, `upgrade-repo`, `marketplace` — match the component changed. Optional; omit for cross-cutting changes.
 
 **Trailing `(X.Y.Z)`**: every release commit appends the new plugin version in parentheses at the end of the subject. `release-plugin` Step 2 uses this exact pattern to find the previous release boundary:
 
@@ -58,7 +58,7 @@ feat: root-level claude.md redirect for Copilot CLI (1.15.0)
 git --no-pager log --oneline | grep -P '\(\d+\.\d+\.\d+\)' | head -1
 ```
 
-Breaking this convention breaks the release skill's diff range. Do not append the version to non-release commits and do not omit it from a release commit.
+Breaking this convention breaks the release skill's diff range. Do not append the version to non-release commits, and do not omit it from a release commit.
 
 ## Task ID Generation
 
@@ -78,7 +78,7 @@ ICON-<NNNN>
 ```
 
 - `ICON` — fixed prefix for this project (per `iconrc.json`).
-- `NNNN` — at least three digits, zero-padded, monotonically incrementing. This repo started at `ICON-0001` and uses four-digit width to match the marketplace's `MKT-NNNN` convention.
+- `NNNN` — at least three digits, zero-padded, monotonically incrementing. This repo started at `ICON-0001` and uses four-digit width to match the marketplace `MKT-NNNN` convention.
 
 ### How to Generate
 
@@ -109,7 +109,7 @@ feature/ICON-0001-migrate-context-from-mkt-0095
 
 ## Release-Commit Convention (detail)
 
-Release commits append `(X.Y.Z)` and are produced by the maintainer-only `release-plugin` skill at `.claude/skills/release-plugin/`. They include the `Co-authored-by` trailer when AI-assisted (see below).
+Release commits append `(X.Y.Z)` and are produced by the maintainer-only `release-plugin` skill at `.claude/skills/release-plugin/`. They include the `Co-authored-by` trailer when AI-assisted (below).
 
 Two release-commit shapes are common:
 
@@ -118,7 +118,7 @@ feat: <one-line summary of new content> (X.Y.Z)
 fix(<scope>): <one-line bug summary> (X.Y.Z)
 ```
 
-`chore:` is the default when the release is a tightening, doc fix, or housekeeping pass that does not fit `feat:` or `fix:`.
+`chore:` is the default when the release is a tightening, doc fix, or housekeeping pass that fits neither `feat:` nor `fix:`.
 
 ## Co-authorship trailer
 
@@ -128,11 +128,11 @@ AI-assisted commits include the co-author trailer at the bottom of the commit bo
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
 
-The `release-plugin` skill's Step 7 includes this trailer by default. Manual commits authored with AI assistance should match.
+The `release-plugin` skill's Step 7 includes this trailer by default. Manual AI-assisted commits should match.
 
 ## Commit Signing
 
-The `Co-authored-by` trailer and the `ICON-NNNN:` prefix are provenance *claims* written into the commit text — anyone can type them, so they are forgeable. Cryptographic commit signing (GPG or SSH) is verifiable *proof* of authorship that GitHub checks and surfaces as a **Verified** badge. Sign commits wherever signing is configured. For the one-time setup (SSH and GPG options) and the server-side enforcement, see the **Commit Signing** section of `.context/workflows/branching.md`.
+The `Co-authored-by` trailer and the `ICON-NNNN:` prefix are provenance *claims* written into the commit text — forgeable. Cryptographic commit signing (GPG or SSH) is verifiable *proof* GitHub checks and surfaces as a **Verified** badge. Sign commits wherever signing is configured. For one-time setup (SSH and GPG options) and server-side enforcement, see the **Commit Signing** section of `.context/workflows/branching.md`.
 
 ## Well-formed Examples
 

@@ -1,12 +1,11 @@
 # Phase-Launcher Script Templates
 
-> Reference material for the `generate-phase-launcher` skill. These are the
-> concrete emitted-script shapes. They live here as **fenced code blocks**, not
-> as standalone `*.sh` files, so the pre-commit shellcheck and script-parity
-> gates do not treat template fragments as shippable scripts (see the skill's
-> "Placement" note). The generator copies the block matching `target-harness`,
-> fills the CONFIGURATION section, and writes the result into the consumer's
-> repo as an executable launcher.
+> Reference material for the `generate-phase-launcher` skill — the concrete
+> emitted-script shapes. They live here as **fenced code blocks**, not standalone
+> `*.sh` files, so the pre-commit shellcheck and script-parity gates do not treat
+> template fragments as shippable scripts (see the skill's "Placement" note). The
+> generator copies the block matching `target-harness`, fills the CONFIGURATION
+> section, and writes the result into the consumer's repo as an executable launcher.
 
 All three realizations implement the same harness-agnostic algorithm (skill
 § "The Algorithm"). They differ only in the `HARNESS_CLI` binary and in how the

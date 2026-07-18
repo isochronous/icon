@@ -19,7 +19,7 @@ Not negotiable. Not optional. You cannot rationalize your way out of this.
 
 ## The Rule
 
-**Invoke relevant skills BEFORE any response or action.** Even a 1% chance means invoke and check. If the skill turns out wrong for the situation, move on — one read costs less than skipping the discipline.
+**Invoke relevant skills BEFORE any response or action.** Even a 1% chance means invoke and check. If the skill turns out wrong, move on — one read costs less than skipping the discipline.
 
 This applies before clarifying questions, before reading code, before any action. Skills tell you HOW to do those things.
 
@@ -77,7 +77,7 @@ Example: "Fix this bug and write tests for it" → `systematic-debugging` → `t
 Example: "Modify legacy code with no tests" → `characterization-testing` → `testing-discipline` → `verification-checklist`.
 Example: "Work a task end-to-end" → `task-plan` → `task-plan-phase-investigation` → `task-plan-phase-implementation` → `task-plan-phase-completion` → `task-retrospective`.
 
-To find which skills apply for any task: read each skill's description. Descriptions name their triggers.
+To find which skills apply: read each skill's description. Descriptions name their triggers.
 
 ## Skill Types
 

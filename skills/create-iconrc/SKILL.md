@@ -9,7 +9,7 @@ user-invocable: true
 
 ## Overview
 
-This skill is the **sole owner** of `.context/iconrc.json`. All other skills that need this file call `create-iconrc` — they do not write it directly.
+This skill is the **sole owner** of `.context/iconrc.json`. All other skills that need this file call `create-iconrc` — they don't write it directly.
 
 ## Inputs
 
@@ -42,8 +42,8 @@ If invoked directly by a user without `repo_type`, prompt for it before proceedi
 ```
 
 **Field semantics:**
-- `local_task_id_prefix` — prefix for locally-originated tasks only. GitHub issue references (and any other external tracker IDs) are always used as-is and are never prefixed by this field.
-  - The prefix MUST NOT match (case-insensitive) any external issue-tracker prefix the project actually uses (GitHub issue references, or any other tracker the repo references). If an agent sees a task ID it cannot tell at a glance whether to chase it in the external tracker; a colliding local prefix wastes effort or hallucinates context for an external ticket that does not exist. Callers (the `initialize-*` skills) detect those prefixes from `git log` and pass them via `forbidden_prefixes`.
+- `local_task_id_prefix` — prefix for locally-originated tasks only. GitHub issue references (and any other external tracker IDs) are always used as-is, never prefixed by this field.
+  - The prefix MUST NOT match (case-insensitive) any external issue-tracker prefix the project actually uses (GitHub issue references, or any other tracker the repo references). Otherwise an agent can't tell at a glance whether to chase a task ID in the external tracker; a colliding local prefix wastes effort or hallucinates context for an external ticket that doesn't exist. Callers (the `initialize-*` skills) detect those prefixes from `git log` and pass them via `forbidden_prefixes`.
   - The default placeholder is `LOCAL`. Pick a real-feeling but unambiguous local prefix per project (e.g., `INT`, `OPS`, or stay with `LOCAL`).
   - Local task IDs MUST use the format `<PREFIX>-<NNN>` with a numeric suffix at least 3 digits wide and zero-padded (`LOCAL-001`, `LOCAL-042`, `LOCAL-128`). Repos may pad wider (e.g., 4-wide as `MKT-0092`) but MUST NOT use fewer than 3 digits or unpadded numerics.
 - `forbidden_prefixes` — caller-supplied list of ticket prefixes (typically detected from `git log`) that `local_task_id_prefix` must not collide with. Compared case-insensitively. Used at validation time; not persisted in `.context/iconrc.json`.
@@ -54,7 +54,7 @@ If invoked directly by a user without `repo_type`, prompt for it before proceedi
 
 ## create-iconrc: Pre-requisite: ensure `$TEMPLATE_DIR` is set
 
-This skill reads the canonical version from the context template, located via `$TEMPLATE_DIR`. If `$TEMPLATE_DIR` is not already set in your session (callers like `context-specialist-impl-leaf` and `context-specialist-impl-root` set it before invoking this skill), invoke the `find-context-template` skill first:
+This skill reads the canonical version from the context template, located via `$TEMPLATE_DIR`. If it's not already set in your session (callers like `context-specialist-impl-leaf` and `context-specialist-impl-root` set it before invoking), invoke the `find-context-template` skill first:
 
 ```bash
 [ -z "$TEMPLATE_DIR" ] && echo "Run find-context-template before continuing — \$TEMPLATE_DIR is not set" && exit 1
@@ -191,7 +191,7 @@ git commit -m "chore: update .context/iconrc.json"   # update path
 |---------|-----|
 | Writing `.iconrc` from another skill | Only `create-iconrc` writes this file. Call this skill instead. |
 | Resetting omitted fields on update | Merge into the existing object — only update explicitly provided fields. |
-| Adding `branch_pattern` | This field is removed by design. Do not add it back. |
+| Adding `branch_pattern` | Removed by design. Don't add it back. |
 | Skipping the commit | Always commit after creating or updating the file. |
 | Applying `excludes` during fresh init | `excludes` only applies on re-runs. A fresh init has no `.iconrc` to read from. |
 | Choosing a prefix that matches a real external issue-tracker key (e.g., a GitHub issue reference convention) | Inspect `git log` for ticket prefixes; pick a distinct local prefix (default `LOCAL`). |

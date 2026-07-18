@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document captures project-specific architectural patterns that should be followed when implementing new features or refactoring existing code. These patterns represent the team's agreed-upon approaches to common problems.
+Captures project-specific architectural patterns to follow when implementing features or refactoring. These represent the team's agreed-upon approaches to common problems.
 
 ## How to Use This Template
 

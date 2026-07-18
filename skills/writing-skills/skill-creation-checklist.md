@@ -18,14 +18,14 @@
 - [ ] Keywords throughout for search (errors, symptoms, tools).
 - [ ] Clear overview with core principle.
 - [ ] Step/phase headings prefixed with skill name.
-- [ ] Addresses specific baseline failures identified in RED.
+- [ ] Addresses the specific baseline failures identified in RED.
 - [ ] One excellent example (not multi-language).
 - [ ] Re-run scenarios WITH the skill — verify subagent now complies.
 
 **REFACTOR — close loopholes:**
 - [ ] Identify NEW rationalisations from testing.
 - [ ] Add explicit counters (if discipline skill).
-- [ ] Build a rationalisation table from all test iterations.
+- [ ] Build a rationalisation table from test iterations.
 - [ ] Create a red-flags list.
 - [ ] Re-test until bulletproof.
 

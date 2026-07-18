@@ -173,13 +173,12 @@ The per-harness scripts live as **fenced code blocks** in
 `references/launcher-templates.md`, NOT as `skills/generate-phase-launcher/scripts/*.sh`.
 Rationale: the pre-commit shellcheck gate fires on any staged `*.sh`, and ADR-005
 parity expects a byte-matched `.ps1` sibling for every real `.sh`. Template
-fragments are not standalone, runnable scripts (they carry `ICON-NNNN`
-placeholders) — treating them as such would trip both gates on content that is
-never executed from this repo. Keeping them as reference blocks means the ONLY
-executable launcher is the CONFIGURED one written into the consumer's repo, where
-that consumer's own review/security gates apply. If a future need forces a real
-`.sh` into this skill, it MUST pass shellcheck and ship a byte-parity `.ps1`
-sibling.
+fragments are not standalone runnable scripts (they carry `ICON-NNNN` placeholders) —
+treating them as such would trip both gates on content never executed from this repo.
+As reference blocks, the ONLY executable launcher is the CONFIGURED one written into
+the consumer's repo, where that consumer's own review/security gates apply. If a
+future need forces a real `.sh` into this skill, it MUST pass shellcheck and ship a
+byte-parity `.ps1` sibling.
 
 ## Related
 

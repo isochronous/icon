@@ -9,9 +9,9 @@ user-invocable: false
 
 ## Overview
 
-**This skill maps a task description (and optional issue metadata) to the correct sub-project root, context path, and skills directory before any implementation work begins.** It validates or rebuilds the topology cache, applies signal priority to match the task to a sub-project, and returns a structured JSON result.
+**Maps a task description (and optional issue metadata) to the correct sub-project root, context path, and skills directory before implementation begins.** Validates or rebuilds the topology cache, applies signal priority to match the task to a sub-project, returns structured JSON.
 
-Run this skill as an isolated **explore sub-agent** — never inline in the manager's main context.
+Run as an isolated **explore sub-agent** — never inline in the manager's main context.
 
 ## When to Use
 
@@ -52,7 +52,7 @@ Minimum fields this skill reads:
 
 Read `.context/.topology-cache.json`.
 
-**Cache is valid** when ALL of the following hold:
+**Cache is valid** when ALL hold:
 
 1. `scanned_at` exists and is within `cache_expires_after_days` of now
 2. No topology-defining source file has an `mtime` newer than `scanned_at`
@@ -65,16 +65,16 @@ Read `.context/.topology-cache.json`.
 
 **Cache hit** → skip to Step 3 using cached topology.
 
-**Cache miss or stale** → perform a filesystem scan to discover sub-projects via package manifests, `.code-workspace` folder entries, and solution files. Proceed to Step 3 with fresh topology.
+**Cache miss or stale** → scan the filesystem to discover sub-projects via package manifests, `.code-workspace` folder entries, and solution files. Proceed to Step 3 with fresh topology.
 
 ## resolve-repo-context: Step 3: Apply Signal Priority
 
-Match the task to a sub-project using these signals in priority order. Stop at the first signal that yields a **confident** match.
+Match the task to a sub-project using these signals in priority order. Stop at the first **confident** match.
 
 **Priority 1 — Issue metadata** (highest confidence; may short-circuit filesystem scan)
 - Match `issue_component` and `issue_impacted_area` against known sub-project names
 - Match `issue_labels` against sub-project names or conventional area labels
-- Confident match → proceed to Step 4 immediately
+- Confident → proceed to Step 4 immediately
 - Ambiguous or absent → fall through to Priority 2
 
 **Priority 2 — Task description text** (medium confidence)
@@ -83,11 +83,11 @@ Match the task to a sub-project using these signals in priority order. Stop at t
 
 **Priority 3 — Topology / filesystem scan** (ground truth fallback)
 - If Priorities 1 and 2 are inconclusive, inspect the full topology
-- If the task plausibly touches multiple sub-projects: set `scope: cross-project` and resolve root to the git root or lowest common ancestor directory
+- If the task plausibly touches multiple sub-projects: set `scope: cross-project` and resolve root to the git root or lowest common ancestor
 
 ## resolve-repo-context: Step 4: Return Structured JSON
 
-Return exactly this schema. No other output format is accepted.
+Return exactly this schema — no other output format is accepted.
 
 ```json
 {
@@ -118,17 +118,17 @@ Return exactly this schema. No other output format is accepted.
 }
 ```
 
-**`instructions`**: path to the canonical instructions file — use `.claude/claude.md` if present, otherwise fall back to `.github/copilot-instructions.md`.
+**`instructions`**: the canonical instructions file — `.claude/claude.md` if present, else `.github/copilot-instructions.md`.
 
-**`available_skills`**: populated from the resolved context's skill directory. Return `[]` if no `.context/` exists at the resolved root.
+**`available_skills`**: from the resolved context's skill directory. Return `[]` if no `.context/` exists at the resolved root.
 
-**`projects`**: list all discovered sub-projects. Set `is_resolved_context: true` on the matched project. For `cross-project` scope, mark all touched projects as `true`.
+**`projects`**: all discovered sub-projects. Set `is_resolved_context: true` on the matched project; for `cross-project` scope, mark all touched projects `true`.
 
-**All paths must be absolute.** Relative paths are not valid in this schema.
+**All paths must be absolute.** Relative paths are invalid in this schema.
 
 ## resolve-repo-context: Step 5: Update Topology Cache
 
-After any filesystem scan (Step 2 stale or missing path), write results to `.context/.topology-cache.json`:
+After any filesystem scan (Step 2 stale or missing), write results to `.context/.topology-cache.json`:
 
 ```json
 {
@@ -137,7 +137,7 @@ After any filesystem scan (Step 2 stale or missing path), write results to `.con
 }
 ```
 
-This file is gitignored. Do not commit it.
+This file is gitignored — do not commit it.
 
 **Cache hit path (Step 2 valid)**: do not update the cache.
 
@@ -149,9 +149,9 @@ This file is gitignored. Do not commit it.
 |-----------|----------|
 | No `.iconrc` present | Assume `project`; return CWD as root, `available_skills: []`; stop |
 | `repo_type: project` in iconrc | Return immediately; `rationale` notes this skill should not be invoked for project repos |
-| Cache expired and no issue metadata | Must perform full filesystem scan; no short-circuit available |
+| Cache expired and no issue metadata | Full filesystem scan required; no short-circuit |
 | Task spans multiple sub-projects | `scope: cross-project`; resolve root to git root or common ancestor; mark all touched projects |
-| `.iconrc` present but cache absent | Perform fresh filesystem scan; write cache on completion |
+| `.iconrc` present but cache absent | Fresh filesystem scan; write cache on completion |
 | Resolved sub-project has no `.context/` | Return `available_skills: []`; root and path fields still resolve normally |
 
 ---
@@ -160,9 +160,9 @@ This file is gitignored. Do not commit it.
 
 | Mistake | Fix |
 |---------|-----|
-| Running inline in the manager's context | Always dispatch as an isolated explore sub-agent |
-| Checking only cache age, not drift | Always check topology-defining file mtimes against `scanned_at` |
-| Short-circuiting on ambiguous issue metadata | Priority 1 only applies to confident matches; ambiguity falls through to Priority 2 |
+| Running inline in the manager's context | Dispatch as an isolated explore sub-agent |
+| Checking only cache age, not drift | Check topology-defining file mtimes against `scanned_at` |
+| Short-circuiting on ambiguous issue metadata | Priority 1 applies to confident matches only; ambiguity falls through to Priority 2 |
 | Returning relative paths | Every path in the return schema must be absolute |
-| Writing the cache on a cache hit | Only write after a filesystem scan, never on a hit |
+| Writing the cache on a cache hit | Write only after a filesystem scan, never on a hit |
 | Invoking this skill when `repo_type: project` | Check iconrc first; if project, the manager uses CWD directly |

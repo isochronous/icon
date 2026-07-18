@@ -7,9 +7,9 @@ user-invocable: false
 
 # Initialize Branch Node
 
-A branch node is an intermediate grouping directory (e.g., `services/`, `apps/`,
+A branch node is an intermediate grouping directory (e.g. `services/`, `apps/`,
 `packages/`) with no build manifest of its own but containing sub-projects.
-This skill generates navigational and connective `.context/` documentation:
+This skill generates navigational, connective `.context/` documentation:
 what lives here and what the sub-projects share.
 
 ---
@@ -54,7 +54,7 @@ Required content:
 - Table: sub-project name | path relative to this node | one-sentence description | primary stack
 - How sub-projects communicate (shared libraries, internal APIs, event buses) — omit if they are fully independent
 
-Derive descriptions from each sub-project's `.context/overview.md` first sentence if it exists; otherwise scan the sub-project's build manifest and README first paragraph.
+Derive descriptions from each sub-project's `.context/overview.md` first sentence if it exists; otherwise from its build manifest and README first paragraph.
 
 ### `projects.md`
 
@@ -87,13 +87,13 @@ Keep strictly to patterns used by 2+ sub-projects — single-project patterns be
 
 Business or technical domain concepts that span 2 or more sub-projects in this group. A domain internal to one sub-project stays in that sub-project's `domains/`. Format follows the same structure as leaf-level domain files.
 
-Create only domains that genuinely span multiple sub-projects — do not duplicate leaf domain files here.
+Create only domains that genuinely span multiple sub-projects — don't duplicate leaf domain files here.
 
 ---
 
 ## Content Depth Standard
 
-Branch context is **navigational and connective**, not comprehensive. It tells an agent "what lives here and what they share" — it does not duplicate what is in leaf `overview.md` files. Keep descriptions to one sentence per sub-project; a paragraph on shared patterns; cross-project domain concepts only.
+Branch context is **navigational and connective**, not comprehensive. It tells an agent "what lives here and what they share" — it doesn't duplicate leaf `overview.md` files. Keep descriptions to one sentence per sub-project; a paragraph on shared patterns; cross-project domain concepts only.
 
 ---
 
@@ -127,6 +127,6 @@ Branch context is **navigational and connective**, not comprehensive. It tells a
    - If 2+ sub-projects share patterns: `.context/architecture/patterns.md` exists with real shared-pattern content; if not, confirm it was intentionally omitted.
    - If cross-cutting domain concepts exist: at least one `domains/<domain>.md` exists; if none, confirm intentionally omitted.
 <!-- pre-commit:dead-ref-ok-end -->
-   **Flag any gaps** — sub-projects that could not be characterized from available context. A list of "needs attention" items is better than shallow docs that look complete but aren't.
+   **Flag any gaps** — sub-projects that couldn't be characterized from available context. A "needs attention" list beats shallow docs that look complete but aren't.
 
 10. **Commit**: Commit all created files with a message following the repo's commit convention.

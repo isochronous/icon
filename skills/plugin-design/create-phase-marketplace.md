@@ -4,11 +4,11 @@
 
 Prepare the plugin for listing in a Claude Code plugin marketplace. This phase produces:
 
-1. A re-validated `plugin.json` that declares all marketplace-required fields.
+1. A re-validated `plugin.json` declaring all marketplace-required fields.
 2. An expanded `README.md` with install instructions, usage examples, and a capability list.
 3. Documentation of the submission process.
 
-This phase **does not actually submit** anything. Marketplaces use their own PR workflow against a separate registry repo; the user opens that PR manually.
+This phase **does not submit** anything. Marketplaces use their own PR workflow against a separate registry repo; the user opens that PR manually.
 
 ## Verify plugin.json
 
@@ -40,11 +40,11 @@ if ($missing) {
 "plugin.json OK; declared fields: $(($data.PSObject.Properties.Name | Sort-Object) -join ', ')"
 ```
 
-If any required field is missing or empty, return to Phase 2 and fill it in before continuing.
+If any required field is missing or empty, return to Phase 2 and fill it in first.
 
 ## Generate Marketplace README Skeleton
 
-Extend `README.md` to include the sections a marketplace consumer expects. Preserve the existing title and description; append (or merge) the following sections (the outer ````markdown```` fence below uses four backticks so the inner shell fences render as content, not as fence terminators):
+Extend `README.md` with the sections a marketplace consumer expects. Preserve the existing title and description; append (or merge) the following (the outer ````markdown```` fence below uses four backticks so the inner shell fences render as content, not as terminators):
 
 ````markdown
 ## Installation
@@ -83,19 +83,17 @@ claude plugin install <plugin-repo-url>
 - Hooks: <list any `hooks/*.json` entries>
 ````
 
-When generating the capability list, scan the actual files in `agents/`, `skills/`, `commands/`, and `hooks/` rather than asking the user to type them — the answer is already on disk.
+When generating the capability list, scan the actual files in `agents/`, `skills/`, `commands/`, and `hooks/` rather than asking the user — the answer is already on disk.
 
 ## Submission Process
 
 Most Claude Code plugin marketplaces work by:
 
-1. The plugin author opens a PR against a registry repo that contains a `marketplace.json` (or equivalent) listing all plugins.
-2. The PR adds a new entry pointing at the plugin's git URL and a movable tag (commonly `latest` or a specific SemVer tag).
+1. The plugin author opens a PR against a registry repo containing a `marketplace.json` (or equivalent) listing all plugins.
+2. The PR adds an entry pointing at the plugin's git URL and a movable tag (commonly `latest` or a specific SemVer tag).
 3. The marketplace maintainers review and merge.
 
-Reference example: a marketplace registry repo lists a plugin via a movable `latest` tag in the plugin's own repo. The exact registry workflow varies by marketplace — consult the target marketplace's contributing guide before opening the PR.
-
-If the marketplace publishes a PR template or contributing guide, follow it. The skill cannot infer this — it varies per marketplace.
+Reference example: a registry repo lists a plugin via a movable `latest` tag in the plugin's own repo. The exact workflow varies by marketplace — consult the target's contributing guide before opening the PR, and follow any PR template it publishes. The skill cannot infer this.
 
 ## What This Phase Does NOT Do
 

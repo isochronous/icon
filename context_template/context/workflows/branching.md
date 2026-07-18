@@ -178,7 +178,7 @@ PROJ-789, PROJ-790: Update registration and profile email validation
 | main | Require PR, require approvals, no force push |
 | develop | Require PR, require passing CI |
 
-Configuring these protection rules on the main branch is a required setup prerequisite — add a GitHub branch protection rule (or ruleset) on the branch (no direct pushes), require a pull request, require at least one approving review from someone other than the author, reject force-push, and have a human perform the merge. Where your GitHub plan supports it, also require (or at least recommend) **signed commits**: enable the "Require signed commits" branch protection setting so cryptographic authorship is enforced on the main branch.
+Configuring main-branch protection is a required setup prerequisite: add a GitHub branch protection rule (or ruleset) that blocks direct pushes, requires a pull request, requires at least one approving review from someone other than the author, rejects force-push, and has a human perform the merge. Where your GitHub plan supports it, also require **signed commits** — enable the "Require signed commits" setting so cryptographic authorship is enforced on the main branch.
 
 ## Git Configuration
 

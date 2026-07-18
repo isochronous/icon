@@ -10,29 +10,29 @@ user-invocable: true
 ## When to Use
 
 - User asks about the environmental or ecological impact of their AI usage
-- User wants session or monthly usage expressed in intuitive units (trees, water, CO₂)
+- User wants session or monthly usage in intuitive units (trees, water, CO₂)
 - User mentions their monthly AI usage count or quota and wants an ecological projection
 - User asks how much of their solar panel output offsets their AI usage
 
-**Do not use** for questions about the energy efficiency of application code — this skill covers the inference cost of the AI session itself, not the user's software.
+**Do not use** for the energy efficiency of application code — this skill covers the inference cost of the AI session itself, not the user's software.
 
 ## Overview
 
-This skill calculates the environmental cost of the current AI session and presents it in ecological equivalents — specifically the "Trees Burned" and "Gallons of Water" framing familiar to users of residential photovoltaic/solar monitoring systems.
+Calculates the environmental cost of the current AI session and presents it in ecological equivalents — the "Trees Burned" and "Gallons of Water" framing familiar from residential solar monitoring.
 
 **Core Capabilities:**
-- Estimate session token usage from conversation turn count
-- Calculate energy consumption using published LLM inference benchmarks
-- Convert energy to CO₂ using US EPA grid carbon intensity
+- Estimate session token usage from turn count
+- Calculate energy consumption from published LLM inference benchmarks
+- Convert energy to CO₂ via US EPA grid carbon intensity
 - Express CO₂ in milliTrees Burned Units (mTBU) and water in gallons
-- Project annual environmental footprint at current usage rate
+- Project annual footprint at current usage rate
 - Generate optional solar offset comparison
 
 ## Why This Matters
 
-Every AI inference call consumes compute energy, which has a real (if small) environmental cost. Making that cost visible — in intuitive units like "trees" rather than abstract kilowatt-hours — helps users make informed decisions about AI usage patterns and understand the cumulative impact at scale. Per-session costs are tiny; annual projections reveal the meaningful picture.
+Every AI inference call consumes compute energy with a real (if small) environmental cost. Making it visible in intuitive units like "trees" rather than abstract kilowatt-hours helps users grasp cumulative impact at scale. Per-session costs are tiny; annual projections reveal the meaningful picture.
 
-**Key principle**: Be honest about uncertainty. These are estimates based on published averages. Actual costs vary by model, data center efficiency, and grid mix.
+**Key principle**: Be honest about uncertainty. These are estimates from published averages. Actual costs vary by model, data center efficiency, and grid mix.
 
 ## Step-by-Step Process
 
@@ -42,20 +42,20 @@ Choose the calculation scope — **Monthly (preferred)** or **Session-only**:
 
 #### Option A — Monthly Usage (Preferred)
 
-Use this option whenever you can get a real month-to-date interaction count — it gives a meaningful monthly picture rather than a single-session estimate. How to obtain the count depends on which AI platform the user is on:
+Use whenever you can get a real month-to-date interaction count — it gives a meaningful monthly picture rather than a single-session estimate. Obtaining the count depends on the user's AI platform:
 
-**GitHub Copilot users** — The Copilot status bar shows **Remaining Reqs** (agent/chat requests left in the monthly quota):
+**GitHub Copilot users** — The status bar shows **Remaining Reqs** (agent/chat requests left in the monthly quota):
 - Ask: "What does your Remaining Reqs show right now?"
 - Derive `interactions_used = monthly_quota - remaining_reqs`
 - Default monthly quota: **300** (Business plan). Common values: Free: 50 | Pro: 300 | Pro+: 1,500 | Business: 300 | Enterprise: 1,000
 - If the user can see both Remaining Reqs and a % used figure (from `github.com/settings/billing`), derive the quota: `quota = remaining / (1 - percent_used_as_decimal)`
 
-**Claude Code (Anthropic) users** — There is no in-editor quota counter. Use one of:
-- Ask: "Roughly how many Claude Code sessions or agent runs have you done this month?" — treat each run as one interaction.
-- If the user has an Anthropic Console account (`console.anthropic.com/usage`), they can read their token usage directly; ask them to paste or describe it, then skip to Step 2 (Calculate Energy Consumption), using the token total as `estimated_tokens` directly.
+**Claude Code (Anthropic) users** — No in-editor quota counter. Use one of:
+- Ask: "Roughly how many Claude Code sessions or agent runs this month?" — treat each run as one interaction.
+- If the user has an Anthropic Console account (`console.anthropic.com/usage`), ask them to paste their token usage, then skip to Step 2 using that total as `estimated_tokens` directly.
 - If no estimate is available, fall back to **Option B** (session-only).
 
-**Other AI platforms** — Ask the user to check their platform's usage dashboard for month-to-date request or interaction counts, then treat those as `interactions_used`.
+**Other AI platforms** — Ask the user to check their platform's usage dashboard for month-to-date request/interaction counts, then treat those as `interactions_used`.
 
 Once you have `interactions_used`:
 
@@ -68,7 +68,7 @@ estimated_tokens = interactions_used × tokens_per_interaction
 # Conversational sessions:         tokens_per_interaction = 1,500  (use only if user specifies "conversational")
 ```
 
-> **Session type**: Default is **15,000** tokens/interaction (agentic — each user turn triggers multiple agent context windows with heavy tool use). Use **1,500** only if the user explicitly specifies "conversational" (simple chat Q&A or single-agent tasks with minimal tool use).
+> **Session type**: Default **15,000** tokens/interaction (agentic — each user turn triggers multiple agent context windows with heavy tool use). Use **1,500** only if the user explicitly specifies "conversational" (simple chat Q&A or single-agent tasks, minimal tool use).
 
 2. **Annual projection** uses `× 12` (12 months), not `× 1,200`:
 
@@ -80,7 +80,7 @@ annual_multiplier = 12
 
 If monthly usage data is unavailable or the user wants session-only data:
 
-1. **Count conversation exchanges (turns)**: Count the number of back-and-forth exchanges in this session. Each user message + agent response = 1 turn.
+1. **Count conversation exchanges (turns)**: each user message + agent response = 1 turn.
 2. **Estimate tokens per turn**: Use **15,000 tokens/turn** as the default (agentic). Use **1,500** only if the user explicitly specifies "conversational".
    - Short exchanges (quick Q&A, no tools): ~500 tokens
    - Typical exchanges (with reasoning): ~1,500 tokens
@@ -111,7 +111,7 @@ energy_kWh = estimated_tokens × 0.000001
 ### ecological-impact: Step 3: Calculate CO₂ Emissions
 
 - **Grid carbon intensity**: `386 g CO₂ per kWh` (US EPA 2022 eGRID national average)
-- Note: Major AI providers (Anthropic, Microsoft, Google) purchase renewable energy certificates and are working toward net-zero, but data centers are not yet 100% renewable-powered in practice. Use the US average as a conservative, realistic estimate.
+- Note: Major AI providers (Anthropic, Microsoft, Google) buy renewable energy certificates and target net-zero, but data centers aren't yet 100% renewable in practice. Use the US average as a conservative, realistic estimate.
 
 **Formula:**
 ```
@@ -146,7 +146,7 @@ water_annual_gallons = water_gallons × annual_multiplier   # annual_multiplier 
 
 ### ecological-impact: Step 6: Display the Report
 
-Output the following formatted markdown block with all calculated values filled in:
+Output this formatted markdown block with all calculated values filled in:
 
 ```
 🌍 AI Ecological Impact Report
@@ -166,7 +166,7 @@ Projected Annual ([monthly × 12 | session rate × 1,200]):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**Then add all four contextual comparisons** — always include all of them:
+**Then add all four contextual comparisons** — always include all:
 
 | Comparison | Formula |
 |------------|---------|
@@ -184,7 +184,7 @@ Example comparison lines:
 
 ### Optional — Solar Offset Comparison
 
-If the user has mentioned their solar panel system capacity (e.g., "my system is 6 kW"), calculate:
+If the user mentioned their solar panel system capacity (e.g., "my system is 6 kW"), calculate:
 
 ```
 solar_offset_minutes = (energy_kWh / system_kW) × 60
@@ -199,7 +199,7 @@ Always append these notes to the report:
 
 > **Methodology notes:**
 > - These are *estimates*. Actual LLM energy use varies widely by model architecture, batch efficiency, hardware generation, and data center location.
-> - **Multi-agent sessions**: These estimates may significantly undercount energy and emissions for agentic workflows. Each user interaction can trigger multiple sub-agent context windows (planner, coder, tester, reviewer), each consuming 10,000–50,000+ tokens. The default 1,500 tokens/interaction rate is calibrated for conversational use; agentic sessions should use the 15,000 tokens/interaction rate. Additionally, inline code completions (tab-complete) and background codebase indexing are not captured by platform usage counters and are excluded from all estimates.
+> - **Multi-agent sessions**: these estimates may significantly undercount agentic workflows. Each interaction can trigger multiple sub-agent context windows (planner, coder, tester, reviewer), each consuming 10,000–50,000+ tokens. The 1,500 tokens/interaction rate is for conversational use; agentic sessions should use 15,000. Inline code completions (tab-complete) and background codebase indexing are not captured by platform counters and are excluded from all estimates.
 > - Training cost is NOT included — amortized across billions of inference calls, it is negligible per session.
 > - Methodology: 0.001 kWh/1k tokens (Patterson et al. 2022 basis), 386 g CO₂/kWh (US EPA 2022 eGRID), 1.8 L water/kWh (Mytton 2021).
 
@@ -237,12 +237,12 @@ Projected Annual (at this rate × 1,200 sessions/year):
 
 ## Quick Reference
 
-A flat lookup table of every formula and constant used in this skill — useful for cross-step verification or when you need to spot-check a calculation — lives in [`formulas-reference.md`](formulas-reference.md).
+A flat lookup table of every formula and constant used here — for cross-step verification or spot-checking a calculation — lives in [`formulas-reference.md`](formulas-reference.md).
 
 ## Tone and Framing
 
-- Present numbers honestly — per-session values are very small, and that is the truth
-- Use the annual projection to give meaningful context, not to alarm
-- Match the framing of solar panel apps: ecological equivalents, not raw kWh
+- Present numbers honestly — per-session values are very small, and that's the truth
+- Use the annual projection for meaningful context, not to alarm
+- Match solar-app framing: ecological equivalents, not raw kWh
 - Be curious and informative, not preachy
-- Invite the user to share their solar system wattage if they want a personalized offset calculation
+- Invite the user to share their solar wattage for a personalized offset calculation

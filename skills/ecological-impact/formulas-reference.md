@@ -1,6 +1,6 @@
 # `ecological-impact` — Formula Reference
 
-At-a-glance lookup for the formulas and constants used in `ecological-impact`. The skill body (Steps 1-6) explains *what* to calculate and *why*; this file is the *how* in tabular form for cross-step reference.
+At-a-glance lookup for the formulas and constants used in `ecological-impact`. The skill body (Steps 1-6) explains *what* and *why*; this file is the *how* in tabular form.
 
 ---
 

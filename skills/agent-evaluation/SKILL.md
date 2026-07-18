@@ -100,9 +100,9 @@ user-invocable: true|false
 ```
 
 **Rules**:
-- `description:` is always a **folded block scalar (`>`)**, not a flow scalar or single-quoted string. The folded form tolerates em-dashes, backticks, parentheses, asterisks, colons, and apostrophes without any escaping — the YAML spec collapses internal newlines to spaces and preserves blank lines as paragraph breaks. This matches the convention `skills/writing-skills/SKILL.md` already mandates for skills.
-- User-invocable agents (`user-invocable: true`) MAY have rich multi-paragraph descriptions with examples and usage notes — their frontmatter `description:` renders in user-facing dispatcher surfaces (slash-command picker, agent listings). Sub-agents (`user-invocable: false`) keep their description to a single sentence; do not enrich them, as they are dispatched programmatically by other agents or skills (never directly by a user), so a rich description has no surface to render against. This applies even to sub-agents that are structurally complex like `context-specialist` (four modes, multiple invocation paths) — describe the role, not the modes.
-- Blank lines inside the folded block create paragraph breaks in the parsed value. Use them sparingly and only when the description has genuinely distinct paragraphs (mode tables, examples lists).
+- `description:` is always a **folded block scalar (`>`)**, not a flow scalar or single-quoted string. The folded form tolerates em-dashes, backticks, parentheses, asterisks, colons, and apostrophes without escaping — YAML collapses internal newlines to spaces and preserves blank lines as paragraph breaks. This matches the convention `skills/writing-skills/SKILL.md` mandates for skills.
+- User-invocable agents (`user-invocable: true`) MAY have rich multi-paragraph descriptions with examples and usage notes — their `description:` renders in user-facing dispatcher surfaces (slash-command picker, agent listings). Sub-agents (`user-invocable: false`) keep their description to a single sentence; do not enrich them, since they are dispatched programmatically (never directly by a user), so a rich description has no surface to render against. This holds even for structurally complex sub-agents like `context-specialist` (four modes, multiple invocation paths) — describe the role, not the modes.
+- Blank lines inside the folded block create paragraph breaks in the parsed value. Use them sparingly, only when the description has genuinely distinct paragraphs (mode tables, examples lists).
 
 **Anti-rationalizations**:
 

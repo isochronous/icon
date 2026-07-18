@@ -7,19 +7,19 @@ user-invocable: false
 
 # Manager Routing Guide
 
-This skill contains the manager's routing reference tables and context-isolation rules. Invoke it when making a routing decision — selecting a specialist for a task type, consulting the agent capability matrix, or choosing between isolated vs. shared sub-agent context. The sections below are authoritative.
+The manager's routing reference tables and context-isolation rules. Invoke when making a routing decision — selecting a specialist, consulting the capability matrix, or choosing isolated vs. shared sub-agent context. The sections below are authoritative.
 
 ---
 
 ### Domain Documentation
 
-When working in a code area that lacks documentation in `.context/domains/`, create or update a domain file for that area. Each major application domain should have its own file covering relevant knowledge for that area.
+When working in a code area lacking documentation in `.context/domains/`, create or update a domain file for it. Each major application domain gets its own file.
 
 **Business domains** (e.g., payments, loans, user-management): key entities and relationships, business rules and validation logic, domain-specific terminology, important code paths.
 
 **Technical domains** (e.g., routing, state-management, lifecycle, authentication): how the system works, key patterns and conventions, important abstractions, integration points.
 
-Keep domain files atomic and tightly scoped — one facet per file. Apply `context-document-guidelines` when creating or updating domain files.
+Keep domain files atomic and tightly scoped — one facet per file. Apply `context-document-guidelines` when creating or updating them.
 
 ---
 
@@ -31,11 +31,11 @@ User Request → @researcher (if needed) → @planner → @architect → @coder 
 
 ### Design Approval Gate
 
-For complex work (new modules, new patterns, cross-cutting changes), ensure @architect reviews the design before @coder begins implementation. Simple work within established patterns does not require this gate.
+For complex work (new modules, new patterns, cross-cutting changes), ensure @architect reviews the design before @coder implements. Simple work within established patterns skips this gate.
 
 ### Parallel Dispatch
 
-When the task breakdown contains independent tasks with no dependencies between them, dispatch multiple agents in parallel rather than sequentially. Check the planner's dependency map to identify tasks that can run concurrently.
+When the task breakdown contains independent tasks with no dependencies, dispatch multiple agents in parallel rather than sequentially. Check the planner's dependency map to identify concurrent tasks.
 
 ### Agent Selection
 
@@ -77,17 +77,17 @@ Common patterns that **must** use a specialist, even when they feel trivial:
 | @tester | Write tests, run tests, debug test failures | Implement features, change architecture |
 | @reviewer | Review code, identify issues, suggest improvements | Directly fix code, approve own work |
 | @context-specialist | Create, maintain, and update `.context/` directories for leaf, branch, and root nodes; handles initial creation (`mode: create`), upgrades (`mode: upgrade` via `upgrade-repo`), maintenance updates at task close (`mode: maintenance`), and drift audits (`mode: audit`); detect tree position; commit context artifacts in `create`/`upgrade` modes; `mode: audit` is read-only — no commit phase; in `mode: maintenance`, stage writes via `git add` only — the manager owns the commit (see `task-plan-phase-completion/agent-vs-skill-invocation.md`) | Delegate to sub-agents, implement source code, make architectural decisions |
-| @product-manager | Standalone tool invoked directly by users for product-management work (story shaping, GitHub issue drafting). **Not part of the manager's delegation chain** — the manager does NOT route tasks to @product-manager as part of the standard development workflow. | Participate in the manager's workflow chain; implement code; write tests |
+| @product-manager | Standalone tool invoked directly by users for product-management work (story shaping, GitHub issue drafting). **Not part of the manager's delegation chain** — the manager does NOT route tasks to it in the standard development workflow. | Participate in the manager's workflow chain; implement code; write tests |
 
 ### When to Invoke @researcher
 
 See Session Start step 7 for trigger criteria — that step is the authoritative decision point for both `explore` agent (see platform note in manager Session Start step 7) and @researcher invocation.
 
-Always specify version numbers when invoking @researcher. Research findings should inform @architect and @planner decisions before @coder begins work.
+Always specify version numbers when invoking @researcher. Research findings should inform @architect and @planner decisions before @coder begins.
 
 ## Sub-Agent Context Isolation
 
-Not all specialists should run in isolated sessions. Use the following rules:
+Not all specialists run in isolated sessions. Rules:
 
 **Isolated (separate context window via task tool)** — agents whose intermediate work is noisy and where the manager only needs the final artifact:
 
@@ -106,4 +106,4 @@ Not all specialists should run in isolated sessions. Use the following rules:
 | @planner | Needs full task history to produce a coherent breakdown; benefits from clarifying questions with the manager |
 | @architect | Design decisions often require iteration; needs the accumulated decision context; output is a compact design doc |
 
-After each isolated agent completes, incorporate only the **output** (findings, artifacts, decisions) into the orchestrator's context — not the agent's full reasoning trail.
+After each isolated agent completes, incorporate only its **output** (findings, artifacts, decisions) into the orchestrator's context — not the full reasoning trail.

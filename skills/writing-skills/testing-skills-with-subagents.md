@@ -6,11 +6,11 @@
 
 **Testing skills is just TDD applied to process documentation.**
 
-You run scenarios without the skill (RED — watch the subagent fail), write the skill addressing those failures (GREEN — watch the subagent comply), then close loopholes (REFACTOR — stay compliant).
+Run scenarios without the skill (RED — watch the subagent fail), write the skill addressing those failures (GREEN — watch it comply), then close loopholes (REFACTOR — stay compliant).
 
 **Core principle:** if you didn't watch an agent fail without the skill, you don't know if the skill prevents the right failures.
 
-**Required background:** the RED-GREEN-REFACTOR cycle from `testing-discipline` is a hard prerequisite. This document provides only the skill-specific test format (pressure scenarios, rationalisation tables).
+**Required background:** the RED-GREEN-REFACTOR cycle from `testing-discipline` is a hard prerequisite. This document covers only the skill-specific test format (pressure scenarios, rationalisation tables).
 
 **Worked example:** see `examples/CLAUDE_MD_TESTING.md` for a full test campaign comparing `CLAUDE.md` documentation variants.
 
@@ -38,13 +38,11 @@ Don't test:
 | **REFACTOR** | Plug holes | Find new rationalisations, add counters |
 | **Stay GREEN** | Re-verify | Test again, ensure still compliant |
 
-Same cycle as code TDD; different test format.
-
 ## RED Phase: Baseline Testing (Watch It Fail)
 
 **Goal:** run the test WITHOUT the skill — watch the subagent fail, document exact failures.
 
-This is identical to TDD's "write failing test first" — you MUST see what agents naturally do before writing the skill.
+Identical to TDD's "write failing test first" — you MUST see what agents naturally do before writing the skill.
 
 **Process:**
 
@@ -81,11 +79,11 @@ Run this WITHOUT a TDD skill. The subagent chooses B or C and rationalises:
 
 ## GREEN Phase: Write Minimal Skill (Make It Pass)
 
-Write the skill addressing the specific baseline failures you documented. Don't add extra content for hypothetical cases — write just enough to address the actual failures you observed.
+Write the skill addressing the specific baseline failures — just enough for the failures you observed, no content for hypothetical cases.
 
 Run the same scenarios WITH the skill. The subagent should now comply.
 
-If the subagent still fails: the skill is unclear or incomplete. Revise and re-test.
+If it still fails, the skill is unclear or incomplete. Revise and re-test.
 
 ## VERIFY GREEN: Pressure Testing
 
@@ -127,7 +125,7 @@ C) Write tests now (30 min), then commit
 Choose A, B, or C. Be honest.
 ```
 
-Multiple pressures: sunk cost + time + exhaustion + consequences. Forces explicit choice.
+Multiple pressures: sunk cost + time + exhaustion + consequences. Forces an explicit choice.
 
 ### Pressure Types
 
@@ -143,7 +141,7 @@ Multiple pressures: sunk cost + time + exhaustion + consequences. Forces explici
 
 **Best tests combine 3+ pressures.**
 
-**Why this works:** see `persuasion-principles.md` in this directory for research on how authority, scarcity, and commitment principles increase compliance pressure.
+**Why this works:** see `persuasion-principles.md` for research on how authority, scarcity, and commitment increase compliance pressure.
 
 ### Key Elements of Good Scenarios
 
@@ -166,7 +164,7 @@ Make the subagent believe it's real work, not a quiz.
 
 ## REFACTOR Phase: Close Loopholes (Stay Green)
 
-Subagent violated the rule despite having the skill? This is a test regression — refactor the skill to prevent it.
+Subagent violated the rule despite having the skill? That's a test regression — refactor the skill to prevent it.
 
 **Capture new rationalisations verbatim:**
 - "This case is different because…"
@@ -181,7 +179,7 @@ Subagent violated the rule despite having the skill? This is a test regression �
 
 ### Plugging Each Hole
 
-For each new rationalisation, add the following four updates.
+For each new rationalisation, add these four updates.
 
 #### 1. Explicit Negation in Rules
 
@@ -235,11 +233,11 @@ Re-test the same scenarios with the updated skill. The subagent should now:
 
 - Choose the correct option.
 - Cite the new sections.
-- Acknowledge that its previous rationalisation was addressed.
+- Acknowledge its previous rationalisation was addressed.
 
-**If the subagent finds a NEW rationalisation:** continue the REFACTOR cycle.
+**Finds a NEW rationalisation:** continue the REFACTOR cycle.
 
-**If the subagent follows the rule:** success — the skill is bulletproof for this scenario.
+**Follows the rule:** success — the skill is bulletproof for this scenario.
 
 ## Meta-Testing (When GREEN Isn't Working)
 
@@ -256,22 +254,22 @@ it crystal clear that Option A was the only acceptable answer?
 
 1. **"The skill WAS clear, I chose to ignore it"** — not a documentation problem. Need a stronger foundational principle. Add "violating the letter is violating the spirit".
 2. **"The skill should have said X"** — documentation problem. Add the suggestion verbatim.
-3. **"I didn't see section Y"** — organisation problem. Make key points more prominent. Add the foundational principle earlier.
+3. **"I didn't see section Y"** — organisation problem. Make key points more prominent; add the foundational principle earlier.
 
 ## When Skill is Bulletproof
 
 **Signs of a bulletproof skill:**
 
-1. The subagent chooses the correct option under maximum pressure.
-2. The subagent cites skill sections as justification.
-3. The subagent acknowledges temptation but follows the rule anyway.
+1. Chooses the correct option under maximum pressure.
+2. Cites skill sections as justification.
+3. Acknowledges temptation but follows the rule anyway.
 4. Meta-testing reveals "the skill was clear, I should follow it".
 
-**Not bulletproof if:**
-- Subagent finds new rationalisations.
-- Subagent argues the skill is wrong.
-- Subagent creates "hybrid approaches".
-- Subagent asks permission but argues strongly for violation.
+**Not bulletproof if the subagent:**
+- Finds new rationalisations.
+- Argues the skill is wrong.
+- Creates "hybrid approaches".
+- Asks permission but argues strongly for violation.
 
 ## Example: TDD Skill Bulletproofing
 
@@ -330,12 +328,12 @@ Before deploying a skill, verify you followed RED-GREEN-REFACTOR.
 
 | Mistake | Fix |
 |---------|-----|
-| **Writing skill before testing** (skipping RED) — reveals what YOU think needs preventing, not what ACTUALLY needs preventing | Always run baseline scenarios first |
+| **Writing skill before testing** (skipping RED) — reveals what YOU think needs preventing, not what ACTUALLY does | Always run baseline scenarios first |
 | **Not watching test fail properly** — running only academic tests | Use pressure scenarios that make the subagent WANT to violate |
-| **Weak test cases (single pressure)** — agents resist single pressure, break under multiple | Combine 3+ pressures (time + sunk cost + exhaustion) |
+| **Weak test cases (single pressure)** — agents resist one pressure, break under several | Combine 3+ pressures (time + sunk cost + exhaustion) |
 | **Not capturing exact failures** — "agent was wrong" doesn't tell you what to prevent | Document exact rationalisations verbatim |
-| **Vague fixes (adding generic counters)** — "Don't cheat" doesn't work, "Don't keep as reference" does | Add explicit negations for each specific rationalisation |
-| **Stopping after first pass** — tests pass once ≠ bulletproof | Continue REFACTOR cycle until no new rationalisations |
+| **Vague fixes (generic counters)** — "Don't cheat" doesn't work, "Don't keep as reference" does | Add explicit negations per rationalisation |
+| **Stopping after first pass** — passing once ≠ bulletproof | Continue REFACTOR until no new rationalisations |
 
 ## Quick Reference (TDD Cycle)
 
@@ -352,7 +350,7 @@ Before deploying a skill, verify you followed RED-GREEN-REFACTOR.
 
 **Skill creation IS TDD.** Same principles, same cycle, same benefits.
 
-If you wouldn't write code without tests, don't write skills without testing them on subagents. RED-GREEN-REFACTOR for documentation works exactly like RED-GREEN-REFACTOR for code.
+If you wouldn't write code without tests, don't write skills without testing them on subagents.
 
 ## Real-World Impact
 
@@ -363,14 +361,15 @@ From applying TDD to the TDD skill itself (upstream, 2025-10-03):
 - Final VERIFY GREEN: 100% compliance under maximum pressure.
 - The same process works for any discipline-enforcing skill.
 
+
 ## Testing By Skill Type
 
 Different skill types need different test approaches:
 
 **Discipline-enforcing skills** (TDD, verification-before-completion, designing-before-coding) — combine multiple pressures (time + sunk cost + exhaustion); identify rationalisations and add explicit counters. Success: subagent follows rule under maximum pressure.
 
-**Technique skills** (condition-based-waiting, root-cause-tracing) — application scenarios, variation scenarios, missing-information tests. Success: subagent successfully applies technique to a new scenario.
+**Technique skills** (condition-based-waiting, root-cause-tracing) — application, variation, and missing-information scenarios. Success: subagent applies the technique to a new scenario.
 
-**Pattern skills** (reducing-complexity, information-hiding) — recognition scenarios, application scenarios, counter-examples. Success: subagent correctly identifies when and how to apply.
+**Pattern skills** (reducing-complexity, information-hiding) — recognition, application, and counter-example scenarios. Success: subagent correctly identifies when and how to apply.
 
-**Reference skills** (API docs, command references) — retrieval scenarios, application scenarios, gap testing. Success: subagent finds and correctly applies the right information.
+**Reference skills** (API docs, command references) — retrieval, application, and gap-testing scenarios. Success: subagent finds and correctly applies the right information.

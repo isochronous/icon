@@ -9,7 +9,7 @@ user-invocable: true
 
 ## Overview
 
-This skill synthesizes meeting transcriptions into clear, actionable documentation. It extracts key points, identifies questions and answers, and surfaces action items from verbose meeting recordings, transforming conversational flow into structured, searchable summaries.
+Synthesizes meeting transcriptions into clear, actionable documentation — extracting key points, matching questions with answers, and surfacing action items from verbose recordings into structured, searchable summaries.
 
 **Core Capabilities:**
 - Extract essential discussion points from transcriptions
@@ -20,19 +20,16 @@ This skill synthesizes meeting transcriptions into clear, actionable documentati
 
 ## Why This Matters
 
-Reading full meeting transcriptions or watching recordings is time-consuming and inefficient. Important details get buried in conversation flow, questions go unanswered, and action items are scattered throughout. 
+Reading full transcriptions or watching recordings is slow; details get buried, questions go unanswered, action items scatter.
 
 **Benefits of structured summaries:**
-- **Time Savings**: Absent team members quickly understand outcomes without watching full recordings
-- **Accountability**: Track commitments and action items with clear ownership
-- **Knowledge Preservation**: Create searchable reference documentation for future decisions
-- **Follow-up Management**: Ensure unanswered questions are addressed
-- **Decision Context**: Provide rationale for choices made during discussions
+- **Time Savings**: absent members grasp outcomes without the recording
+- **Accountability**: commitments and action items with clear ownership
+- **Knowledge Preservation**: searchable reference for future decisions
+- **Follow-up Management**: unanswered questions get addressed
+- **Decision Context**: the rationale behind choices captured
 
-**Target Audience:**
-- Team members who missed the meeting
-- Meeting participants needing a record of decisions
-- Future team members seeking context for past decisions
+**Target Audience:** members who missed the meeting, participants needing a record of decisions, future members seeking context for past decisions.
 
 ## Inputs and Outputs
 
@@ -43,7 +40,7 @@ Reading full meeting transcriptions or watching recordings is time-consuming and
   - Manual notes converted to text
 
 ### Outputs
-Structured markdown document containing:
+Structured markdown document with:
 - **Summary**: 2-4 sentence overview of meeting purpose and outcomes
 - **Key Points**: 3-8 major discussion topics with context and outcomes
 - **Questions**: All substantive questions raised, matched with answers when available
@@ -53,48 +50,48 @@ Structured markdown document containing:
 
 ### post-meeting: Step 1: Read and Analyze the Transcription
 
-Carefully review the entire meeting transcription to understand:
-- The overall purpose and topic of the meeting
+Review the entire transcription to understand:
+- Overall purpose and topic
 - Major discussion points and themes
-- Decisions that were made
-- Questions that were raised
-- Action items that were committed to
+- Decisions made
+- Questions raised
+- Action items committed to
 - Unresolved issues or open questions
 
-**Time Investment**: Full read-through ensures you don't miss connections between early and late discussion points.
+**Time Investment**: a full read-through catches connections between early and late discussion points.
 
 ### post-meeting: Step 2: Extract Key Points
 
-Identify the most important discussion points from the meeting.
+Identify the most important discussion points.
 
 **For each key point:**
-- **State the topic clearly**: What was being discussed?
-- **Provide essential context**: Enough detail for someone who wasn't there to understand
-- **Include outcomes**: Was a decision made? Was agreement reached? Is follow-up needed?
+- **Topic**: what was discussed?
+- **Context**: enough detail for someone who wasn't there
+- **Outcome**: decision made? agreement reached? follow-up needed?
 
 **Guidelines**:
 - Focus on substance, not conversational flow
-- Combine related discussion scattered throughout the meeting
-- Omit small talk, off-topic tangents, and procedural discussions
+- Combine related discussion scattered through the meeting
+- Omit small talk, tangents, and procedural discussion
 - Typically 3-8 key points for a 1-hour meeting
 - Prioritize decisions over general discussion
 
 ### post-meeting: Step 3: Identify Questions and Answers
 
-Extract all substantive questions raised during the meeting.
+Extract all substantive questions raised.
 
 **For answered questions**:
-- **Question**: State the question clearly and concisely
-- **Answer**: Provide the answer given during the meeting
+- **Question**: State it clearly and concisely
+- **Answer**: The answer given during the meeting
 
 **For unanswered questions**:
-- **Question**: State the question
+- **Question**: State it
 - **Answer**: Leave blank
-- **Action**: Add a follow-up action item (e.g., "Research X and report back")
+- **Action**: Add a follow-up action item (e.g. "Research X and report back")
 
 **Guidelines**:
-- Rephrase rambling questions into clear, direct questions
-- If multiple people asked similar questions, consolidate them
+- Rephrase rambling questions into clear, direct ones
+- Consolidate similar questions from multiple people
 - Focus on substantive questions, not clarifications like "Can you repeat that?"
 - Include rhetorical questions if they prompted important discussion
 
@@ -103,20 +100,20 @@ Extract all substantive questions raised during the meeting.
 Extract all commitments, tasks, and follow-ups mentioned.
 
 **Format each action item with**:
-- **What**: The specific action to be taken
+- **What**: The specific action
 - **Who**: The person responsible (if mentioned)
 - **When**: Deadline or timeline (if mentioned)
 
 **Guidelines**:
 - **Be specific**: "Update the dashboard" → "Update customer dashboard to show real-time inventory status"
-- Include unanswered questions as action items for follow-up
+- Include unanswered questions as follow-up action items
 - If responsibility is unclear, note "Owner TBD"
 - If deadline is unclear, note "Timeline TBD"
-- Avoid vague actions like "look into it" - clarify what "looking into it" means
+- Avoid vague actions like "look into it" — clarify what it means
 
 ### post-meeting: Step 5: Write the Summary
 
-Create a concise overview (2-4 sentences) that captures:
+Create a concise overview (2-4 sentences) capturing:
 - The meeting's purpose
 - Primary topics discussed
 - Major outcomes or decisions
@@ -124,12 +121,12 @@ Create a concise overview (2-4 sentences) that captures:
 **Guidelines**:
 - Write for someone who wasn't there
 - Highlight what matters most
-- Don't just list topics - convey meaning and outcome
+- Convey meaning and outcome, not just a topic list
 - Answer: "Why did this meeting happen and what changed because of it?"
 
 ### post-meeting: Step 6: Organize the Output
 
-Structure the document following the exact format specified in the Output Format section below. Ensure consistency across all meetings for easy scanning and comparison.
+Structure the document following the exact format in the Output Format section below. Keep it consistent across meetings for easy scanning and comparison.
 
 ## Output Format
 
@@ -167,64 +164,48 @@ Structure the document following the exact format specified in the Output Format
 
 Two worked transformations live alongside this skill:
 
-- [`examples/sprint-planning.md`](examples/sprint-planning.md) — sprint planning transcription with multiple action items and an open architectural question.
-- [`examples/sprint-retrospective.md`](examples/sprint-retrospective.md) — short retro with no questions and a single action item; useful as a minimal-output reference.
+- [`examples/sprint-planning.md`](examples/sprint-planning.md) — sprint planning with multiple action items and an open architectural question.
+- [`examples/sprint-retrospective.md`](examples/sprint-retrospective.md) — short retro, no questions, single action item; a minimal-output reference.
 
 ## Edge Cases
 
-### Case 1: Meeting with No Clear Outcomes
-**Situation**: Discussion-only meeting with no decisions or action items.
-**Handling**: 
-- Focus Key Points on the topics explored and perspectives shared
-- Note in summary that meeting was exploratory
-- Write "No action items were identified" rather than forcing artificial action items
+### Case 1: No Clear Outcomes
+**Situation**: discussion-only meeting, no decisions or action items.
+**Handling**: focus Key Points on topics explored and perspectives shared; note in the summary that it was exploratory; write "No action items were identified" rather than force artificial ones.
 
 ### Case 2: Highly Technical Discussion
-**Situation**: Transcription contains jargon and technical details.
-**Handling**:
-- Preserve technical terms as-is (don't simplify)
-- Provide just enough context for team members to recall discussion
-- Don't explain basic concepts the team already knows
+**Situation**: transcription contains jargon and technical detail.
+**Handling**: preserve technical terms as-is; give just enough context to recall the discussion; don't explain basics the team knows.
 
 ### Case 3: Heated Disagreement
-**Situation**: Transcription shows conflict or strong disagreement.
-**Handling**:
-- Focus on substance of positions, not emotional tone
-- Document both viewpoints objectively
-- Note if resolution was reached or if follow-up is needed
-- Don't editorialize or take sides
+**Situation**: transcription shows conflict or strong disagreement.
+**Handling**: focus on the substance of positions, not tone; document both viewpoints objectively; note whether resolution was reached; don't editorialize or take sides.
 
 ### Case 4: Off-Topic Tangents
-**Situation**: Meeting wandered significantly off agenda.
-**Handling**:
-- Omit purely social conversations
-- Include substantive tangents if they led to decisions
-- Note in summary if meeting covered additional topics beyond original purpose
+**Situation**: meeting wandered off agenda.
+**Handling**: omit purely social conversation; include substantive tangents that led to decisions; note in the summary if extra topics were covered.
 
 ### Case 5: Unclear Ownership
-**Situation**: Action items mentioned but responsibility unclear.
-**Handling**:
-- Note "Owner TBD" and create action item to assign owner
-- If someone volunteered tentatively, note with "tentative" flag
-- Don't guess or assign responsibility not stated in meeting
+**Situation**: action items mentioned but responsibility unclear.
+**Handling**: note "Owner TBD" and create an action item to assign one; flag tentative volunteers as "tentative"; don't guess or assign responsibility not stated in the meeting.
 
 ## Quality Checklist
 
-Before finalizing the summary, verify each section:
+Before finalizing, verify each section:
 
-**Summary** — 2-4 sentences; readable cold by someone who wasn't in the meeting; highlights the most important outcome.
+**Summary** — 2-4 sentences; readable cold by someone who wasn't there; highlights the most important outcome.
 
-**Key Points** — 3-8 points for a typical 1-hour meeting; each has a clear topic header; outcomes or next steps included; the **why** behind decisions captured, not just the what; related discussions combined, not scattered. Be generous with detail — this becomes the primary reference document.
+**Key Points** — 3-8 points for a typical 1-hour meeting; each with a clear topic header; outcomes or next steps included; the **why** behind decisions captured, not just the what; related discussions combined, not scattered. Be generous with detail — this is the primary reference document.
 
 **Questions** — all substantive questions captured; rephrased for clarity if needed; answers provided when available; blank answers flagged with corresponding action items; similar questions consolidated.
 
-**Action Items** — specific, actionable descriptions; owner identified (or marked "Owner TBD"); timeline specified (or "Timeline TBD"); related action items grouped; dependencies between action items flagged; every unanswered question has a follow-up action; no vague commitments like "look into it".
+**Action Items** — specific, actionable descriptions; owner identified (or "Owner TBD"); timeline specified (or "Timeline TBD"); related items grouped; dependencies flagged; every unanswered question has a follow-up action; no vague commitments like "look into it".
 
-**Overall** — format matches the Output Format template exactly; markdown rendering correct; no conversational filler preserved ("um", "like", repetitions); technical terms used exactly as in the discussion; self-contained for future reference; nothing invented or editorialized.
+**Overall** — format matches the Output Format template exactly; markdown renders correctly; no conversational filler ("um", "like", repetitions); technical terms used exactly as in the discussion; self-contained for future reference; nothing invented or editorialized.
 
 ## Tips by Meeting Type
 
 - **Long (2h+)**: break the transcription into logical sections before processing.
-- **Multi-topic**: use clear topic headers in Key Points so the doc is scannable.
+- **Multi-topic**: use clear topic headers in Key Points for scannability.
 - **Cross-speaker questions**: consolidate into a single clear question with a composite answer.
 - **Follow-up meetings**: cross-reference the previous summary to track progress on prior action items.

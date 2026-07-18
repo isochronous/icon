@@ -9,17 +9,17 @@ user-invocable: false
 
 ## Overview
 
-Extract custom additions from a repo's deprecated `task-workflow-template.md` and route them into the appropriate phase template files. This unblocks the standard upgrade path so the deprecated file can be deleted without losing custom workflow content.
+Extract custom additions from a repo's deprecated `task-workflow-template.md` and route them into the appropriate phase template files, so the deprecated file can be deleted without losing custom content.
 
 ## When to Use
 
 - `upgrade-repo` Phase 1 flagged `task-workflow-template.md` as `deprecated (CUSTOMIZED)`
-- The repo has a pre-phase-templates copy of the file with team-specific additions that must be preserved before deletion
+- The repo has a pre-phase-templates copy with team-specific additions to preserve before deletion
 - **Do not invoke manually** — always invoked by `upgrade-repo` when customization is detected
 
 ## Preconditions
 
-`$TEMPLATE_DIR` must be established before this skill begins. It is set by `upgrade-repo` Phase 1 (via the `find-context-template` skill). Do not invoke this skill standalone without first ensuring `$TEMPLATE_DIR` points to the plugin's `context_template/` directory.
+`$TEMPLATE_DIR` must be set before this skill begins — `upgrade-repo` Phase 1 sets it (via `find-context-template`). Do not invoke standalone without first ensuring `$TEMPLATE_DIR` points to the plugin's `context_template/` directory.
 
 ## The Process
 
@@ -28,14 +28,14 @@ Extract custom additions from a repo's deprecated `task-workflow-template.md` an
 Read `.context/workflows/task-workflow-template.md` and the stock template from
 `$TEMPLATE_DIR/context/workflows/task-workflow-template.md`. Diff the two:
 
-- Lines present in the installed file but absent from stock → **custom additions** — must be preserved
-- Lines absent from the installed file but present in stock → **custom deletions** — surface to user (Step 4)
+- Lines in the installed file but not in stock → **custom additions** — preserve these
+- Lines in stock but not in the installed file → **custom deletions** — surface to user (Step 4)
 
 Focus on custom additions first.
 
 ### merge-phase-templates: Step 2: Route Custom Additions to Phase Files
 
-Use this heuristic to determine which phase file each addition belongs to:
+Use this heuristic to route each addition to a phase file:
 
 | Custom content describes | Route to |
 |--------------------------|----------|
@@ -46,16 +46,16 @@ Use this heuristic to determine which phase file each addition belongs to:
 | Code review, retrospective, completion, sign-off, @reviewer work | `phase-completion.md` |
 | Applies broadly across multiple phases or is structural metadata | `base.md` |
 
-If a custom addition is ambiguous — plausibly belonging to two or more phase files — **stop and ask the user** before proceeding. Show the addition text and the candidate destinations. Do not guess.
+If a custom addition is ambiguous — plausibly belonging to two or more phase files — **stop and ask the user**. Show the addition text and the candidate destinations. Do not guess.
 
 ### merge-phase-templates: Step 3: Apply Additions to Phase Files
 
 For each routed addition:
 1. Read `.context/workflows/task-plan/<phase-file>.md` (copy from template first if absent)
-2. Identify the most semantically appropriate section within that file
+2. Identify the most semantically appropriate section in that file
 3. Stage the proposed change as a diff — do not write yet
 
-Once all additions are staged, show the full set of proposed diffs together and **get a single user confirmation** before writing any of them.
+Once all additions are staged, show the full set of proposed diffs together and **get a single user confirmation** before writing any.
 
 ### merge-phase-templates: Step 4: Handle Custom Deletions
 
@@ -67,10 +67,10 @@ If any stock sections are absent from the installed file:
 ### merge-phase-templates: Step 5: Report and Hand Off
 
 After all merges are confirmed and written:
-1. Summarize what moved and where it landed
+1. Summarize what moved and where
 2. Note any items still requiring user decision
 3. If no items from Step 3 or Step 4 are still pending user decision, confirm: *"`task-workflow-template.md` can now be deleted — all custom content has been migrated to the phase files."* Otherwise, note what remains unresolved and do not confirm deletion yet.
-4. Return control to `upgrade-repo` Phase 2 to complete the file deletion
+4. Return control to `upgrade-repo` Phase 2 to complete the deletion
 
 ## Routing Ambiguity Examples
 

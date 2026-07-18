@@ -6,14 +6,14 @@
 
 ## Phase Entry (run FIRST, before any phase work)
 
-> Reconstruct-first: this phase resumes from the committed `plan.md`, not from
-> session memory. Run these steps before any completion work, and **fail
-> closed** — never silently re-derive a missing input. Section names below
-> refer to `base.md` (`## Phase State`, `## Phase Handoff Log`); its Section
-> Guidance is the SSOT for their shape.
+> Reconstruct-first: this phase resumes from the committed `plan.md`, not
+> session memory. Run these before any completion work, and **fail closed** —
+> never silently re-derive a missing input. Section names below refer to
+> `base.md` (`## Phase State`, `## Phase Handoff Log`); its Section Guidance is
+> the SSOT for their shape.
 
-1. Read `## Phase State`. Confirm this run's phase matches `Current`/`Next`, and that every phase listed before it in the **Phase plan** has status `done` (`completion` is always the last phase).
-2. Read the immediately-preceding phase's `## Phase Handoff Log` block, plus the cumulative `## Decisions`, `## Key Files`, and `## Constraints`. Bounded read — the preceding handoff plus the distilled cumulative state, not every prior verbatim transcript.
+1. Read `## Phase State`. Confirm this run's phase matches `Current`/`Next`, and that every phase listed before it in the **Phase plan** has status `done` (`completion` is always last).
+2. Read the immediately-preceding phase's `## Phase Handoff Log` block, plus the cumulative `## Decisions`, `## Key Files`, and `## Constraints`. Bounded read — the preceding handoff plus distilled cumulative state, not every prior verbatim transcript.
 3. **Validate this phase's entry contract** (below). If a required input is missing, a prerequisite phase is not `done`, `HEAD` lacks the expected `Phase-Handoff:` trailer, or the working tree is unexpectedly dirty — **STOP and surface the gap. Do not guess, do not re-derive to backfill.**
 4. Confirm the branch matches Phase State `Branch`.
 
@@ -30,26 +30,26 @@
 
 1. Append one `### Handoff: completion` block to `## Phase Handoff Log` (append-only — never rewrite earlier blocks): the reviewer findings + resolution, the final verification evidence, the Decisions/Key Files deltas, and — unique to this block — the **Retro Stage-1 draft** (Avoid / Repeat / Updated), persisted here instead of held in session state.
 2. Mirror the Decisions and Key Files deltas into `## Decisions` and `## Key Files`, then run the **Reconcile plan.md** checklist below.
-3. Update `## Phase State`: move completion to `Completed`, set its `Current` status `done`, and set `Next` to none / task complete.
-4. **SHA/PR follow-up.** The commit SHA and PR number describe the artifacts commit and so cannot live inside it — do not embed a handoff commit SHA in `plan.md`. Either finish the reconcile before the artifacts commit (omitting the SHA), or follow the artifacts commit with a small `ICON-NNNN: reconcile plan.md to final state` commit. See **Reconcile plan.md → Final-state edits need their own commit** below; that rule is the completion-phase exit for SHA/PR. Carry the `Phase-Handoff: completion` trailer on the boundary commit.
+3. Update `## Phase State`: move completion to `Completed`, set its `Current` status `done`, set `Next` to none / task complete.
+4. **SHA/PR follow-up.** The commit SHA and PR number describe the artifacts commit and cannot live inside it — do not embed a handoff commit SHA in `plan.md`. Either finish the reconcile before the artifacts commit (omitting the SHA), or follow the artifacts commit with a small `ICON-NNNN: reconcile plan.md to final state` commit. See **Reconcile plan.md → Final-state edits need their own commit** below; that rule is the completion-phase exit for SHA/PR. Carry the `Phase-Handoff: completion` trailer on the boundary commit.
 
 ## Reconcile plan.md
 
-> **First step of the completion phase. Runs before review, context-update, retrospective, and commit.** This is the single source of truth for plan.md reconciliation; other surfaces (`agents/manager.agent.md`, `skills/pr-discipline/SKILL.md`, `skills/task-retrospective/SKILL.md`) refer to this section by name rather than re-describing the checks.
+> **First step of the completion phase. Runs before review, context-update, retrospective, and commit.** Single source of truth for plan.md reconciliation; other surfaces (`agents/manager.agent.md`, `skills/pr-discipline/SKILL.md`, `skills/task-retrospective/SKILL.md`) refer to this section by name rather than re-describing the checks.
 >
 > Reconciliation is gated, not encouraged. Author-discipline checks degrade quickly — a "remember to update plan.md" rule does not fire on the 30% of tasks where it matters most (the messy ones). Run the five sub-checks below before any review/PR/retro work; each should take under two minutes.
 
 Re-read `plan.md` end-to-end against the actual final state, and update each section:
 
-1. **Progress**: Check each Progress item against actual outcomes. Mark completed steps `[x]`; for any item that was deferred, split, or dropped, add a one-line outcome note (`— deferred to follow-up`, `— merged into step N`, `— dropped: reason`).
-2. **Decisions**: Add any late decisions that were made during implementation but never recorded. Decisions written before the final approach was settled should be updated (or annotated as superseded) to match what was actually shipped.
-3. **Key Files**: Update to match the actual diff. Add late-added paths; remove paths that were planned but never touched; note any path that was created and later deleted within the task.
-4. **Open Questions**: Close out any questions that were resolved during implementation. Questions that remain open at task close should be converted to follow-up items (linked tickets or `.context/tasks/` follow-ups), not left open in the closing plan.
-5. **Constraints**: Add any constraints discovered during implementation that aren't yet captured — schema requirements, ordering dependencies, platform-specific behavior, or quality gates the task uncovered.
+1. **Progress**: Check each Progress item against actual outcomes. Mark completed steps `[x]`; for any deferred, split, or dropped item, add a one-line outcome note (`— deferred to follow-up`, `— merged into step N`, `— dropped: reason`).
+2. **Decisions**: Add any late decisions made during implementation but never recorded. Decisions written before the final approach was settled should be updated (or annotated as superseded) to match what shipped.
+3. **Key Files**: Update to match the actual diff. Add late-added paths; remove planned-but-untouched paths; note any path created and later deleted within the task.
+4. **Open Questions**: Close out questions resolved during implementation. Questions still open at task close should be converted to follow-up items (linked tickets or `.context/tasks/` follow-ups), not left open in the closing plan.
+5. **Constraints**: Add any constraints discovered during implementation not yet captured — schema requirements, ordering dependencies, platform-specific behavior, or quality gates the task uncovered.
 
-The reconciled `plan.md` is the input the retrospective reads from. A stale plan corrupts the retro and misleads reviewers — both downstream steps presume reconciliation has happened.
+The reconciled `plan.md` is the input the retrospective reads from. A stale plan corrupts the retro and misleads reviewers — both downstream steps presume reconciliation happened.
 
-**Final-state edits need their own commit.** Some `plan.md` fields can only be filled *after* the task artifacts commit and push — the commit SHA and the PR number describe the commit, so they cannot live inside it. Editing `plan.md` to record them and then stopping leaves the branch with a dangling, uncommitted plan. Either:
+**Final-state edits need their own commit.** Some `plan.md` fields can only be filled *after* the task artifacts commit and push — the commit SHA and PR number describe the commit, so they cannot live inside it. Editing `plan.md` to record them and then stopping leaves the branch with a dangling, uncommitted plan. Either:
 
 - (a) finish the entire reconcile (Outcome, all checkboxes) **before** the artifacts commit and omit the commit SHA from `plan.md`, so the reconciled plan ships inside that commit; or
 - (b) follow the post-commit `plan.md` edit with a small `ICON-NNNN: reconcile plan.md to final state` commit and push.
@@ -83,9 +83,9 @@ Review focus:
 
 > **Runs after `@reviewer` delegation and before commit.** At task close, add or update an entry in the `## [Unreleased]` block at the top of `CHANGELOG.md` (repo root) summarizing the user-visible or maintainer-visible change this task introduces.
 
-For the full procedure — including how to decide between internal vs user-facing tone, and how to write each entry — invoke the `changelog-entry` skill (`.claude/skills/changelog-entry/SKILL.md`). For form rules (one sentence per entry, no block-level formatting, ticket IDs at end), see `.context/standards/changelog-discipline.md`.
+For the full procedure — including internal vs user-facing tone and how to write each entry — invoke the `changelog-entry` skill (`.claude/skills/changelog-entry/SKILL.md`). For form rules (one sentence per entry, no block-level formatting, ticket IDs at end), see `.context/standards/changelog-discipline.md`.
 
-**Cumulative-effect rule (summary):** If this task's change relates to a subject already described in an existing `[Unreleased]` entry, edit or remove that existing entry to reflect the new end state — do not append a second entry covering the same subject. See the `changelog-entry` skill for worked examples.
+**Cumulative-effect rule (summary):** If this task's change relates to a subject already described in an existing `[Unreleased]` entry, edit or remove that entry to reflect the new end state — do not append a second entry covering the same subject. See the `changelog-entry` skill for worked examples.
 
 **Legitimate skip:** Purely internal tasks — refactors, hygiene, changes with no user-visible or maintainer-visible behavior change and no on-disk file change consumers would see — may produce no CHANGELOG entry. The `changelog-entry` skill's procedure decides.
 
@@ -101,7 +101,7 @@ For the full procedure — including how to decide between internal vs user-faci
 - [ ] `decisions/` updated with a new ADR file for project-wide architectural decisions, and `decisions/README.md` log row added (never delete or rewrite past ADRs — supersede instead)
 - [ ] `retrospectives.md` appended via `append-retrospective-entry` script (never hand-edited)
 - [ ] `overview.md` or `META.md` updated if the repo's high-level shape or directory structure changed
-- [ ] `.claude/claude.md` updated ONLY for project-wide changes that every consumer of the repo needs to know
+- [ ] `.claude/claude.md` updated ONLY for project-wide changes every consumer of the repo needs to know
 
 ## Retrospective Template
 

@@ -1,6 +1,6 @@
 # Per-File Content Guidance for `context-specialist-impl-leaf` Step 4
 
-This document is the per-file detail companion to Step 4: Populate Every File Exhaustively. The skill body keeps the principle and Quality Bar inline; this file documents what each generated `.context/` file should contain.
+Per-file companion to Step 4: Populate Every File Exhaustively. The skill body keeps the principle and Quality Bar inline; this file documents what each generated `.context/` file should contain.
 
 ---
 
@@ -19,7 +19,7 @@ Customize the template with:
 
 ### `decisions/`
 
-A folder of Architecture Decision Records (ADRs), one file per decision. Structure:
+A folder of Architecture Decision Records (ADRs), one file per decision:
 
 ```
 decisions/
@@ -27,7 +27,7 @@ decisions/
 └── NNN-kebab-slug.md  # one file per ADR, numbered sequentially
 ```
 
-Populate from the template's `decisions/README.md`. For each significant decision, create a new `NNN-kebab-slug.md` following the ADR template (h1 `# ADR-NNN: Title`, **Date**, **Status**, `## Context`, `## Decision`, `## Consequences`, `## Alternatives Considered`).
+Populate from the template's `decisions/README.md`. For each significant decision, create a `NNN-kebab-slug.md` following the ADR template (h1 `# ADR-NNN: Title`, **Date**, **Status**, `## Context`, `## Decision`, `## Consequences`, `## Alternatives Considered`).
 
 Content to capture:
 - Why this framework was chosen over alternatives
@@ -40,17 +40,17 @@ Content to capture:
 
 ### `rules-index.md`
 
-A single on-demand router at `.context/rules-index.md` that gives `standards/`, `workflows/`, and `decisions/` the discoverability `domains/` already has. Three sections — `## Standards`, `## Workflows`, `## Decisions (ADRs)` — each a markdown table with columns `Rule | Applies when… | File` (`Decisions` keys the first column by ADR number).
+An on-demand router at `.context/rules-index.md` giving `standards/`, `workflows/`, and `decisions/` the discoverability `domains/` already has. Three sections — `## Standards`, `## Workflows`, `## Decisions (ADRs)` — each a markdown table with columns `Rule | Applies when… | File` (`Decisions` keys the first column by ADR number).
 
 - **Generate, don't template.** Build this file by scanning the three populated directories — see `SKILL.md` Step 4.5. Do not copy the template's sentinel rows.
-- **One row per file**, with a single **parent row** for an indexed sub-directory (`standards/skill-decomposition/`, `workflows/task-plan/`) rather than one row per inner file. Skip helper scripts that are not rules.
-- **"Applies when…" is a routing phrase, not a summary.** Each cell states a concrete situation that sends a reader to that file; it does not paraphrase the rule's content.
+- **One row per file**, with a single **parent row** for an indexed sub-directory (`standards/skill-decomposition/`, `workflows/task-plan/`) instead of one row per inner file. Skip helper scripts that aren't rules.
+- **"Applies when…" is a routing phrase, not a summary.** Each cell states a concrete situation sending a reader to that file; it doesn't paraphrase the rule.
 
 ---
 
 ### `standards/code-style.md`
 
-Document the *actual* style enforced in this codebase:
+The *actual* style enforced here:
 - Indentation, line length, encoding — and whether a linter/formatter enforces them
   (name the config file: `checkstyle.xml`, `.eslintrc`, `rustfmt.toml`, etc.)
 - Dependency injection style (constructor/field/setter) — with a real code example
@@ -67,7 +67,7 @@ Show a representative real code snippet for each non-obvious convention.
 
 ### `standards/naming-conventions.md`
 
-Document the actual naming patterns observed in the codebase:
+Actual naming patterns in the codebase:
 - Class naming table per layer (Controller, Service, ServiceImpl, Repository,
   Resource/DTO, Model, Assembler, Validator, etc.) with real examples
 - Package/namespace structure with real paths
@@ -90,7 +90,7 @@ Document the actual naming patterns observed in the codebase:
 
 ### `architecture/patterns.md`
 
-Describe the actual architectural patterns in use — not textbook definitions:
+Actual architectural patterns in use — not textbook definitions:
 - The primary structural pattern (layered, hexagonal, CQRS, etc.)
 - Each recurring pattern with: purpose, participants, real class names, code example
 - Cross-cutting infrastructure: caching, scheduling, multi-tenancy, auth
@@ -126,7 +126,7 @@ Describe the actual architectural patterns in use — not textbook definitions:
 
 ### `workflows/branching.md`
 
-Populate from the analysis in Step 1a — do not guess:
+From the Step 1a analysis — don't guess:
 - Primary integration branch name(s) (verified from `git branch -r`)
 - Feature branch naming: exact format with real examples from the log
 - Release/tag naming format with real examples from `git tag`
@@ -137,15 +137,14 @@ Populate from the analysis in Step 1a — do not guess:
 
 ### `workflows/commit-conventions.md`
 
-Record the commit format exactly as observed in this repository's git log:
-- The format pattern with a concrete example (e.g., `ABC-123: Brief description`)
-- Ticket ID prefix(es) in use (e.g., `WSD-`, `CORE-`, `FE-`)
+The commit format exactly as observed in this repo's git log:
+- The format pattern with a concrete example (e.g. `ABC-123: Brief description`)
+- Ticket ID prefix(es) in use (e.g. `WSD-`, `CORE-`, `FE-`)
 - Whether a body or footer is conventional (breaking changes, co-authors, etc.)
 - Any commit types or scopes used (conventional commits, etc.)
-- What a well-formed commit looks like — show 3–5 real examples from `git log`
+- What a well-formed commit looks like — 3–5 real examples from `git log`
 
-This file is the authoritative source agents use when writing commit messages
-for this repository.
+The authoritative source agents use when writing commit messages here.
 
 ---
 
@@ -161,8 +160,7 @@ for this repository.
 
 ### `domains/` — One File Per Domain
 
-This is the highest-value section. **Every major domain should have its own
-file.** Domains come in two types:
+The highest-value section. **Every major domain gets its own file.** Two types:
 
 **Business domains** — application areas with real-world meaning:
 `payments.md`, `loans-accounts.md`, `user-management.md`, `inventory.md`, etc.
@@ -186,8 +184,8 @@ file.** Domains come in two types:
 6. **SQL patterns** (if JDBC/raw SQL) — table of SQL key names, file paths, purpose
 7. **Important code paths** — table: task → entry point → key classes/methods
    traversed → package location
-8. **Gotchas / non-obvious behaviour** — things that would surprise a developer
-   new to this domain
+8. **Gotchas / non-obvious behaviour** — things that surprise a developer new to
+   this domain
 
 #### What depth looks like
 

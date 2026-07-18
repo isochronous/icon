@@ -12,24 +12,24 @@ user-invocable: false
 
 # Initialize Workspace
 
-Bootstrap the full agent-system context for every project folder in a VS Code
-multi-root workspace, then generate workspace-level cross-project context at the
-workspace root (first folder). Discovery comes from parsing the `.code-workspace`
-JSON file directly — no filesystem scanning required.
+Bootstrap agent-system context for every project folder in a VS Code multi-root
+workspace, then generate workspace-level cross-project context at the workspace
+root (first folder). Discovery parses the `.code-workspace` JSON directly — no
+filesystem scanning.
 
-Each project folder runs in its own isolated session to prevent context from one
-project polluting another. Folders that contain only documentation or data (no
-build manifests, no source code) are classified as resources and skipped.
+Each project folder runs in an isolated session so one project's context does not
+pollute another. Folders holding only documentation or data (no build manifests,
+no source) are classified resources and skipped.
 
 All work happens on a per-repo feature branch — nothing lands on an integration
-branch without a human reviewing and merging a pull request.
+branch without a human reviewing and merging a PR.
 
 ---
 
 ## initialize-workspace: Step 0: Locate workspace file and parse folders
 
-The agent is invoked from the workspace container directory — the folder that
-holds the `.code-workspace` file.
+The agent is invoked from the workspace container directory — the folder holding
+the `.code-workspace` file.
 
 ```bash
 WORKSPACE_FILE=$(find "$PWD" -maxdepth 1 -name "*.code-workspace" | head -1)
@@ -37,8 +37,8 @@ WORKSPACE_FILE=$(find "$PWD" -maxdepth 1 -name "*.code-workspace" | head -1)
 WORKSPACE_DIR="$(dirname "$WORKSPACE_FILE")"
 ```
 
-Parse the `folders` array. Each entry has a `path` key that may be relative
-(relative to the workspace file's directory) or absolute:
+Parse the `folders` array. Each entry has a `path` key, relative (to the workspace
+file's directory) or absolute:
 
 ```bash
 python3 -c "
@@ -53,7 +53,7 @@ for i, f in enumerate(ws.get('folders', [])):
 ```
 
 The **first folder** is the workspace root — it receives workspace-level context
-in Step 6 regardless of its own project classification.
+in Step 6 regardless of classification.
 
 Produce a resolution table before proceeding:
 
@@ -69,9 +69,9 @@ Produce a resolution table before proceeding:
 ## initialize-workspace: Step 1: Branch guard (per git repo)
 
 Folders can belong to separate git repositories. Branch management is
-**per unique git root** — one branch per repo, not one branch for the workspace.
+**per unique git root** — one branch per repo, not one for the workspace.
 
-For each folder, resolve its git root:
+Resolve each folder's git root:
 
 ```bash
 GIT_ROOT=$(git -C "$FOLDER_PATH" rev-parse --show-toplevel)
@@ -105,11 +105,11 @@ Collect the unique set of `GIT_ROOT` values. For each unique git root:
    fi
    ```
 
-Record a per-repo map: `GIT_ROOT → INTEGRATION_BRANCH`. This is needed when
-composing sub-session prompts (Step 4) and when pushing branches (Step 7).
+Record a per-repo map: `GIT_ROOT → INTEGRATION_BRANCH` — needed when composing
+sub-session prompts (Step 4) and pushing branches (Step 7).
 
 If a folder is not inside any git repo, note it but do not fail — context files
-can still be created; they just cannot be committed.
+can still be created, just not committed.
 
 ---
 
@@ -119,15 +119,15 @@ For each folder, classify it as **project** or **resource**:
 
 - **Project**: Has at least one of `package.json`, `pom.xml`, `*.csproj`,
   `go.mod`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`, `Gemfile`,
-  `build.gradle`, `angular.json`, or a `src/` directory containing source
-  files. Projects build independently and have domain logic.
+  `build.gradle`, `angular.json`, or a `src/` directory with source files.
+  Projects build independently and have domain logic.
 
 - **Resource**: Only documentation or data — `.md`, `.txt`, `.html`, `.json`,
   `.csv`, `.xml`, images, PDFs. No build manifests, no `src/` with code.
   Examples: seed-data folders, locale files, schema references, online help.
 
-The **workspace root** (first folder) is always treated as a project regardless
-of classification — it receives workspace-level context in Step 6.
+The **workspace root** (first folder) is always treated as a project — it receives
+workspace-level context in Step 6.
 
 Build a decision table before proceeding:
 
@@ -147,27 +147,26 @@ For each project folder in `PROJECT_FOLDERS` (workspace root included):
 - Apply the **Entry-Point Detection Primitive** (canonical definition:
   `skills/context-specialist-detect-tree-position/SKILL.md` § "Entry-Point
   Detection Primitive (callable)"). Use the **detection form** with
-  `$dir=$folder`. Read that section to obtain the exact conditional, then run
-  it against each folder.
-- If the primitive's detection-form check passes for the folder (entry-point
-  file present AND `.context/` directory present): the action is
-  `upgrade-repo`.
-- Otherwise: the action is `initialize-repo`.
+  `$dir=$folder`. Read that section for the exact conditional, then run it
+  against each folder.
+- If the detection-form check passes (entry-point file present AND `.context/`
+  directory present): the action is `upgrade-repo`.
+- Otherwise: `initialize-repo`.
 
 `.claude/claude.md` is the canonical agent entry point;
-`.github/copilot-instructions.md` is the legacy fallback — both are accepted
-by the primitive.
+`.github/copilot-instructions.md` is the legacy fallback — both accepted by the
+primitive.
 
-The workspace root follows the same check. Even if it needs `upgrade-repo`,
-it still gets workspace-level context in Step 6.
+The workspace root follows the same check. Even if it needs `upgrade-repo`, it
+still gets workspace-level context in Step 6.
 
 ---
 
 ## initialize-workspace: Step 4: Run isolated sessions (max 3 parallel)
 
-Dispatch a **background agent** (via task tool) for each project folder. Hard
-cap: **3 concurrent agents**. After each completion notification, verify the
-folder (Step 5 criteria) and dispatch the next pending folder if any remain.
+Dispatch a **background agent** (via task tool) per project folder. Hard cap:
+**3 concurrent agents**. After each completion notification, verify the folder
+(Step 5 criteria) and dispatch the next pending folder, if any.
 
 - `initialize-repo` projects → use `agent_type: "ICON:context-specialist"` (prompt in Step 4a)
 - `upgrade-repo` projects → use `agent_type: "ICON:context-specialist"` (prompt in Step 4b)
@@ -179,10 +178,9 @@ Each sub-session must receive:
 - The branch name: `chore/initialize-agent-context`
 - The integration branch for that git repo
 
-> **Note on path separation**: In a workspace, a project folder may be a
-> sub-directory of its git repo, or the repo root itself. Always pass both
-> paths — sub-sessions run `git log` from `GIT_ROOT` for history and commit
-> from `GIT_ROOT` but scope file changes to `PROJECT_PATH`.
+> **Note on path separation**: a project folder may be a sub-directory of its git
+> repo, or the repo root itself. Always pass both paths — sub-sessions run `git log`
+> and commit from `GIT_ROOT` but scope file changes to `PROJECT_PATH`.
 
 ### initialize-workspace: Step 4a: Prompt for initialize-repo projects
 
@@ -253,26 +251,26 @@ After all sessions finish, check every project folder (including workspace root)
 - For every project in `PROJECT_LIST`, apply the **Entry-Point Detection Primitive**
   (canonical definition: `skills/context-specialist-detect-tree-position/SKILL.md`
   § "Entry-Point Detection Primitive (callable)"). Use the **verification form**
-  with `$dir=$project`. Read that section to obtain the exact soft-fail check,
-  then run it against each project. The verification form accumulates failures
-  into the caller-owned `FAILURES` array.
-- In addition to the entry-point check, verify the following per project; on
-  miss, emit a `MISSING …: $project` message and mark the project as failed:
+  with `$dir=$project`. Read that section for the exact soft-fail check, then run
+  it against each project. The verification form accumulates failures into the
+  caller-owned `FAILURES` array.
+- Also verify the following per project; on miss, emit a `MISSING …: $project`
+  message and mark the project failed:
   - `$project/.context/` directory exists
   - `$project/.context/domains/` directory exists
   - `$project/.context/overview.md` file exists
-- If `FAILURES` is non-empty after the loop: re-dispatch the sessions for
-  those projects with the same prompts as Step 4.
+- If `FAILURES` is non-empty after the loop: re-dispatch those projects with the
+  same prompts as Step 4.
 
-Do not proceed to Step 6 until every project passes. The workspace-level
-context session reads each project's `overview.md` — missing files cause
-gaps in the cross-project context.
+Do not proceed to Step 6 until every project passes. The workspace-level session
+reads each project's `overview.md` — missing files cause gaps in cross-project
+context.
 
 ---
 
 ## initialize-workspace: Step 6: Workspace-level context (first folder)
 
-After all project sessions pass, dispatch one final background `ICON:context-specialist`
+After all projects pass, dispatch one final background `ICON:context-specialist`
 agent at the **workspace root** (first folder):
 
 ```
@@ -302,7 +300,7 @@ Commit using the repo's commit convention. Run to completion without stopping.
 
 ## initialize-workspace: Step 7: Push and open pull requests
 
-Push and PR creation is **per git repo** — one PR per unique git root:
+Push and PR creation are **per git repo** — one PR per unique git root:
 
 ```bash
 for GIT_ROOT in "${UNIQUE_GIT_ROOTS[@]}"; do
@@ -310,9 +308,9 @@ for GIT_ROOT in "${UNIQUE_GIT_ROOTS[@]}"; do
 done
 ```
 
-For each git repo, open a pull request targeting that repo's integration branch.
-Follow the PR description format from the `pr-discipline` skill (Summary,
-Why, How to Test, Risks). For example:
+For each git repo, open a pull request targeting that repo's integration branch,
+following the PR description format from the `pr-discipline` skill (Summary, Why,
+How to Test, Risks). For example:
 
 ```markdown
 ## Summary
@@ -359,7 +357,7 @@ Summarize:
 | Skipping workspace-level context for the first folder | First folder always gets Step 6 regardless of classification |
 | Creating one branch across all repos | Branch management is per-repo (Step 1) — a workspace spans multiple git roots |
 | Running `git log` from `PROJECT_PATH` instead of `GIT_ROOT` | The project folder may not be the repo root; use `GIT_ROOT` for full history |
-| Starting Step 6 before all project sessions pass Step 5 | Workspace session reads each project's `overview.md` — missing files cause gaps |
-| Opening one PR for the whole workspace | Open one PR per git repo targeting that repo's integration branch |
-| Resolving relative `.code-workspace` paths relative to CWD | Relative paths are relative to the `.code-workspace` file's own directory — use `os.path.realpath` |
+| Starting Step 6 before all projects pass Step 5 | Workspace session reads each project's `overview.md` — missing files cause gaps |
+| Opening one PR for the whole workspace | One PR per git repo, targeting that repo's integration branch |
+| Resolving relative `.code-workspace` paths against CWD | They're relative to the `.code-workspace` file's own directory — use `os.path.realpath` |
 | Merging PRs without human review | Always surface PR URLs and stop — do not self-merge |

@@ -10,12 +10,11 @@ user-invocable: true
 ## Overview
 
 Emit a concise plugin-state dashboard for the current repo: active task, recent
-retrospectives, and context health. Use before planning new work or after
-returning to a repo after a break.
+retrospectives, and context health. Use before planning new work or after a break.
 
 ## When to Use
 
-- Returning to a repo after a break and want to know where things stand
+- Returning to a repo after a break, to see where things stand
 - About to plan new work and need to check context health
 
 **Do not use** to inspect a specific task's details — read `.context/tasks/<TASK-DIR>/plan.md`
@@ -43,8 +42,7 @@ This repo is not yet ICON-initialized. Run `/icon-init` to set up — it detects
 ## icon-status: Step 2: Gather data
 
 Run each block below. Every block handles missing data gracefully — if a file or
-directory is absent, emit an appropriate "not found" note rather than silently
-producing empty output.
+directory is absent, emit a "not found" note rather than empty output.
 
 ### Repo name
 
@@ -145,8 +143,8 @@ If no suggestions apply, omit the Suggestions section from the dashboard output.
 ## icon-status: Step 3: Render the dashboard
 
 Assemble the gathered data into the following format. **Emoji is approved for this
-readout.** Omit any section entirely when it has no data (e.g., no retrospectives,
-no suggestions).
+readout.** Omit any section entirely when it has no data (e.g. no retrospectives or
+suggestions).
 
 ```
 📋 ICON Status — <REPO_NAME>

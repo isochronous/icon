@@ -2,7 +2,7 @@
 
 ## Overview
 
-Scaffold the standard Claude Code plugin directory tree with placeholder files. The output is structurally valid — `plugin.json` parses, the directory tree matches conventions — but metadata is intentionally minimal; Phase 2 fills in the real values.
+Scaffold the standard Claude Code plugin directory tree with placeholder files. The output is structurally valid — `plugin.json` parses, the tree matches conventions — but metadata is intentionally minimal; Phase 2 fills in real values.
 
 ## Output Tree
 
@@ -25,7 +25,7 @@ Scaffold the standard Claude Code plugin directory tree with placeholder files. 
     └── .gitkeep
 ```
 
-`.gitkeep` files preserve the otherwise-empty directories under git. Drop them later when a real file lands in the directory.
+`.gitkeep` files preserve the otherwise-empty directories under git. Drop each once a real file lands in its directory.
 
 ## Scaffold (Bash)
 

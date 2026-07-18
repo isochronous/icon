@@ -9,31 +9,30 @@ user-invocable: true
 
 ## Overview
 
-Git Worktrees let you check out a branch into a **separate directory** alongside
-your main clone. The agent works in its own directory; you work in yours — same
-repo, no conflicts.
+Git worktrees check out a branch into a **separate directory** alongside your main
+clone. The agent works in its directory, you in yours — same repo, no conflicts.
 
-**Key fact**: a worktree is not a new clone. It shares the `.git` database.
-Commits, branches, and pushes are all visible across every worktree immediately.
+**Key fact**: a worktree is not a new clone. It shares the `.git` database, so
+commits, branches, and pushes are visible across every worktree immediately.
 
 ---
 
 ## When to Use
 
-- You are actively editing files in the repo while an agent is running
-- You want an agent to work on a feature branch without touching your current work
+- You are actively editing files in the repo while an agent runs
+- You want an agent on a feature branch without touching your current work
 - You need parallel development in the same repository across two sessions
 - The agent's branch work is unrelated to your current branch
 
 ## When NOT to Use
 
 - No conflict risk (you're not actively in the repo)
-- One-off investigation that doesn't produce commits
+- One-off investigation that produces no commits
 - The agent only needs to read files, not write them
 
 ## start-worktree: Step 1: Choose a Location
 
-Place the worktree **adjacent** to the main repo — not inside it:
+Place the worktree **adjacent** to the main repo, not inside it:
 
 ```
 ~/code/
@@ -50,7 +49,7 @@ REPO_NAME=$(basename "$REPO_ROOT")
 WORKTREE_DIR="${REPO_ROOT}/../${REPO_NAME}-TASK-123"
 ```
 
-**Never place a worktree inside the main repo directory.** Git will reject it,
+**Never place a worktree inside the main repo directory.** Git rejects it,
 and if it didn't, tool discovery would break.
 
 ## start-worktree: Step 2: Create the Worktree
@@ -94,7 +93,7 @@ ls .context/ && (ls .claude/claude.md || ls .github/copilot-instructions.md)
 ## start-worktree: Step 4: Record the Worktree Path
 
 If a task folder exists (`.context/tasks/TASK-123/`), record the worktree path
-in `plan.md` so future agent turns know where to resume work:
+in `plan.md` so future agent turns know where to resume:
 
 ```markdown
 ## Worktree
@@ -106,11 +105,11 @@ Branch: feature/TASK-123-short-description
 
 ## start-worktree: Step 5: Start Work in the Worktree
 
-The worktree changes WHERE you work, not HOW. All normal agent workflows apply:
+The worktree changes WHERE you work, not HOW. Normal agent workflows apply:
 
-- The manager must re-read `.claude/claude.md` (or `.github/copilot-instructions.md` on repos still on the legacy path) and `.context/` on first turn — the CWD has changed, so cached context from the main worktree does not carry over.
-- Agents must invoke `using-skills` before beginning any implementation task, exactly as they would from the main checkout.
-- Commits made here appear in the shared `.git` database immediately and are visible from the main checkout.
+- The manager must re-read `.claude/claude.md` (or `.github/copilot-instructions.md` on repos still on the legacy path) and `.context/` on the first turn — the CWD changed, so cached context from the main worktree does not carry over.
+- Agents must invoke `using-skills` before any implementation task, exactly as from the main checkout.
+- Commits made here appear in the shared `.git` database immediately, visible from the main checkout.
 
 Push the branch from the worktree as you would from any checkout:
 
@@ -153,12 +152,12 @@ git worktree list
 
 | Mistake | Fix |
 |---------|-----|
-| Creating worktree inside the main repo | Always use `../` to place it adjacent |
+| Creating worktree inside the main repo | Use `../` to place it adjacent |
 | Forgetting to `cd` into the worktree | Verify with `pwd` and `git branch --show-current` before any work |
-| Trying to check out the same branch in two worktrees | Each branch can only be active in one worktree at a time; create a new branch |
+| Trying to check out the same branch in two worktrees | A branch can be active in only one worktree; create a new branch |
 | Leaving stale worktrees after merge | Run `git worktree prune` or `git worktree remove` when done |
 | Assuming context files are missing | Worktrees share all tracked files — `.context/` and the canonical instructions file (`.claude/claude.md` or `.github/copilot-instructions.md`) are always present |
-| Running builds/tests from main repo while agent uses worktree | Builds may share output dirs (`target/`, `node_modules/`) — check for conflicts by comparing build output paths in both worktrees |
+| Running builds/tests from main repo while agent uses worktree | Builds may share output dirs (`target/`, `node_modules/`) — compare build output paths in both worktrees for conflicts |
 | Skipping context re-read because "I was just working in this repo" | The CWD changed. Re-read `.claude/claude.md` (or `.github/copilot-instructions.md` on repos still on the legacy path) and `.context/` on first turn in the worktree. |
 
 ## Rationalization Prevention
@@ -167,5 +166,5 @@ git worktree list
 |--------|---------|
 | "I'll just be careful not to edit the same files" | You won't. Use a worktree. |
 | "It's faster to skip the worktree setup" | One git conflict costs more time than worktree setup. |
-| "The agent finished quickly, no need to clean up" | Stale worktrees cause `git worktree list` noise and can block future branch operations. Remove them. |
-| "I already have context loaded — no need to re-read .context/" | The worktree is a different CWD. Context must be re-read on first turn. Cached context from the main checkout does not carry over. |
+| "The agent finished quickly, no need to clean up" | Stale worktrees clutter `git worktree list` and can block future branch operations. Remove them. |
+| "I already have context loaded — no need to re-read .context/" | The worktree is a different CWD. Re-read context on the first turn — the main checkout's cache does not carry over. |

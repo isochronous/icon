@@ -1,24 +1,23 @@
 # `context-graph` — Tooling Reference
 
-Companion reference for the `context-maintenance` skill. Documents the script
-that parses a `.context/` tree into a knowledge graph — used on the **read**
-side (discovery) and the **write** side (a fail-closed consistency check).
+Companion to the `context-maintenance` skill. Documents the script that parses
+a `.context/` tree into a knowledge graph — used on the **read** side
+(discovery) and the **write** side (a fail-closed consistency check).
 
 ---
 
-The `context-graph` script (located in the `scripts/` subdirectory at
-`skills/context-maintenance/scripts/`) parses every `.context/` file **once**
-and reports the graph either as an adjacency listing (`--emit`) or as a set of
-structural defects (`--check`). It **never emits file contents** — only paths
-and edge tags.
+The `context-graph` script (in `skills/context-maintenance/scripts/`) parses
+every `.context/` file **once** and reports the graph either as an adjacency
+listing (`--emit`) or as structural defects (`--check`). It **never emits file
+contents** — only paths and edge tags.
 
-Two variants ship side by side — pick the one that matches the calling shell:
+Two variants ship side by side — pick the one matching the calling shell:
 
 - `context-graph.sh` — Bash (Linux, macOS, WSL, Git-Bash) — the SSOT parser.
 - `context-graph.ps1` — PowerShell (Windows without Git-Bash/WSL).
 
-Both variants produce identical output, edge ordering, and exit codes. They are
-verified against the same fixtures (ADR-004 parity; shell-portability §8.5).
+Both variants produce identical output, edge ordering, and exit codes, verified
+against the same fixtures (ADR-004 parity; shell-portability §8.5).
 
 **This is a read-only reporter — it never writes, deletes, or stages.**
 
@@ -56,15 +55,15 @@ folder-index, retrospective, config). Edge types: `references` (inline
 legacy `**Status**: Superseded by ADR-NNN` prose), `promoted-from`
 (retrospective `Promoted to:`), and `excludes` (`iconrc.json`).
 
-Resolved link targets are constrained to stay under the context root
-(path-traversal safety); links resolving outside `.context/` are ignored.
+Resolved link targets must stay under the context root (path-traversal safety);
+links resolving outside `.context/` are ignored.
 
 ### Escape-hatch markers
 
 - `<!-- pre-commit:dead-ref-ok-start --> … <!-- pre-commit:dead-ref-ok-end -->`
   — suppresses the dangling-reference check for links inside the region
   (reuses the existing pre-commit dead-ref marker idiom).
-- `<!-- context-graph:orphan-ok -->` — a file-level marker that excludes the
+- `<!-- context-graph:orphan-ok -->` — a file-level marker excluding the
   containing doc from the orphan check (for an intentional, not-yet-linked
   stub).
 
@@ -87,8 +86,8 @@ pwsh -NoProfile -File ./scripts/context-graph.ps1 --emit .context
 pwsh -NoProfile -File ./scripts/context-graph.ps1 --check .context
 ```
 
-The path argument may be the `.context/` tree itself **or** a repo root that
-contains a `.context/` directory. It defaults to the git toplevel.
+The path argument may be the `.context/` tree itself **or** a repo root
+containing a `.context/` directory. It defaults to the git toplevel.
 
 ### Exit codes
 
