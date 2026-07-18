@@ -41,3 +41,4 @@ What did we reject and why?
 | [010](010-template-promotions-and-carryforward-retier.md) | Phase-template promotions and carry-forward re-tier registry | Accepted | 2026-05-23 |
 | [011](011-datascan-production-instance.md) | This repo IS DataScan's production plugin instance | Superseded (ICON-0080) | 2026-06-12 |
 | [012](012-context-knowledge-graph.md) | Context knowledge graph — on-demand script, edge seams, fail-closed gate | Accepted | 2026-07-17 |
+| [013](013-session-lifecycle-cold-resume.md) | Session lifecycle — phase-per-session cold resume via hardened plan.md | Accepted | 2026-07-17 |

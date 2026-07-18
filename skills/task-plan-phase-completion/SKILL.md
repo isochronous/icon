@@ -14,6 +14,22 @@ at the end of every task; token cost matters.
 
 **Template-override rule**: apply `.context/workflows/task-plan/phase-<name>.md` if present — see `task-plan` for the full policy.
 
+## task-plan: Completion: Phase Entry (Reconstruct-First)
+
+**Run this FIRST, before any completion work.** Each phase resumes from the
+committed `plan.md`, not from session memory. Read `## Phase State`, confirm this
+run's phase matches `Current`/`Next` and that every earlier phase in the Phase
+plan is `done` (`completion` is always last), then read the preceding handoff
+block plus the cumulative `## Decisions` / `## Key Files` / `## Constraints`.
+Validate this phase's entry contract (verification evidence + a `## Review
+Checkpoint` covering the current changed files) and **fail closed** — if a
+required input is missing, a prerequisite phase is not `done`, `HEAD` lacks the
+expected `Phase-Handoff:` trailer, or the tree is unexpectedly dirty, STOP and
+surface the gap; do not re-derive to backfill. The full protocol and per-phase
+entry contract live in the `phase-completion.md` template `## Phase Entry`
+section; the `## Phase State` and `## Phase Handoff Log` shapes are defined in
+`base.md` Section Guidance.
+
 ## task-plan: Completion: Reconcile plan.md
 
 > **First step of the completion phase. Runs before review, context-update,
@@ -98,6 +114,23 @@ Write a brief completion summary:
 **Tests:** [count added, pass/fail status]
 **Follow-up work:** [technical debt or follow-up tasks, or "none"]
 ```
+
+## task-plan: Completion: Phase Exit (Handoff Write)
+
+**Run this LAST — completion is the final phase; its exit closes the task.**
+Append one `### Handoff: completion` block to `## Phase Handoff Log` (append-only
+— never rewrite earlier blocks) capturing the reviewer findings + resolution, the
+final verification evidence, the Decisions/Key Files deltas, and — unique to this
+block — the **Retro Stage-1 draft** (Avoid / Repeat / Updated) persisted here
+instead of held in session state. Update `## Phase State`: move completion to
+`Completed`, set its status `done`, set `Next` to none / task complete. Because a
+commit cannot contain its own SHA, do not embed the handoff SHA in `plan.md` —
+either finish the Reconcile plan.md checklist before the artifacts commit
+(omitting the SHA), or follow it with a small `ICON-NNNN: reconcile plan.md to
+final state` commit; carry the `Phase-Handoff: completion` trailer on the
+boundary commit. The full write/commit steps live in the `phase-completion.md`
+template `## Phase Exit / Handoff` section; block shape is defined in `base.md`
+Section Guidance and `context-document-guidelines`.
 
 ## task-plan: Completion: Relationship to Other Skills
 

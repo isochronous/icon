@@ -16,6 +16,21 @@ question IS the primary work, not a checkpoint within it.
 
 **Template-override rule**: apply `.context/workflows/task-plan/phase-<name>.md` if present — see `task-plan` for the full policy.
 
+## task-plan: Architecture: Phase Entry (Reconstruct-First)
+
+**Run this FIRST, before any architecture work.** Each phase resumes from the
+committed `plan.md`, not from session memory. Read `## Phase State`, confirm this
+run's phase matches `Current`/`Next` and that every earlier phase in the Phase
+plan is `done`, then read the preceding handoff block plus the cumulative
+`## Decisions` / `## Key Files` / `## Constraints`. Validate this phase's entry
+contract (investigation findings + scope + open questions the decision must
+resolve) and **fail closed** — if a required input is missing, a prerequisite
+phase is not `done`, `HEAD` lacks the expected `Phase-Handoff:` trailer, or the
+tree is unexpectedly dirty, STOP and surface the gap; do not re-investigate to
+backfill. The full protocol and per-phase entry contract live in the
+`phase-architecture.md` template `## Phase Entry` section; the `## Phase State`
+and `## Phase Handoff Log` shapes are defined in `base.md` Section Guidance.
+
 ## task-plan: Architecture: When to Consult @architect
 
 | Trigger | Required? |
@@ -61,6 +76,23 @@ After receiving the architect's assessment:
 2. If architect **approves with modifications**: update the plan's implementation steps before dispatching to @coder.
 3. If architect **rejects**: return to @planner with the architect's rationale and revise the approach.
 4. If architect **approves**: proceed to implementation with the architectural guidance noted in `plan.md`.
+
+## task-plan: Architecture: Phase Exit (Handoff Write)
+
+**Run this LAST, at the phase boundary.** Phase boundaries are commit points.
+Append one `### Handoff: architecture → <next-phase>` block to
+`## Phase Handoff Log` (append-only — never rewrite earlier blocks) capturing the
+@architect assessment **verbatim or faithfully quoted** (recommendation +
+rationale + required modifications — not a lossy summary), verification evidence,
+the Decisions/Key Files deltas, and **What the next phase needs**; mirror the
+deltas into their sections. Update `## Phase State` (advance
+`Completed`/`Current`/`Next`, set the `Current` status, record the next loaded
+skill, reset `Attempts` to `0`). Then commit `plan.md` plus all artifact deltas with the
+trailer `Phase-Handoff: architecture` — uncommitted work at a boundary is an
+incomplete handoff and the next phase fails closed. The full write/commit steps
+live in the `phase-architecture.md` template `## Phase Exit / Handoff` section;
+block shape is defined in `base.md` Section Guidance and
+`context-document-guidelines`.
 
 ## task-plan: Architecture: Relationship to Other Skills
 
