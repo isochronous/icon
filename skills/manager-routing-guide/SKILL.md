@@ -107,3 +107,55 @@ Not all specialists run in isolated sessions. Rules:
 | @architect | Design decisions often require iteration; needs the accumulated decision context; output is a compact design doc |
 
 After each isolated agent completes, incorporate only its **output** (findings, artifacts, decisions) into the orchestrator's context — not the full reasoning trail.
+
+## Model Tier Selection
+
+Every **isolated** delegation names a tier, chosen from the task's complexity signals. Start at the role default; one strong complexity signal upgrades, one strong mechanical signal downgrades. **When uncertain, `default` (Sonnet).**
+
+### Tiers
+
+| Tier | Model (alias) | Use for |
+|------|---------------|---------|
+| `basic` | `haiku` | Mechanical, single-file, deterministic work needing no design judgment |
+| `default` | `sonnet` | Standard implementation / testing / review / research / planning — the common case |
+| `complex` | `opus` | Design, security, ambiguity, cross-cutting, hard debugging |
+
+### Complexity signals
+
+- **basic → Haiku**: single-file mechanical edit; lint / format fix; rename or move; import fix; mechanical find-replace across obvious call sites; one obvious test case copying an existing pattern; mechanical `.context/` maintenance append (retro append, index regen); trivial additive field.
+- **default → Sonnet**: feature implementation within an established pattern; a normal test suite; standard code review; library/pattern research with a known target; a bounded refactor of clear shape; planning a medium task. **When uncertain, default.**
+- **complex → Opus**: architecture / design decisions; security-sensitive changes (auth, credentials, input trust boundaries); ambiguous or underspecified tasks needing interpretation; cross-cutting changes spanning modules or boundaries; hard debugging (the `systematic-debugging` threshold — 2+ failed attempts — is itself a complex signal); migration / breaking-change planning; novel-domain deep research.
+
+### Per-role default tier
+
+| Agent | Default | Upgrade → complex when… | Downgrade → basic when… |
+|-------|---------|-------------------------|-------------------------|
+| @coder | default | cross-cutting / ambiguous / security-touching | single-file mechanical, lint, rename, import |
+| @tester | default | hard-to-reproduce / complex behavior | one obvious test case on an existing pattern |
+| @reviewer | default | security-sensitive or large cross-cutting diff | trivial single-file diff |
+| @researcher | default | ambiguous / novel domain, deep multi-source | single-fact doc lookup |
+| @context-specialist | default | root/branch-node creation, structural audit | mechanical maintenance append |
+| explore / general-purpose | default | — | simple file-location sweep |
+| @planner *(inline)* | inherits session model | — | — |
+| @architect *(inline)* | inherits session model — Opus-worthy work | — | — |
+
+### Isolated vs. inline
+
+The tier is set via the harness's **per-subagent model control**, which only applies to **isolated** dispatches (@researcher, @coder, @tester, @reviewer, @context-specialist, explore). **Inline** agents (@planner, @architect) run in the manager's shared context — there is no separate context window and no `model` param to set; they run at the **session model**. For inline agents the tier is informational: Opus-worthy design work is a signal to run the *session* on Opus, not a per-delegation parameter.
+
+### Tier → model realization (ADR-004)
+
+The rule is stated in tier terms; each harness maps tier → realization using **aliases**, not pinned IDs:
+
+| Tier | Alias |
+|------|-------|
+| `basic` | `haiku` |
+| `default` | `sonnet` |
+| `complex` | `opus` |
+
+| Harness | Realization |
+|---------|-------------|
+| **Claude Code** | Set the Task/Agent tool `model` param to the alias **and** state the tier in the delegation prompt. |
+| **Copilot CLI** | State the tier in the prompt. Where per-subagent model control is unavailable the tier is **advisory** — the delegation never fails for lack of it; it proceeds at the session/default model with the intended tier recorded. |
+
+Aliases (`haiku`/`sonnet`/`opus`) track the current generation and rarely churn, so this table stays stable across model refreshes; pinned IDs would need editing every refresh. A maintainer may pin deliberately if ever needed.
