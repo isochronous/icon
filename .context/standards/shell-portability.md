@@ -60,6 +60,30 @@ presence check written with it.
 This is the rule the `icon-init` MCP-onboarding gate and `icon-status` credential check
 rely on — a `${VAR:-…}` there would misreport an empty-but-set token as "set".
 
+### 6. PowerShell `-replace` inside a .NET method-call argument list: parenthesize it
+
+Inside a .NET method call's argument list, PowerShell parses the two commas of a
+`-replace 'pattern','replacement'` expression as **method-argument separators**, not as
+part of the `-replace` operator. So this passes `TryParse` the wrong number of arguments:
+
+```powershell
+[int]::TryParse((Get-Content $f -replace '\D',''), [ref]$n)   # BROKEN
+```
+
+PowerShell reads it as `TryParse(<arg1>, <arg2>, <arg3>)` — where `<arg1>` is
+`(Get-Content $f -replace '\D'`, `<arg2>` is `''`, and `<arg3>` is `[ref]$n` — giving the
+method the wrong arity, which throws under `Set-StrictMode` / `$ErrorActionPreference='Stop'`.
+Wrap the `-replace` expression in its **own** parentheses so its commas are contained
+within the operand, not the argument list:
+
+```powershell
+[int]::TryParse(((Get-Content $f) -replace '\D',''), [ref]$n)   # correct
+```
+
+(ICON-0082: a persisted-`Attempts` parse in the PowerShell phase-launcher template
+silently broke the same bounded-retry guarantee in PS mode until the `-replace` was wrapped
+in its own parentheses `((… -replace '\D',''))`.)
+
 ## Testing Pattern
 
 1. Create a temp directory (`mktemp -d`; pair with `trap 'rm -rf "$tmpdir"' EXIT`).
