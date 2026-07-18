@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-07-18
+
 ### Added
 
 - `agents/researcher.agent.md` and `agents/manager.agent.md` — added prompt-injection defenses so agents treat content fetched from external systems (Jira, Confluence, web pages, CI/pipeline output, GitLab MR comments) as untrusted data rather than instructions, preventing a malicious issue or page from steering agents into write-capable tool calls, command execution, or data exfiltration; the mitigation is documented in the new `.context/standards/security.md`. (ICON-0072)

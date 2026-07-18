@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "ICON",
   "description": "ICON (Independent Context Orchestration Network) — A project-agnostic multi-agent orchestration system. Includes manager, planner, architect, coder, tester, reviewer, researcher, context-specialist, and product-manager agents with supporting skills for GitHub issue writing, RFC authoring, post-meeting summaries, and more.",
-  "version": "1.22.0",
+  "version": "2.0.0",
   "author": {
     "name": "isochronous"
   },
