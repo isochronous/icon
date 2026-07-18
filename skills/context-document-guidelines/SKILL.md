@@ -124,6 +124,7 @@ ADRs extend their existing bold-field metadata idiom (`**Date**:`, `**Status**:`
 - **Value is `ADR-NNN`** (which maps deterministically to `decisions/NNN-*.md`) **or `none`.**
 - `**Superseded-by**` is the parseable mirror of the human `**Status**: Superseded by …` prose; keep the `**Status**` line for humans.
 - **ADR cross-references live in these bold-fields + plain prose — an ADR does NOT get a `## Related` footer (ICON-0081 F1, ICON-0084).** Record supersede relationships in the `**Supersedes**` / `**Superseded-by**` fields above, and reference any OTHER ADR in plain prose as `ADR-NNN` (which maps to `decisions/NNN-*.md`). The `## Related` footer seam is for **content docs only** (`domains/`, `standards/`, `workflows/`, `architecture/`, `testing/`, `styling/`) — do not append one to an ADR.
+- **Scope-supersede (partial): note the scope in BOTH fields, leave the old Decision prose intact (ICON-0085).** When a new ADR resolves only a PRIOR ADR's specific *sub*-decision, set `**Supersedes**: ADR-NNN (<scope> only — the remainder stands)` on the new ADR and `**Superseded-by**: ADR-MMM (<scope> only)` on the old — the scope note in both directions. Do **not** mutate the partially-superseded ADR's `**Status**`/Decision prose; it stays as the historical record of what was originally decided.
 
 ### Escape-hatch markers (use sparingly)
 
