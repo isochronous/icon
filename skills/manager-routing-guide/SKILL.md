@@ -7,7 +7,7 @@ user-invocable: false
 
 # Manager Routing Guide
 
-The manager's routing reference tables and context-isolation rules. Invoke when making a routing decision — selecting a specialist, consulting the capability matrix, or choosing isolated vs. shared sub-agent context. The sections below are authoritative.
+The manager's routing reference tables and context-isolation rules. Invoke when making a routing decision — selecting a specialist or consulting the capability matrix. The sections below are authoritative.
 
 ---
 
@@ -87,30 +87,21 @@ Always specify version numbers when invoking @researcher. Research findings shou
 
 ## Sub-Agent Context Isolation
 
-Not all specialists run in isolated sessions. Rules:
+**All specialist dispatches are isolated** — each runs in a separate context window via the task tool, receives a self-contained `## Context Warmstart`, and returns a structured report. Incorporate only the report (findings, artifacts, decisions) into the orchestrator's context — never the agent's full reasoning trail.
 
-**Isolated (separate context window via task tool)** — agents whose intermediate work is noisy and where the manager only needs the final artifact:
-
-| Agent | Why isolated |
-|-------|-------------|
-| @researcher | Heavy web fetching, large raw content, cache writes — manager needs findings only |
-| @coder | File reads and compiler/lint output can be large — manager needs the diff and build proof |
-| @tester | Test runner output is noisy — manager needs pass/fail counts and what was written |
-| @reviewer | Reads many files to form opinions — manager needs findings, not the file reads |
-| @context-specialist | File creation across many directories, git operations, large content generation — manager needs the completion summary and file list only |
-
-**Shared context (inline)** — agents that work collaboratively with the manager and whose output is compact:
-
-| Agent | Why shared |
-|-------|-----------|
-| @planner | Needs full task history to produce a coherent breakdown; benefits from clarifying questions with the manager |
-| @architect | Design decisions often require iteration; needs the accumulated decision context; output is a compact design doc |
-
-After each isolated agent completes, incorporate only its **output** (findings, artifacts, decisions) into the orchestrator's context — not the full reasoning trail.
+| Agent | Manager needs (the report) |
+|-------|----------------------------|
+| @researcher | Findings and citations, not the web-fetch trail |
+| @planner | The task breakdown + open questions/assumptions, not the exploration |
+| @architect | The assessment (recommendation + rationale), not the file reads |
+| @coder | The diff and build proof, not the compiler noise |
+| @tester | Pass/fail counts and what was written, not the runner output |
+| @reviewer | Findings, not the many file reads |
+| @context-specialist | Completion summary + file list, not the generation trail |
 
 ## Model Tier Selection
 
-Every **isolated** delegation names a tier, chosen from the task's complexity signals. Start at the role default; one strong complexity signal upgrades, one strong mechanical signal downgrades. **When uncertain, `default` (Sonnet).**
+Every delegation names a tier, chosen from the task's complexity signals (all specialist dispatches are isolated). Start at the role default; one strong complexity signal upgrades, one strong mechanical signal downgrades. **When uncertain, `default` (Sonnet).**
 
 ### Tiers
 
@@ -136,12 +127,8 @@ Every **isolated** delegation names a tier, chosen from the task's complexity si
 | @researcher | default | ambiguous / novel domain, deep multi-source | single-fact doc lookup |
 | @context-specialist | default | root/branch-node creation, structural audit | mechanical maintenance append |
 | explore / general-purpose | default | — | simple file-location sweep |
-| @planner *(inline)* | inherits session model | — | — |
-| @architect *(inline)* | inherits session model — Opus-worthy work | — | — |
-
-### Isolated vs. inline
-
-The tier is set via the harness's **per-subagent model control**, which only applies to **isolated** dispatches (@researcher, @coder, @tester, @reviewer, @context-specialist, explore). **Inline** agents (@planner, @architect) run in the manager's shared context — there is no separate context window and no `model` param to set; they run at the **session model**. For inline agents the tier is informational: Opus-worthy design work is a signal to run the *session* on Opus, not a per-delegation parameter.
+| @planner | default | large / cross-cutting / ambiguous breakdown | trivial re-sequence of an existing plan |
+| @architect | complex | — | routine pattern-conformance check → **default** (still needs design judgment; never basic) |
 
 ### Tier → model realization (ADR-004)
 

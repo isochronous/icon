@@ -26,3 +26,7 @@ Skills, agents, and commands are written as **portable markdown**. Where a path 
 
 1. **Two parallel skill trees, one per runtime**: rejected — duplicated content immediately drifts.
 2. **Generate runtime-specific copies from a single source**: rejected — adds a build step to a repo whose explicit constraint is "no build step" (see ADR-005).
+
+## Convention: `ask_user` is ICON's portable user-input tool name
+
+`ask_user` is ICON's **portable name** for the harness user-input tool. It maps to Copilot CLI's `ask_user` and Claude Code's `AskUserQuestion`. Use `ask_user` in ICON content — each harness resolves it to its own tool. Do not name a single platform's tool (e.g. `AskUserQuestion`) in shipped content: naming one harness while omitting the other is exactly the runtime-specific asymmetry this ADR forbids. This is an application of the Decision above, not a change to it.

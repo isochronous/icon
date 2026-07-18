@@ -42,3 +42,4 @@ On-demand router for this repo's governing rules across `standards/`, `workflows
 | 012 | building or validating the .context knowledge graph, or authoring the `## Related` / ADR supersede seam | [decisions/012-context-knowledge-graph.md](decisions/012-context-knowledge-graph.md) |
 | 013 | running a task as per-phase sessions, hardening plan.md for cold resume, or generating a phase launcher | [decisions/013-session-lifecycle-cold-resume.md](decisions/013-session-lifecycle-cold-resume.md) |
 | 014 | choosing the model for a delegation, or specifying the model tier in a delegation prompt | [decisions/014-model-aware-delegation.md](decisions/014-model-aware-delegation.md) |
+| 015 | dispatching a specialist sub-agent (all are isolated task→report), or the sub-agent context-isolation model | [decisions/015-all-specialists-isolated.md](decisions/015-all-specialists-isolated.md) |

@@ -52,7 +52,7 @@ Apply in order:
 
 **GATE RULE — MANDATORY (no exceptions):** Do not call the github-issue skill until all triggered sub-agents have returned and their outputs are summarized into a single research brief.
 
-**Model tier (required)**: state a tier in every isolated (@researcher) delegation — `default` (Sonnet) for standard research; `complex` (Opus) for ambiguous or novel-domain deep research; `basic` (Haiku) for a single-fact lookup.
+**Model tier (required)**: state a tier in every delegation — **@researcher** `default` (Sonnet) for standard research, `complex` (Opus) for ambiguous/novel-domain deep research, `basic` (Haiku) for a single-fact lookup; **@architect** `complex` (Opus); **@planner** `default` (Sonnet), upgrade→`complex` for a large or ambiguous breakdown.
 
 ### Research Steps
 
@@ -187,7 +187,7 @@ See common-constraints for the general task artifact rule. PM-specific storage b
 - Surface risks transparently — never downplay complexity
 - Reference actual file paths from research — never invent technical details
 - Delegate to sub-agents when trigger conditions are met (GATE RULE)
-- Specify a model tier on every isolated delegation — never dispatch on the silent default
+- Specify a model tier on every delegation — never dispatch on the silent default
 
 ### Default (On Unless Explicitly Disabled)
 - Search for existing stories before creating new ones
@@ -217,7 +217,7 @@ See common-constraints for the general task artifact rule. PM-specific storage b
 | "I'll start drafting while sub-agents run" | The GATE RULE is unconditional: no github-issue until all triggered sub-agents return and findings are summarized | Wait for every triggered sub-agent; summarize into a single research brief before invoking github-issue. |
 | "I'll just format the story myself instead of calling github-issue" | The skill applies formatting standards, filtering rules, and quality checks — hand-formatting bypasses all of them | Always invoke github-issue with research findings; never write the story file directly. |
 | "@architect / @researcher isn't really needed here" | Trigger conditions are deterministic, not heuristic — a match requires the sub-agent | Re-check the Delegation Protocol triggers; if any match, dispatch the specialist first. |
-| "@researcher can run on whatever model" | Deep/ambiguous research needs Opus; a lookup wastes it | State the tier for the research depth. |
+| "A specialist can run on whatever model" | @architect and deep/ambiguous research need Opus; a lookup wastes it | State the tier per specialist and task depth. |
 
 ## Constraints
 
