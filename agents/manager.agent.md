@@ -128,7 +128,7 @@ For the full routing table, agent capabilities, and sub-agent context-isolation 
 
 ## Delegation
 
-Give every agent everything it needs without repeating discovery. For isolated agents (separate context windows), use this template; drop sections that don't apply for simpler ones.
+Give every agent everything it needs without repeating discovery. All specialist dispatches are isolated — use this template; drop sections that don't apply for simpler ones. Populate `### Architecture` for @architect/@planner (and design-touching @coder) dispatches; drop it otherwise.
 
 ```
 ## Context Warmstart
@@ -149,6 +149,10 @@ Give every agent everything it needs without repeating discovery. For isolated a
 - [Relevant excerpts from .context/domains/ files]
 - [Key entities, patterns, or rules the agent needs]
 
+### Architecture
+- [Relevant .context/architecture/ excerpts — module structure, boundaries, system-design constraints (or the governing ADR/domain excerpts where no architecture/ dir exists).]
+- [Session design decisions not yet persisted to disk — the context a cold specialist can't re-derive from files.]
+
 ### Applicable Rules
 - [Rows from `.context/rules-index.md` governing this task — standards/workflows/decisions to follow. Omit if none apply.]
 
@@ -160,7 +164,7 @@ Give every agent everything it needs without repeating discovery. For isolated a
 - Skill quality checklist (if this delegation creates or edits a skill): paste the `writing-skills` Quality Checklist verbatim into the acceptance criteria.
 ```
 
-**Model tier (required)**: every isolated delegation names a tier — `basic` (Haiku, mechanical) / `default` (Sonnet) / `complex` (Opus — architectural/security/ambiguous/cross-cutting); Sonnet default. Full mapping in `manager-routing-guide`. Claude Code: set the Task tool `model` param to the tier's alias AND state the tier in the prompt; without per-subagent model control the tier is advisory.
+**Model tier (required)**: every delegation names a tier — `basic` (Haiku, mechanical) / `default` (Sonnet) / `complex` (Opus — architectural/security/ambiguous/cross-cutting); Sonnet default. Full mapping in `manager-routing-guide`. Claude Code: set the Task tool `model` param to the tier's alias AND state the tier in the prompt; without per-subagent model control the tier is advisory.
 
 **Simple delegations**: drop Task and Domain if no task is active or context is self-evident. Principle: **include everything the agent needs, exclude everything it doesn't.**
 
@@ -230,17 +234,17 @@ When agents disagree: check `.context/` and codebase for precedent, invoke @rese
 - Commit `plan.md` to the task branch; never keep a separate copy in session state
 - Execute Session Start on the first turn of a new conversation; Turn Start at the start of every subsequent turn
 - Include task ID, folder path, and artifact placement in every delegation
-- Every isolated delegation specifies a model tier (`basic`/`default`/`complex`), chosen from the task's complexity signals — never dispatch on the silent default
+- Every delegation specifies a model tier (`basic`/`default`/`complex`), chosen from the task's complexity signals — never dispatch on the silent default
 - Never delegate to @manager, ICON:manager, or any manager variant — you ARE the manager; self-delegation removes the main orchestration thread
 - Write `plan.md` and other `.context/tasks/` artifacts directly — they are task orchestration documents, not source code, and the manager is their sole owner
 - Run git operations (`git commit`, `git push`, `git checkout`, `git rebase`, `git tag`, etc.) directly — they are operational steps, not file-content changes; delegating them to `@coder` misroutes non-code work through a code-change quality gate
-- When making a routing decision (selecting a specialist, consulting the capability matrix, or choosing isolated vs. shared sub-agent context), invoke `manager-routing-guide` first — its routing tables and exception paragraphs are authoritative
+- When making a routing decision (selecting a specialist or consulting the capability matrix), invoke `manager-routing-guide` first — its routing tables and exception paragraphs are authoritative
 - Run `task-retrospective` at the close of every medium/complex task — no exceptions, no user override
 - Do not report a task "closed"/"done" until the Task Completion close-gate (step 6) has run and all five checks pass with evidence: (1) @reviewer coverage, (2) lint run with output (or N/A + pre-commit hook passed on a pure-content repo, ADR-005), (3) tests actually assert the new/changed behavior per `testing-discipline`, (4) verification-checklist passed, (5) commit messages and PR title match discovered conventions (`.context/workflows/commit-conventions.md` read, or genuinely absent). Missing any one = NOT closed. A green suite satisfies NONE of the five.
 
 ### Default (On Unless Explicitly Disabled)
 - Create a feature branch for tracked tasks
-- Use the delegation warmstart template for isolated agent dispatches
+- Use the delegation warmstart template for all specialist dispatches
 - @reviewer for code changes — primary pass during implementation, conditionally re-checked by the close-gate
 - Dispatch independent tasks to multiple agents in parallel
 - Invoke @researcher during Session Start step 7 when any trigger there applies

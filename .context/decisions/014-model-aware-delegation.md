@@ -3,7 +3,7 @@
 **Date**: 2026-07-18
 **Status**: Accepted
 **Supersedes**: none
-**Superseded-by**: none
+**Superseded-by**: ADR-015 (inline-agent carve-out — the remainder stands)
 
 ## Context
 

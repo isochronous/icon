@@ -42,4 +42,5 @@ What did we reject and why?
 | [011](011-datascan-production-instance.md) | This repo IS DataScan's production plugin instance | Superseded (ICON-0080) | 2026-06-12 |
 | [012](012-context-knowledge-graph.md) | Context knowledge graph — on-demand script, edge seams, fail-closed gate | Accepted | 2026-07-17 |
 | [013](013-session-lifecycle-cold-resume.md) | Session lifecycle — phase-per-session cold resume via hardened plan.md | Accepted | 2026-07-17 |
-| [014](014-model-aware-delegation.md) | Model-aware delegation — required per-delegation tier | Accepted | 2026-07-18 |
+| [014](014-model-aware-delegation.md) | Model-aware delegation — required per-delegation tier | Accepted (inline carve-out superseded by ADR-015) | 2026-07-18 |
+| [015](015-all-specialists-isolated.md) | Sub-agent isolation — all specialists dispatched task→report | Accepted | 2026-07-18 |
