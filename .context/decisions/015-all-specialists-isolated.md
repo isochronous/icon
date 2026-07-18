@@ -29,9 +29,12 @@ rather than relying on shared session memory. The warmstart template gains one
 template didn't already carry (standards→Applicable Rules, domains→Domain already
 existed) — carrying `.context/architecture/` (or ADR/domain) excerpts plus session
 design decisions not yet on disk (the ICON-0082/ADR-013 cold-resume guarantee).
-@planner's live clarification loop is replaced by an Open Questions & Assumptions
-report section: it proceeds on stated assumptions and the manager resolves blocking
-questions and re-dispatches. With no inline agents, every delegation now names a
+@planner's old inline manager-dialogue loop (clarify with the manager mid-run) is
+replaced by an Open Questions & Assumptions report section: it proceeds on stated
+assumptions and the manager resolves manager-facing questions and re-dispatches.
+Isolation does **not** remove `ask_user` — an isolated @planner/@architect retains
+live user clarification for blocking, user-facing ambiguity; the report section is a
+complement for assumptions made and manager-facing questions, not a replacement. With no inline agents, every delegation now names a
 model tier under ADR-014's mechanism — resolving ADR-014's inline carve-out.
 Per-role defaults: @architect → complex (Opus, design is Opus-worthy), @planner →
 default (Sonnet, upgrade→complex for large/ambiguous breakdowns). Plugin-internal
@@ -48,15 +51,18 @@ every other isolated tier), ADR-008-lean (one conditional always-loaded field).
 - The isolation model finally has an ADR of record.
 
 **Negative:**
-- @planner loses live clarification; a blocking ambiguity costs a dispatch
-  round-trip instead of a live turn. Mitigated by warmstart front-loading and
-  assumptions-first planning (most ambiguities resolve in one pass).
+- @planner loses the inline manager-dialogue loop; a scope/orchestration ambiguity
+  it can't resolve costs a dispatch round-trip instead of a live manager turn.
+  Mitigated by warmstart front-loading and assumptions-first planning (most
+  ambiguities resolve in one pass), and by `ask_user` remaining available for
+  blocking user-facing clarifications.
 - Cold @architect/@planner depend on the manager populating the warmstart well;
   an under-filled `### Architecture`/`Prior work` degrades output. Mitigated by
   the cold-start-tolerant self-read and the ADR-013 cold-resume discipline.
-- A residual tension: the shared common-constraints `ask_user` line vs. report-
-  borne open questions — resolved by documented per-agent precedence, not a
-  cross-cutting shared-block edit.
+- The shared common-constraints `ask_user` line and the report-borne open questions
+  are complementary, not in tension: isolation retains `ask_user` (no override) for
+  blocking user-facing clarifications, while the report open questions document
+  assumptions made and surface manager-facing scope/orchestration questions.
 
 ## Alternatives Considered
 
