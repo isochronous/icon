@@ -2,7 +2,7 @@
 
 ## Overview
 
-Verify the plugin's file/folder layout and frontmatter are well-formed. Findings from this phase are blockers for marketplace listing — a plugin that fails structural validation will not load cleanly in Claude Code.
+Verify the plugin's file/folder layout and frontmatter are well-formed. These findings block marketplace listing — a plugin that fails structural validation will not load cleanly in Claude Code.
 
 ## Checks
 
@@ -11,7 +11,7 @@ For each check, report a pass/fail line with a path if applicable.
 1. **`plugin.json` parses as valid JSON** — required.
 2. **`plugin.json` declares `$schema`** — recommended; ideally `https://json.schemastore.org/claude-code-plugin-manifest.json` for IDE validation.
 3. **`plugin.json` declares `name`, `version`, `description`** — required.
-4. **Standard directories exist** — `agents/`, `skills/`, `commands/`, `hooks/`, `shared/`. Not all are mandatory (a skill-only plugin may omit `agents/`), but report each as present/absent so the auditor can sanity-check.
+4. **Standard directories exist** — `agents/`, `skills/`, `commands/`, `hooks/`, `shared/`. Not all are mandatory (a skill-only plugin may omit `agents/`), but report each present/absent for a sanity-check.
 5. **Every `agents/*.agent.md` has valid YAML frontmatter** declaring at least `name` and `description`.
 6. **Every `skills/*/SKILL.md` has valid YAML frontmatter** declaring at least `name` and `description`.
 7. **`CHANGELOG.md` exists** and contains an `## [Unreleased]` block.
@@ -37,7 +37,7 @@ foreach ($k in 'name','version','description') {
 
 ### Frontmatter parse (Python, no yq dependency)
 
-`yq` is not always installed; use this Python snippet to parse the YAML block between the first pair of `---` markers in every agent and skill file.
+`yq` is not always installed; this Python snippet parses the YAML block between the first pair of `---` markers in every agent and skill file.
 
 ```bash
 python3 - <<'PY'

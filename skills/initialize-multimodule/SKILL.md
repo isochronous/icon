@@ -12,27 +12,25 @@ user-invocable: false
 
 # Initialize Multi-Module Directory
 
-Bootstrap agent-system context for every sub-project in a multi-module
-directory. A **multi-module directory** is not a monorepo — it has no
-formal manifest tying sub-projects together (`nx.json`, root `package.json`
-with `workspaces`, `.sln`). Each sub-project is independent and may have
-its own git history.
+Bootstrap agent-system context for every sub-project in a multi-module directory.
+A **multi-module directory** is not a monorepo — it has no formal manifest tying
+sub-projects together (`nx.json`, root `package.json` with `workspaces`, `.sln`).
+Each sub-project is independent and may have its own git history.
 
 Each sub-project runs in its own isolated session. Root-level context generation
 (overview.md, projects.md map, create-iconrc via `context-specialist-impl-root`,
 optional README) happens after all sub-projects complete.
 
 All work happens on a per-repo feature branch — nothing lands on an integration
-branch without a human reviewing and merging a pull request.
+branch without a human reviewing and merging a PR.
 
 ---
 
 ## initialize-multimodule: Step 0: Branch Guard
 
-Before touching any files, confirm the working tree is safe to operate on. A
-multi-module init touches many tracked files across sub-projects — running it
-on top of an in-progress task branch (or a dirty tree) can clobber unrelated
-work.
+Before touching files, confirm the working tree is safe. A multi-module init
+touches many tracked files across sub-projects — running it on an in-progress
+task branch (or dirty tree) can clobber unrelated work.
 
 ```bash
 # Both commands must be run from inside a git working tree. If git itself
@@ -41,18 +39,14 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 DIRTY_FILES="$(git status --porcelain)"
 ```
 
-If the directory is not a git repo at all, `git rev-parse` will fail loudly;
-let it — a multi-module bootstrap that cannot record commits has nothing to
-do.
+If the directory is not a git repo, `git rev-parse` fails loudly; let it — a
+multi-module bootstrap that cannot record commits has nothing to do.
 
-**Halt conditions** — stop immediately if any apply, unless `--force` was
-passed:
+**Halt conditions** — stop immediately if any apply, unless `--force` was passed:
 
-- `CURRENT_BRANCH` is not one of `main`, `master`, `dev`, or `develop` (i.e.
-  the user is on a task/feature branch that may already have unrelated work
-  in progress).
-- `DIRTY_FILES` is non-empty (uncommitted or untracked changes that init
-  could overwrite).
+- `CURRENT_BRANCH` is not one of `main`, `master`, `dev`, `develop` (user is on a
+  task/feature branch that may have unrelated work in progress).
+- `DIRTY_FILES` is non-empty (uncommitted or untracked changes init could overwrite).
 
 When halting, surface a clear message and do not proceed:
 
@@ -67,20 +61,19 @@ Options:
   3. Re-run with --force if you understand the risk and want to proceed anyway.
 ```
 
-**Flag handling:** Accept a `--force` argument. If `--force` is present, skip
-this guard entirely and proceed to Step 1. Otherwise, if either halt condition
-triggers, **stop this skill's execution** — do not proceed to structure
-confirmation or any subsequent step.
+**Flag handling:** Accept `--force`. If present, skip this guard and proceed to
+Step 1. Otherwise, if either halt condition triggers, **stop this skill's execution**
+— do not proceed to structure confirmation or any later step.
 
-> Note: this guard is independent of the structural pre-check in Step 1; the
-> two checks must both pass before any sub-project work begins.
+> Note: this guard is independent of the Step 1 structural pre-check; both must
+> pass before any sub-project work begins.
 
 ---
 
 ## initialize-multimodule: Step 1: Confirm Multi-Module Structure
 
-Verify this directory is genuinely multi-module and not a monorepo. If a
-monorepo manifest is found, stop and route to `initialize-monorepo`.
+Verify this directory is genuinely multi-module, not a monorepo. If a monorepo
+manifest is found, stop and route to `initialize-monorepo`.
 
 ```bash
 ROOT_DIR="$(pwd)"
@@ -102,11 +95,10 @@ If none of the above triggers, proceed.
 
 ## initialize-multimodule: Step 2: Discover Sub-Projects
 
-Scan the multi-module root recursively (up to **5 levels deep**) for
-directories that contain a project manifest or agent-system entry point
-(`.claude/claude.md` canonical; `.github/copilot-instructions.md` legacy).
-Skip `node_modules`, dot-directories (e.g. `.git`), `vendor`, `dist`,
-and `build` directories.
+Scan the multi-module root recursively (up to **5 levels deep**) for directories
+containing a project manifest or agent-system entry point (`.claude/claude.md`
+canonical; `.github/copilot-instructions.md` legacy). Skip `node_modules`,
+dot-directories (e.g. `.git`), `vendor`, `dist`, `build`.
 
 **Manifest indicators (any one is sufficient):** `package.json`, `pom.xml`,
 `*.csproj`, `go.mod`, `Cargo.toml`, `requirements.txt`, `pyproject.toml`,
@@ -141,22 +133,19 @@ Produce a flat, deduplicated list before proceeding to Step 3.
 
 ## initialize-multimodule: Step 3: Classify Each Sub-Project
 
-For each sub-project in `SUB_PROJECTS`, determine whether it needs
-initialization or upgrade:
+For each sub-project in `SUB_PROJECTS`, determine whether it needs initialization
+or upgrade:
 
 - Apply the **Entry-Point Detection Primitive** (canonical definition:
   `skills/context-specialist-detect-tree-position/SKILL.md` § "Entry-Point
-  Detection Primitive (callable)"). Use the **detection form** with
-  `$dir=$proj`. Read that section to obtain the exact conditional, then run
-  it against each sub-project.
-- If the primitive's detection-form check passes for the sub-project
-  (entry-point file present AND `.context/` directory present): the action
-  is `upgrade-repo`.
-- Otherwise: the action is `initialize-repo`.
+  Detection Primitive (callable)"). Use the **detection form** with `$dir=$proj`.
+  Read that section for the exact conditional, then run it against each sub-project.
+- If the detection-form check passes (entry-point file present AND `.context/`
+  present): action is `upgrade-repo`.
+- Otherwise: action is `initialize-repo`.
 
 `.claude/claude.md` is the canonical agent entry point;
-`.github/copilot-instructions.md` is the legacy fallback — both are accepted
-by the primitive.
+`.github/copilot-instructions.md` is the legacy fallback — both accepted by the primitive.
 
 Build a decision table before dispatching:
 
@@ -169,9 +158,9 @@ Build a decision table before dispatching:
 
 ## initialize-multimodule: Step 4: Branch creation per sub-repo
 
-Sub-projects in a multi-module directory may belong to separate git repositories
-(or to none at all). Branch management is **per unique git root** — one branch
-per repo, not one branch for the multi-module container.
+Sub-projects may belong to separate git repositories (or none). Branch management
+is **per unique git root** — one branch per repo, not one for the multi-module
+container.
 
 For each sub-project, resolve its git root:
 
@@ -208,27 +197,26 @@ unique git root:
    fi
    ```
 
-Record a per-repo map: `GIT_ROOT → INTEGRATION_BRANCH`. This map is needed when
-composing sub-session prompts (Step 5) and when pushing branches (Step 9).
+Record a per-repo map: `GIT_ROOT → INTEGRATION_BRANCH`. Needed when composing
+sub-session prompts (Step 5) and pushing branches (Step 9).
 
 If a sub-project is not inside any git repo, note it but do not fail — context
-files can still be created; they just cannot be committed. Such sub-projects
-are excluded from the push + PR step.
+files can still be created, just not committed. Such sub-projects are excluded
+from the push + PR step.
 
-**Flag handling:** `--force` (consistent with Step 0) skips the branch guard but
-does not skip this step — branch creation is required for any sub-project that
-does live in a git repo.
+**Flag handling:** `--force` (per Step 0) skips the branch guard but not this step
+— branch creation is required for any sub-project in a git repo.
 
 ---
 
 ## initialize-multimodule: Step 5: Run Isolated Sessions (Max 3 Parallel)
 
-Dispatch a background `ICON:context-specialist` agent per sub-project using the task tool. Never
-exceed **3 concurrent agents** — `initialize-repo` is context-intensive and
+Dispatch a background `ICON:context-specialist` agent per sub-project via the task tool.
+Never exceed **3 concurrent agents** — `initialize-repo` is context-intensive and
 quality degrades under load.
 
-After each completion notification, verify (Step 6) and dispatch the next
-pending sub-project if any remain.
+After each completion notification, verify (Step 6) and dispatch the next pending
+sub-project, if any remain.
 
 Each sub-session must receive:
 
@@ -237,10 +225,9 @@ Each sub-session must receive:
 - The branch name: `chore/initialize-agent-context`
 - The integration branch for that git repo
 
-> **Note on path separation**: In a multi-module directory, a sub-project may be
-> a sub-directory of its git repo, or the repo root itself. Always pass both
-> paths — sub-sessions run `git log` from `GIT_ROOT` for history and commit
-> from `GIT_ROOT` but scope file changes to `PROJECT_PATH`.
+> **Note on path separation**: a sub-project may be a sub-directory of its git
+> repo, or the repo root itself. Always pass both paths — sub-sessions run `git log`
+> and commit from `GIT_ROOT` but scope file changes to `PROJECT_PATH`.
 
 ### Prompt — `initialize-repo` sub-projects
 
@@ -332,8 +319,8 @@ Do not proceed to Step 7 until all sub-projects pass.
 ## initialize-multimodule: Step 7: Root-Level Context Discovery
 
 After all sub-projects pass verification, generate cross-project context at the
-**multi-module root**. Dispatch one background `ICON:context-specialist` agent
-at the root with the prompt below.
+**multi-module root**. Dispatch one background `ICON:context-specialist` agent at the
+root with the prompt below.
 
 ### Root session prompt
 
@@ -380,8 +367,8 @@ If no README exists, **ask the user before creating one**:
 > `README.md` listing the sub-projects and their descriptions?
 > (yes / no)
 
-If confirmed, create a minimal `README.md`. Populate the description
-column from each sub-project's `.context/overview.md` (first sentence):
+If confirmed, create a minimal `README.md`. Populate the description column from
+each sub-project's `.context/overview.md` (first sentence):
 
 ```markdown
 # <directory-name>
@@ -409,12 +396,11 @@ done
 ```
 
 For each git repo, open a pull request targeting that repo's integration branch
-(the value recorded in the Step 4 `GIT_ROOT → INTEGRATION_BRANCH` map). Use
-whichever PR creation method is available — `gh` or the GitHub web UI — surface
-the URL once the PR exists.
+(from the Step 4 `GIT_ROOT → INTEGRATION_BRANCH` map). Use whichever PR method is
+available — `gh` or the GitHub web UI — and surface the URL once the PR exists.
 
-Follow the PR description format from the `pr-discipline` skill (Summary, Why,
-How to Test, Risks). For example:
+Follow the PR description format from `pr-discipline` (Summary, Why, How to Test,
+Risks). For example:
 
 ```markdown
 ## Summary
@@ -435,8 +421,8 @@ AI-inferred context may contain inaccuracies. Each file should be reviewed by a
 developer who knows the codebase before merging.
 ```
 
-Sub-projects that are not inside any git repo are excluded from this step —
-their context files exist on disk but cannot be pushed.
+Sub-projects not inside any git repo are excluded from this step — their context
+files exist on disk but cannot be pushed.
 
 **Do not merge these PRs yourself.** Surface all PR URLs to the user and stop.
 
@@ -446,7 +432,7 @@ their context files exist on disk but cannot be pushed.
 
 Report outcome to the user:
 
-- Sub-projects that succeeded and which action was taken (`initialize-repo` / `upgrade-repo`)
+- Sub-projects that succeeded and the action taken (`initialize-repo` / `upgrade-repo`)
 - Any sub-projects that failed and the specific error
 - Confirmation that root-level context was generated by the `context-specialist-impl-root` dispatch
 - Whether a root README was created or skipped
@@ -475,11 +461,11 @@ Do not silently swallow failures.
 | Mistake | Fix |
 |---------|-----|
 | Running on a monorepo | Step 1 structure check catches this — route to `initialize-monorepo` |
-| Running on top of in-progress work | Step 0 branch guard halts on a task branch or dirty tree; use `--force` only if you are sure |
-| Recursing too shallow and missing nested projects | Default scans up to 5 levels deep; adjust `-maxdepth` if your structure goes deeper |
+| Running on top of in-progress work | Step 0 branch guard halts on a task branch or dirty tree; use `--force` only if sure |
+| Recursing too shallow, missing nested projects | Default scans 5 levels deep; adjust `-maxdepth` if deeper |
 | Exceeding 3 parallel agents | Hard cap at 3 — dispatch the next only after one completes |
-| Creating root README without user confirmation | Always ask first (Step 8) |
-| Skipping Step 6 before Step 7 | The root context dispatch reads sub-project `.context/overview.md` — missing ones create gaps |
-| Starting root context before all sub-project sessions finish | Do not dispatch the root agent until all sub-project agents have completed and passed Step 6 verification |
-| Creating one branch across all sub-repos | Branch management is per git root (Step 4) — a multi-module directory may span multiple repos |
-| Committing to sub-project integration branches without a PR | Step 9 push + PR is mandatory; the manager-only PR-merge instruction applies |
+| Creating root README without confirmation | Always ask first (Step 8) |
+| Skipping Step 6 before Step 7 | The root dispatch reads sub-project `.context/overview.md` — missing ones create gaps |
+| Starting root context before all sub-project sessions finish | Do not dispatch the root agent until all sub-project agents completed and passed Step 6 |
+| Creating one branch across all sub-repos | Branch management is per git root (Step 4) — a multi-module dir may span multiple repos |
+| Committing to sub-project integration branches without a PR | Step 9 push + PR is mandatory; the manager-only PR-merge rule applies |

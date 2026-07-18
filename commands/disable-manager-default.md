@@ -3,9 +3,9 @@ description: >
   Write managerDefault: false to ~/.claude/icon-user-settings.json to opt out of the manager-role default (Claude Code only)
 ---
 
-Disable the manager-default behavior for the ICON plugin. New sessions will no longer auto-adopt the manager role; `/ICON:manager` still works as a manual switch.
+Disable the manager-default behavior. New sessions will no longer auto-adopt the manager role; `/ICON:manager` still works as a manual switch.
 
-The SessionStart hook lives in the plugin's own `hooks/hooks.json` — disabling it is a matter of writing `managerDefault: false` to `~/.claude/icon-user-settings.json`. This command also migrates any legacy hook entry from earlier plugin versions out of `~/.claude/settings.json` (which used to host the wiring directly).
+The SessionStart hook lives in the plugin's own `hooks/hooks.json`; disabling it just writes `managerDefault: false` to `~/.claude/icon-user-settings.json`. This command also migrates any legacy hook entry from earlier plugin versions out of `~/.claude/settings.json` (which used to host the wiring directly).
 
 ## Steps
 

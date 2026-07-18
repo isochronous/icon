@@ -9,7 +9,7 @@ user-invocable: false
 
 ## Overview
 
-**You can't safely change code you don't understand, and you can't understand code without tests.** Characterization tests capture what the code *actually does* — not what it *should* do — so you can change it without unknowingly breaking it. This technique comes from Michael Feathers' *Working Effectively with Legacy Code*.
+**You can't safely change code you don't understand, and you can't understand code without tests.** Characterization tests capture what the code *actually does* — not what it *should* do — so you can change it without unknowingly breaking it. From Michael Feathers' *Working Effectively with Legacy Code*.
 
 ## When to Use
 
@@ -30,7 +30,7 @@ user-invocable: false
 
 ### characterization-testing: Step 1: Run the Code and Capture Its Outputs
 
-Don't read the source to understand it yet. Call it with realistic inputs and observe what comes out.
+Don't read the source yet. Call it with realistic inputs and observe what comes out.
 
 ```csharp
 // Write a throwaway probe test — you'll turn this into a real test
@@ -47,7 +47,7 @@ Capture: return values, side effects (DB writes, events published), exceptions t
 
 ### characterization-testing: Step 2: Lock the Actual Behavior as Tests
 
-Replace the probe with real assertions matching what you observed. You are NOT asserting what the code *should* do — you are locking what it *does* do.
+Replace the probe with real assertions matching what you observed. You are NOT asserting what the code *should* do — you are locking what it *does*.
 
 ```csharp
 [Fact]
@@ -58,29 +58,29 @@ public void ComputeFee_StandardTier_3Months_Returns147()
 }
 ```
 
-Write enough cases to achieve both line and branch coverage of the code you're about to change:
+Write enough cases for both line and branch coverage of the code you're about to change:
 - The specific input you're about to change
 - Boundary values adjacent to your change
-- Any paths your modification will touch — every branch (if/else, switch, early return) must be exercised by at least one test
+- Any paths your modification touches — every branch (if/else, switch, early return) exercised by at least one test
 
 ### characterization-testing: Step 3: Confirm the Tests Pass Green (Without Any Code Change)
 
-Run the suite. All characterization tests must pass before you touch a single line of production code.
+Run the suite. All characterization tests must pass before you touch a line of production code.
 
 **If a test fails before you change anything:** The test is wrong — fix the assertion to match reality, not your expectation.
 
 ### characterization-testing: Step 4: Make the Change
 
-Now apply the bug fix or refactor. The characterization tests act as a regression net — if one breaks, you've changed existing behavior (intentionally or not).
+Now apply the bug fix or refactor. The characterization tests are a regression net — if one breaks, you've changed existing behavior (intentionally or not).
 
 - **Intentional behavior change**: Update the test assertion to match the new intended behavior, with a comment noting it was deliberate.
 - **Unintentional behavior change**: Revert your code change, not the test.
 
 ### characterization-testing: Step 5: Add Behavior Tests for the New/Fixed Code
 
-After the characterization net is in place, add normal RED-GREEN tests for the new behavior you're introducing. These are the forward-looking tests. The characterization tests are your safety net underneath.
+With the characterization net in place, add normal RED-GREEN tests for the new behavior you're introducing — the forward-looking tests. The characterization tests are the safety net underneath.
 
-See `testing-discipline` for the RED-GREEN-REFACTOR process to apply in this step.
+See `testing-discipline` for the RED-GREEN-REFACTOR process to apply here.
 
 ---
 

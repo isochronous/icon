@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the Continuous Integration and Continuous Deployment pipeline for this project.
+Describes the Continuous Integration and Continuous Deployment (CI/CD) pipeline for this project.
 
 ## Pipeline Stages
 

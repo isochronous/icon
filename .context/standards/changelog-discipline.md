@@ -16,7 +16,7 @@ Each bullet under `### Added` / `### Changed` / `### Fixed` / `### Removed` is a
 
 ✗ `Fixed silent skill-loader parse failures. The descriptions in github-issue, post-meeting, and rfc contained ': ' (colon + space) which the YAML parser treated as a nested mapping. The conversion is content-lossless and idempotent. (MKT-0078)` ← four sentences; sentences 2-4 are implementation/QA detail that belong in the retrospective
 
-**Sweep PRs: one bullet per distinct fix-class.** When a single task closes multiple unrelated findings, write one `### Fixed` (or `### Changed`, etc.) bullet per distinct fix-class — not one semicolon-chained run-on summarizing the whole task. Same fix-class across multiple files is fine in one bullet; different fix-classes get different bullets. The reader scans for "what changed and does this affect me," which a per-fix-class slicing serves and a per-task summary does not.
+**Sweep PRs: one bullet per distinct fix-class.** When a single task closes multiple unrelated findings, write one `### Fixed` (or `### Changed`, etc.) bullet per distinct fix-class — not one semicolon-chained run-on summarizing the whole task. Same fix-class across multiple files is fine in one bullet; different fix-classes get different bullets. The reader scans for "what changed and does this affect me," which per-fix-class slicing serves and a per-task summary does not.
 
 ✓ Two `### Fixed` bullets, one for "outdated cap references in two SKILL.md files" and one for "wrong verify-step filename in a third file" — same task, distinct fix-classes
 

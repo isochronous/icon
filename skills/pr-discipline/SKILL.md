@@ -9,7 +9,7 @@ user-invocable: false
 
 ## Overview
 
-**A PR is a contract with the reviewer.** Before you open one, the diff should be self-reviewed, the build green, and the description complete. After you open one, every comment gets addressed and every fix lands as a new commit — not a force-push that invalidates the review trail.
+**A PR is a contract with the reviewer.** Before opening one, the diff should be self-reviewed, the build green, the description complete. After opening, every comment gets addressed and every fix lands as a new commit — not a force-push that invalidates the review trail.
 
 ## When to Use
 
@@ -27,19 +27,19 @@ user-invocable: false
 
 Before opening, complete this checklist:
 
-- **Reconcile `plan.md` (if one exists for this branch's task)**: Confirm it has been reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`. Stale plans mislead reviewers and corrupt retro extraction. Surface this as a self-review question on the PR template ("plan.md reconciled? y/n") so the reviewer can spot-check.
-- **Self-review the diff**: Read every changed file as if you were the reviewer. Fix anything you'd flag.
-- **Verify the branch builds and tests pass**: Include the evidence in the PR description.
+- **Reconcile `plan.md` (if one exists for this branch's task)**: Confirm it was reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`. Stale plans mislead reviewers and corrupt retro extraction. Surface this as a self-review question on the PR template ("plan.md reconciled? y/n") for spot-checking.
+- **Self-review the diff**: Read every changed file as the reviewer would. Fix anything you'd flag.
+- **Verify the branch builds and tests pass**: Include the evidence in the description.
 - **Check for unintended changes**: Stray formatting, debug code, unrelated refactors — remove them or split into separate PRs.
 
 ## Writing the Description
 
-- **Title**: Use the same format as commit messages — read `.context/workflows/commit-conventions.md` and apply **exactly** that format (issue prefix, case, separator). If that file is absent, fall back to `Issue #123: Brief description`.
-- **Link to story/task**: Reference the GitHub issue (`#123`), or `.context/tasks/` artifact.
-- **What changed and why**: Summarize the approach, not the diff. Reviewers can read the diff — explain what it doesn't show (design decisions, rejected alternatives, context).
-- **How to test**: Steps a reviewer can follow to verify the change works. Include commands, URLs, or test names.
+- **Title**: Same format as commit messages — read `.context/workflows/commit-conventions.md` and apply **exactly** that format (issue prefix, case, separator). If absent, fall back to `Issue #123: Brief description`.
+- **Link to story/task**: Reference the GitHub issue (`#123`) or `.context/tasks/` artifact.
+- **What changed and why**: Summarize the approach, not the diff. Explain what the diff doesn't show (design decisions, rejected alternatives, context).
+- **How to test**: Steps a reviewer can follow. Include commands, URLs, or test names.
 - **Risks and trade-offs**: Call out anything the reviewer should scrutinize closely.
-- **Screenshots or recordings**: For UI changes, before/after screenshots are mandatory, not optional.
+- **Screenshots or recordings**: For UI changes, before/after screenshots are mandatory.
 
 ```markdown
 ## Summary
@@ -57,7 +57,7 @@ retried on timeout, causing duplicate transactions.
 - Redis dependency added for idempotency cache — requires REDIS_URL in env
 ```
 
-Closing the linked issue: include a closing keyword (`Closes #123`, `Fixes #123`) in the description so the issue auto-closes on merge.
+Closing the linked issue: include a closing keyword (`Closes #123`, `Fixes #123`) so the issue auto-closes on merge.
 
 ## PR Size
 
@@ -67,35 +67,35 @@ Closing the linked issue: include a closing keyword (`Closes #123`, `Fixes #123`
 ## Handling Review Feedback
 
 - Address every comment — resolve, reply, or discuss. Don't leave comments hanging.
-- Push fixes as new commits (not force-push or amend) so reviewers can see what changed since their review.
+- Push fixes as new commits (not force-push or amend) so reviewers see what changed since their review.
 - Before re-requesting review, check whether any addressed feedback changed documented behavior. If any feedback-driven change makes an existing `.context/` statement false, incomplete, or missing — invoke `context-maintenance`. Resolve the mismatch in the same feedback cycle, not after approval.
 - Re-request review after addressing feedback.
 
 ## Merge Conflicts
 
-- Resolve conflicts by rebasing or merging from the target branch — don't blindly accept "ours" or "theirs".
+- Resolve by rebasing or merging from the target branch — don't blindly accept "ours" or "theirs".
 - After resolving, re-run tests to confirm the resolution didn't break anything.
 
 ## Rationalization Prevention
 
 | Excuse | Reality |
 |--------|---------|
-| "I'll add the description after I open it" | Reviewers get notified immediately; an empty description sets the wrong expectation. Write it before opening. |
+| "I'll add the description after I open it" | Reviewers get notified immediately; an empty description sets the wrong expectation. Write it first. |
 | "The diff is self-explanatory" | The diff shows what changed, not why. Reviewers need the why. |
 | "I'll let CI confirm tests pass" | Open with green CI evidence, not faith. Failures during review burn reviewer cycles. |
 | "Force-push after addressing feedback keeps history clean" | Force-push erases the review trail. New commits are how reviewers track what changed since their last pass. |
 | "I'll just accept ours / theirs in the conflict" | Blind resolution silently drops the other side. Read both, choose deliberately, re-test. |
 | "20+ files but all related — one PR is fine" | Reviewers fatigue. Split when you can; if you can't, walk the reviewer through the order. |
 | "I addressed the comment in code; no reply needed" | Silence reads as ignored. Resolve or reply — never both-ignore. |
-| "It was an internal refactor — behavior didn't change" | If `.context/` describes that constraint, invariant, or architecture decision, the docs can be wrong without any user-facing change. Invoke `context-maintenance`. |
-| "I'll update `.context/` after the reviewer approves" | Re-requesting review against stale docs preserves the mismatch. Update context in the same feedback cycle before re-requesting review. |
+| "It was an internal refactor — behavior didn't change" | If `.context/` describes that constraint, invariant, or decision, the docs can be wrong without any user-facing change. Invoke `context-maintenance`. |
+| "I'll update `.context/` after the reviewer approves" | Re-requesting review against stale docs preserves the mismatch. Update context in the same feedback cycle before re-requesting. |
 
 ## Red Flags — STOP and Re-Open Properly
 
 If you catch yourself doing any of these, the PR is not ready or the response is not done:
 
 - A `plan.md` exists for this branch's task and you have not confirmed it was reconciled against the final state per `.context/workflows/task-plan/phase-completion.md § Reconcile plan.md`.
-- About to open a PR without having read every changed file as if you were the reviewer.
+- About to open a PR without having read every changed file as the reviewer would.
 - About to publish the PR before writing the description.
 - About to force-push or amend after a reviewer has already commented.
 - About to accept "ours" or "theirs" in a merge conflict without reading both sides.

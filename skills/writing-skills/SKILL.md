@@ -11,23 +11,23 @@ user-invocable: true
 
 **Writing skills IS Test-Driven Development applied to process documentation.**
 
-You write a test (a pressure scenario run by a subagent), watch it fail (baseline behavior without the skill), write the skill (documentation that addresses the specific failures), watch the test pass (subagent now complies), and refactor (close loopholes the subagent finds).
+Write a test (a pressure scenario run by a subagent), watch it fail (baseline without the skill), write the skill (addressing the specific failures), watch it pass (subagent complies), refactor (close loopholes the subagent finds).
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.
 
-**Required background:** This skill assumes the RED-GREEN-REFACTOR cycle from `testing-discipline`. Read that first if you haven't internalised TDD — the same discipline applies to documentation.
+**Required background:** assumes the RED-GREEN-REFACTOR cycle from `testing-discipline`. Read that first if you haven't internalised TDD — the same discipline applies here.
 
-**Companion documents in this skill:**
-- `anthropic-best-practices.md` — Anthropic's official skill-authoring guide. Covers progressive disclosure, conciseness, runtime architecture, and a complete checklist. Read before authoring your first skill.
+**Companion documents:**
+- `anthropic-best-practices.md` — Anthropic's official skill-authoring guide: progressive disclosure, conciseness, runtime architecture, a complete checklist. Read before authoring your first skill.
 - `persuasion-principles.md` — Cialdini-based research on why authority/commitment/scarcity language works on LLMs. Read before hardening a discipline skill.
-- `testing-skills-with-subagents.md` — Pressure-scenario testing methodology, rationalisation tables, meta-testing. Read before deploying any discipline skill.
-- `graphviz-conventions.dot` — Style guide for `dot` flowcharts inside skills.
-- `render-graphs.js` — Utility that renders the `dot` blocks in a SKILL.md to SVG.
-- `examples/CLAUDE_MD_TESTING.md` — Worked example of a test campaign.
+- `testing-skills-with-subagents.md` — pressure-scenario testing, rationalisation tables, meta-testing. Read before deploying any discipline skill.
+- `graphviz-conventions.dot` — style guide for `dot` flowcharts in skills.
+- `render-graphs.js` — renders a SKILL.md's `dot` blocks to SVG.
+- `examples/CLAUDE_MD_TESTING.md` — worked example of a test campaign.
 
 ## What is a Skill?
 
-A **skill** is a reference guide for a proven technique, pattern, or tool. Skills help future agent instances find and apply effective approaches.
+A **skill** is a reference guide for a proven technique, pattern, or tool — helping future agents find and apply effective approaches.
 
 **Skills are:** reusable techniques, patterns, tools, reference guides.
 
@@ -41,14 +41,12 @@ A **skill** is a reference guide for a proven technique, pattern, or tool. Skill
 | Production code | Skill document (`SKILL.md`) |
 | Test fails (RED) | Subagent violates the rule without the skill |
 | Test passes (GREEN) | Subagent complies with the skill present |
-| Refactor | Close new loopholes while staying compliant |
-| Write test first | Run the baseline scenario BEFORE writing the skill |
-| Watch it fail | Document the exact rationalisations the subagent uses |
-| Minimal code | Write the skill addressing only those specific violations |
+| Refactor | Close loopholes while staying compliant |
+| Write test first | Run baseline BEFORE writing the skill |
+| Watch it fail | Document the subagent's exact rationalisations |
+| Minimal code | Address only those specific violations |
 | Watch it pass | Verify the subagent now complies |
 | Refactor cycle | Find new rationalisations → plug → re-verify |
-
-The entire skill creation process follows RED-GREEN-REFACTOR.
 
 ## When to Create a Skill
 
@@ -62,42 +60,42 @@ The entire skill creation process follows RED-GREEN-REFACTOR.
 - One-off solutions to a specific problem.
 - Standard practices well-documented elsewhere.
 - Project-specific conventions — put those in `.context/standards/` instead.
-- Mechanical constraints enforceable with linting or validation — automate those, save skills for judgment calls.
+- Mechanical constraints enforceable with linting or validation — automate those; save skills for judgment calls.
 
 ## Skill Types
 
 | Type | Description | Examples |
 |------|-------------|----------|
 | **Technique** | Concrete method with steps | `systematic-debugging`, `initialize-repo` |
-| **Discipline** | Rules that prevent known failure modes | `testing-discipline`, `verification-checklist` |
+| **Discipline** | Rules preventing known failure modes | `testing-discipline`, `verification-checklist` |
 | **Pattern** | Way of thinking about problems | `design-first`, `migration-planning` |
-| **Reference** | API docs, syntax guides, tool documentation | `commit-discipline`, `code-quality-rules` |
-| **Format** | Output templates with structure guidance | `github-issue`, `rfc` |
+| **Reference** | API docs, syntax guides, tool docs | `commit-discipline`, `code-quality-rules` |
+| **Format** | Output templates with structure | `github-issue`, `rfc` |
 
 Discipline skills need the most hardening — see *Bulletproofing Discipline Skills* below.
 
 ## Where Skills Live
 
-The destination determines who loads the skill — choose it before building the folder structure.
+The destination determines who loads the skill — choose before building the folder.
 
 | Scope | Path | Distribution |
 |-------|------|--------------|
 | **Plugin skill** | `<plugin-repo>/skills/<skill-name>/` — for ICON authoring, `skills/<skill-name>/` at the plugin repo root; installed consumers see it at `plugins/icon/skills/<skill-name>/` | Loaded in every repo that installs the plugin |
-| **Repo-level skill** | `<repo-root>/.claude/skills/<skill-name>/` | Loaded only when working in that specific repo |
+| **Repo-level skill** | `<repo-root>/.claude/skills/<skill-name>/` | Loaded only when working in that repo |
 | **User-level skill** | `~/.claude/skills/<skill-name>/` | Loaded in every Claude Code session for that user, across all repos |
 
 **Decision rule:**
-- **Plugin skill** — useful to any consumer of the plugin; ships automatically when the plugin is installed.
-- **Repo-level skill** — agent-facing technique that applies only within one repo (maintainer tooling, release automation, repo-specific operational procedures). For repo-specific *conventions or rules* (style, naming, branching), use `.context/standards/` instead — see "Don't create for" above.
-- **User-level skill** — personal preference or workflow that has no relationship to any specific repo.
+- **Plugin skill** — useful to any consumer of the plugin; ships automatically on install.
+- **Repo-level skill** — agent-facing technique that applies only within one repo (maintainer tooling, release automation, repo procedures). For repo-specific *conventions or rules* (style, naming, branching), use `.context/standards/` instead — see "Don't create for" above.
+- **User-level skill** — personal preference or workflow unrelated to any repo.
 
-**Worked example from this repo:**
+**Worked examples:**
 
-`release-plugin` lives at `.claude/skills/release-plugin/` — it automates publishing the ICON plugin itself. No consumer of ICON needs it; only ICON maintainers do. Repo-level is correct.
+`release-plugin` lives at `.claude/skills/release-plugin/` — it automates publishing ICON itself. Only maintainers need it. Repo-level is correct.
 
-`writing-skills` is authored at `skills/writing-skills/` in this plugin source repo and ships to consumers as `plugins/icon/skills/writing-skills/` after install. Plugin-level is correct.
+`writing-skills` is authored at `skills/writing-skills/` in this source repo and ships to consumers as `plugins/icon/skills/writing-skills/`. Plugin-level is correct.
 
-A personal skill like `my-draft-style` that controls only your own writing preferences belongs at `~/.claude/skills/my-draft-style/` — no repo should load it automatically.
+A personal skill like `my-draft-style` — only your own writing preferences — belongs at `~/.claude/skills/my-draft-style/`; no repo should load it automatically.
 
 When intent is unclear, start narrower (user → repo → plugin) and promote on demand.
 
@@ -121,7 +119,7 @@ defense-in-depth/
   SKILL.md
 ```
 
-Use when all content fits inline.
+All content fits inline.
 
 ### Skill with Reusable Tool
 
@@ -131,7 +129,7 @@ condition-based-waiting/
   example.ts
 ```
 
-Use when the tool is reusable code, not just narrative.
+The tool is reusable code, not just narrative.
 
 ### Skill with Heavy Reference
 
@@ -143,7 +141,7 @@ pptx/
   scripts/
 ```
 
-Use when reference material is too large for inline.
+Reference material too large for inline.
 
 ## SKILL.md Structure
 
@@ -159,14 +157,14 @@ user-invocable: false   # set to true if invokable via /<skill-name>
 ```
 
 - **`name`** — Letters, numbers, hyphens only. Verb-first gerunds work well (`writing-skills`, `executing-plans`). 64-character maximum.
-- **`description`** — Third person. Starts with "Use when…". Describes ONLY triggering conditions — never the workflow. 1024-character maximum.
+- **`description`** — Third person. Starts with "Use when…". ONLY triggering conditions — never the workflow. 1024-character maximum.
 - **`user-invocable`** — ICON-specific. `true` for skills exposed as `/<skill-name>` slash commands.
 
-**Always use the YAML folded block scalar form (`description: >`) — never a plain scalar.** Plain scalars break on `: ` (colon + space) and `[…]` characters that frequently appear in real descriptions ("Note: …", inline tag examples like `[NgWi]`). The block form treats those characters as literal and prevents silent skill-loader parse failures.
+**Always use the YAML folded block scalar form (`description: >`) — never a plain scalar.** Plain scalars break on `: ` (colon + space) and `[…]` common in real descriptions ("Note: …", inline tags like `[NgWi]`). The block form treats those as literal and prevents silent skill-loader parse failures.
 
 ### Why description must NOT summarise workflow
 
-Testing has shown that when a description summarises a skill's workflow, agents follow the description instead of reading the full skill. A description saying "code review between tasks" caused an agent to do ONE review even though the flowchart in the skill body clearly showed TWO reviews. Removing the workflow summary fixed it.
+When a description summarises a skill's workflow, agents follow the description instead of reading the full skill. A description saying "code review between tasks" caused an agent to do ONE review even though the skill body's flowchart showed TWO. Removing the workflow summary fixed it.
 
 ```yaml
 # BAD: summarises workflow — agent may follow this instead of reading the skill
@@ -207,7 +205,7 @@ What goes wrong and how to fix it.
 Table of excuses agents make and why they're wrong.
 ```
 
-Not every skill needs every section. Scale to complexity — a simple technique skill might be 40 lines; a discipline skill might be 150. Keep SKILL.md under 500 lines; split into supporting files past that.
+Not every skill needs every section. Scale to complexity — a simple technique skill might be 40 lines, a discipline skill 150. Keep SKILL.md under 500 lines; split into supporting files beyond that.
 
 ### Step and Phase Heading Format
 
@@ -219,7 +217,7 @@ When a skill defines a numbered process, prefix every step or phase heading with
 ## Step 1: Do Something                   ← wrong — agent cannot tell which skill this belongs to
 ```
 
-When a skill has sub-processes (stages that contain steps), include both stage and step identifiers — this is the canonical path through the process:
+When a skill has sub-processes (stages containing steps), include both stage and step identifiers — the canonical path through the process:
 
 ```markdown
 ## skill-name: Stage 1: Prepare
@@ -232,20 +230,20 @@ When a skill has sub-processes (stages that contain steps), include both stage a
 ### skill-name: Step 1: Do X              ← wrong — ambiguous which stage this belongs to
 ```
 
-The full path (`skill-name: Stage N: Step N`) lets an agent reading a heading in isolation know which skill, stage, and step it is at — without scrolling back. This prevents agents from confusing skill steps with task-plan steps when both appear in the same context window.
+The full path (`skill-name: Stage N: Step N`) lets an agent reading a heading in isolation know which skill, stage, and step it is at, without scrolling back — preventing confusion between skill steps and task-plan steps in the same context.
 
 ### Editing an Existing Numbered Skill
 
-When you insert, remove, or reorder steps in an already-numbered skill, keep the skill internally consistent — the pre-commit hooks do not catch numbering or structure drift:
+When you insert, remove, or reorder steps in an already-numbered skill, keep it internally consistent — the pre-commit hooks do not catch numbering or structure drift:
 
-- **Renumber every cross-reference (ICON-0078).** After inserting a step and shifting the rest, `grep` every `Step N` mention — prose, tables, "proceed to Step N", end-of-step summaries — and update each. A dangling "see Step 8" that now means Step 9 is invisible to the hooks and only caught by review.
-- **Match the skill's own structure (ICON-0077).** Borrow a sibling skill's *content*, but follow THIS skill's existing heading/list format — don't add `##`-headed steps to a skill whose Process is a flat numbered list, even if a sibling uses `##`.
+- **Renumber every cross-reference (ICON-0078).** After inserting a step and shifting the rest, `grep` every `Step N` mention — prose, tables, "proceed to Step N", end-of-step summaries — and update each. A dangling "see Step 8" now meaning Step 9 is invisible to the hooks, caught only by review.
+- **Match the skill's own structure (ICON-0077).** Borrow a sibling skill's *content*, but follow THIS skill's existing heading/list format — don't add `##`-headed steps to a skill whose Process is a flat numbered list.
 
 ## Discoverability
 
-Future agents find your skill through the `using-skills` catalogue and description matching. Optimise for discovery.
+Future agents find your skill through the `using-skills` catalogue and description matching. Optimise for it.
 
-**1. Rich description** — Include symptoms, error patterns, and contexts that would trigger use.
+**1. Rich description** — Include symptoms, error patterns, and triggering contexts.
 
 **2. Keyword coverage** — Use words agents would search for:
 - Error messages: "Hook timed out", "ENOTEMPTY", "race condition"
@@ -259,17 +257,17 @@ Future agents find your skill through the `using-skills` catalogue and descripti
 - `context-maintenance` not `context-directory-updates`
 - Gerunds (`-ing`) work well for processes: `creating-skills`, `testing-skills`, `debugging-with-logs`.
 
-**4. Register the skill** — After creating a skill:
+**4. Register the skill** — after creating one:
 - Add it to the skills table in `README.md`.
-- If the skill participates in a multi-skill sequence, document the sequence in the consuming agent's workflow section (manager Workflow Orchestration, product-manager Workflow).
+- If it participates in a multi-skill sequence, document the sequence in the consuming agent's workflow section (manager Workflow Orchestration, product-manager Workflow).
 
 ## Token Efficiency
 
-Skills load into context on demand, but every word in a loaded skill costs tokens that compete with conversation history.
+Skills load on demand, but every word in a loaded skill costs tokens competing with conversation history.
 
 **Targets:**
-- Frequently-loaded skills: aim for < 200 words.
-- Standard skills: aim for < 500 words.
+- Frequently-loaded skills: < 200 words.
+- Standard skills: < 500 words.
 - Complex discipline skills: can go longer, but earn every line.
 
 **Techniques:**
@@ -294,7 +292,7 @@ Cross-reference instead of duplicating workflow details:
 Always use subagents (50–100x context savings). REQUIRED: see `using-skills` for workflow.
 ```
 
-Compress examples — show the pattern, not the novel. Eliminate redundancy.
+Compress examples — show the pattern, not the novel. Cut redundancy.
 
 **Verification:**
 
@@ -311,11 +309,11 @@ Use the skill name only, with explicit requirement markers:
 - ❌ `See skills/testing/test-driven-development` (path-coupled, brittle).
 - ❌ `@skills/testing/SKILL.md` (force-loads on read, burns context, only works in some agents).
 
-**Why no `@` links:** in some runtimes the `@` prefix force-loads a file the moment the surrounding text is read, consuming context before you need it. Plain references let agents fetch the file only when they decide they need to.
+**Why no `@` links:** in some runtimes the `@` prefix force-loads a file the moment surrounding text is read, consuming context before you need it. Plain references let agents fetch the file only when they choose.
 
-**Skills must be self-contained.** A skill cannot rely on resources or files that live outside its own directory — there is no portable cross-skill resource mechanism that works across every agent runtime. If you need shared content, copy it into the skill that needs it, or reference it as a sibling skill that the agent will load explicitly.
+**Skills must be self-contained.** A skill cannot rely on files outside its own directory — no portable cross-skill resource mechanism works across every agent runtime. For shared content, copy it into the skill that needs it, or reference a sibling skill the agent loads explicitly.
 
-**Reference standards and `.context/` docs by NAME too, never by literal path (ICON-0076).** The same by-name rule extends to standards and other `.context/` docs a skill cites (e.g. "see the secure-coding standard", not a literal `.context/standards/<doc>.md` path). For ICON-local docs this is mechanically required, not just stylistic: a literal `.context/` path in skill content trips the pre-commit dead-`.context/`-reference gate, which expects a `context_template/` mirror — and an ICON-local/untemplated standard has none. Reach for the gate's exemption marker only for genuinely transient refs; for a permanent live-doc reference the correct fix is by-name, which matches this convention and sidesteps the gate with no marker to maintain. The marker IS correct, though, for `.context/` paths that are conditionally-generated OUTPUT or consumer-only and by design never exist in `context_template/` (ICON-0077 — e.g. a verify checklist citing `overview.md`/`projects.md`/`domains/` that a generator may or may not emit); narrow such a marker to exclude paths that ARE templated and resolve. Marker = conditionally-generated/consumer-only paths; by-name = permanent live-doc refs.
+**Reference standards and `.context/` docs by NAME too, never by literal path (ICON-0076).** This extends to standards and other `.context/` docs a skill cites (e.g. "see the secure-coding standard", not a literal `.context/standards/<doc>.md` path). For ICON-local docs it's mechanically required, not just stylistic: a literal `.context/` path in skill content trips the pre-commit dead-`.context/`-reference gate, which expects a `context_template/` mirror an ICON-local/untemplated standard lacks. Use the gate's exemption marker only for genuinely transient refs; for a permanent live-doc reference, by-name is the fix — matching this convention, no marker needed. The marker IS correct for `.context/` paths that are conditionally-generated OUTPUT or consumer-only and by design never exist in `context_template/` (ICON-0077 — e.g. a verify checklist citing `overview.md`/`projects.md`/`domains/` a generator may or may not emit); narrow such a marker to exclude paths that ARE templated and resolve. Marker = conditionally-generated/consumer-only paths; by-name = permanent live-doc refs.
 
 ## Flowchart Usage
 
@@ -345,7 +343,7 @@ digraph when_flowchart {
 
 See `graphviz-conventions.dot` for graphviz style rules.
 
-**Visualising for the user:** `render-graphs.js` in this directory renders a skill's `dot` blocks to SVG:
+**Visualising for the user:** `render-graphs.js` renders a skill's `dot` blocks to SVG:
 
 ```bash
 ./render-graphs.js ../some-skill           # each diagram separately
@@ -356,11 +354,11 @@ Requires graphviz (`dot`) installed locally.
 
 ## Code Examples
 
-**One excellent example beats many mediocre ones.** Choose the most relevant language for the technique. Don't implement in five languages.
+**One excellent example beats many mediocre ones.** Choose the most relevant language. Don't implement in five.
 
 **Good examples are:**
 - Complete and runnable.
-- Commented explaining WHY (not what).
+- Commented explaining WHY, not what.
 - From realistic scenarios.
 - Ready to adapt.
 
@@ -380,6 +378,7 @@ This applies to NEW skills AND EDITS to existing skills.
 Write skill before testing? Delete it. Start over.
 Edit skill without testing? Same violation.
 
+
 **No exceptions:**
 - Not for "simple additions".
 - Not for "just adding a section".
@@ -398,13 +397,13 @@ Different skill types need different test approaches — see [`./testing-skills-
 | Excuse | Reality |
 |--------|---------|
 | "Skill is obviously clear" | Clear to you ≠ clear to other agents. Test it. |
-| "It's just a reference" | References can have gaps and unclear sections. Test retrieval. |
+| "It's just a reference" | References have gaps and unclear sections. Test retrieval. |
 | "Testing is overkill" | Untested skills have issues. Always. 15 min testing saves hours. |
 | "I'll test if problems emerge" | Problems = agents can't use the skill. Test BEFORE deploying. |
-| "Too tedious to test" | Testing is less tedious than debugging a bad skill in production. |
+| "Too tedious to test" | Less tedious than debugging a bad skill in production. |
 | "I'm confident it's good" | Overconfidence guarantees issues. Test anyway. |
 | "Academic review is enough" | Reading ≠ using. Test application scenarios. |
-| "No time to test" | Deploying untested skill wastes more time fixing it later. |
+| "No time to test" | Untested deploys waste more time fixing later. |
 
 **All of these mean: test before deploying. No exceptions.**
 
@@ -412,7 +411,7 @@ Different skill types need different test approaches — see [`./testing-skills-
 
 Discipline skills need extra hardening — agents rationalise away rules under pressure.
 
-**Psychology note:** Understanding *why* persuasion techniques work helps you apply them systematically. See `persuasion-principles.md` for the research foundation (Cialdini, 2021; Meincke et al., 2025) on authority, commitment, scarcity, social proof, and unity.
+**Psychology note:** understanding *why* persuasion works helps you apply it systematically. See `persuasion-principles.md` for the research foundation (Cialdini, 2021; Meincke et al., 2025) on authority, commitment, scarcity, social proof, and unity.
 
 ### 1. Close Every Loophole
 
@@ -440,11 +439,11 @@ Add a foundational principle early:
 **Violating the letter of the rules is violating the spirit of the rules.**
 ```
 
-This cuts off an entire class of "I'm following the spirit" rationalisations.
+This cuts off a whole class of "I'm following the spirit" rationalisations.
 
 ### 3. Build a Rationalisation Table
 
-Capture every excuse the subagent makes during baseline testing. Each one becomes a row:
+Capture every excuse the subagent makes during baseline testing. Each becomes a row:
 
 ```markdown
 | Excuse | Reality |
@@ -481,13 +480,13 @@ description: >
 
 ## RED-GREEN-REFACTOR for Skills
 
-**RED — write the failing test (baseline).** Run a pressure scenario with a subagent WITHOUT the skill. Document exact behaviour: what choices they made, what rationalisations they used (verbatim), which pressures triggered violations. You must see what agents naturally do before writing the skill.
+**RED — write the failing test (baseline).** Run a pressure scenario with a subagent WITHOUT the skill. Document exact behaviour: choices made, rationalisations (verbatim), which pressures triggered violations. See what agents naturally do before writing the skill.
 
-**GREEN — write the minimal skill.** Address those specific rationalisations. Don't add extra content for hypothetical cases. Run the same scenarios WITH the skill. The subagent should now comply.
+**GREEN — write the minimal skill.** Address those specific rationalisations. Don't add content for hypothetical cases. Run the same scenarios WITH the skill. The subagent should now comply.
 
 **REFACTOR — close loopholes.** New rationalisation? Add an explicit counter. Re-test until bulletproof.
 
-Full methodology — pressure types, scenario design, meta-testing, real worked example — lives in `testing-skills-with-subagents.md`.
+Full methodology — pressure types, scenario design, meta-testing, worked example — lives in `testing-skills-with-subagents.md`.
 
 ## Anti-Patterns
 
@@ -511,7 +510,7 @@ After writing ANY skill, you MUST STOP and complete the deployment process below
 - Move to the next skill before the current one is verified.
 - Skip testing because "batching is more efficient".
 
-For the full TDD-adapted checklist (RED / GREEN / REFACTOR / Quality / Registration phases) used during skill creation, see [`./skill-creation-checklist.md`](./skill-creation-checklist.md).
+For the full TDD-adapted checklist (RED / GREEN / REFACTOR / Quality / Registration phases), see [`./skill-creation-checklist.md`](./skill-creation-checklist.md).
 
 ## Discovery Workflow
 
@@ -528,6 +527,6 @@ Optimise for this flow: put searchable terms early and often.
 
 ## The Bottom Line
 
-Creating skills IS TDD for process documentation. Same iron law (no skill without a failing test first). Same cycle (RED → GREEN → REFACTOR). Same benefits (better quality, fewer surprises, bulletproof results).
+Creating skills IS TDD for process documentation. Same iron law (no skill without a failing test first), same cycle (RED → GREEN → REFACTOR), same benefits (better quality, fewer surprises, bulletproof results).
 
-If you follow TDD for code, follow it for skills. It's the same discipline applied to documentation.
+Follow TDD for code? Follow it for skills. Same discipline, applied to documentation.

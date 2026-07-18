@@ -9,9 +9,9 @@ user-invocable: true
 
 ## Overview
 
-Single entry point for initialization. Detects your repo shape and dispatches to the correct `/initialize-*` skill, or to `/upgrade-repo` if the repo is already initialized.
+Single entry point for initialization. Detects your repo shape and dispatches to the correct `/initialize-*` skill, or to `/upgrade-repo` if already initialized.
 
-`/icon-init` is the **sole user-facing entry point** for initialization — the four `/initialize-*` skills are agent-invoked only and do not appear in the slash-command menu. If auto-detection picks the wrong type, use the **override** option in Step 3 to select the correct initializer.
+`/icon-init` is the **sole user-facing entry point** — the four `/initialize-*` skills are agent-invoked only and never appear in the slash-command menu. If auto-detection picks the wrong type, use the **override** option in Step 3.
 
 ---
 
@@ -25,13 +25,13 @@ if [ -d .context ]; then
 fi
 ```
 
-**Flag handling:** Accept a `--force` argument. If `--force` is present, skip this check and proceed to Step 2. If `.context/` already exists and `--force` was NOT passed, **invoke the `upgrade-repo` skill and halt this skill's further execution** — do not proceed to detection or dispatch in Step 2.
+**Flag handling:** Accept a `--force` argument. If present, skip this check and proceed to Step 2. If `.context/` already exists and `--force` was NOT passed, **invoke the `upgrade-repo` skill and halt** — do not proceed to detection or dispatch in Step 2.
 
 ---
 
 ## icon-init: Step 2: Detect repo type
 
-> Detection logic is **derived from** `skills/context-specialist-detect-tree-position/SKILL.md`, extended to distinguish `workspace` from `monorepo` and `project` from `multimodule` for per-skill dispatch. If that skill's detection signals change, update this step to match.
+> Detection logic is **derived from** `skills/context-specialist-detect-tree-position/SKILL.md`, extended to distinguish `workspace` from `monorepo` and `project` from `multimodule` for per-skill dispatch. If that skill's signals change, update this step to match.
 
 Run the following checks **in order**. Stop at the first match.
 
@@ -210,7 +210,7 @@ Load and execute the matched skill inline. Follow that skill's process from its 
 
 ## icon-init: Step 5: Post-init affordances
 
-After the dispatched skill returns successfully (a fresh init wrote `.context/iconrc.json`, or `/upgrade-repo` reports the repo is current), print the following hints in order. These are post-init affordances — do not block, retry, or delay completion based on them.
+After the dispatched skill returns successfully (a fresh init wrote `.context/iconrc.json`, or `/upgrade-repo` reports the repo current), print the following hints in order. These are affordances — do not block, retry, or delay completion on them.
 
 ### icon-init: Step 5a: Next-step hint (always)
 
@@ -227,7 +227,7 @@ Initialization complete. Run /icon-status to see where things stand.
 | Mistake | Fix |
 |---------|-----|
 | Running `/icon-init` on an already-initialized repo | The skill detects `.context/` and routes to `/upgrade-repo`. Do not stomp on existing initialization. |
-| Counting a single subdirectory with a manifest as multimodule | Multimodule requires **2 or more** sibling subdirectories each containing a build manifest. One is not enough. |
-| Treating `package.json` with an empty `"workspaces": []` as a monorepo | Check that the `workspaces` field is a non-empty array. An empty array is not a monorepo signal. |
-| Dispatching before user confirms | Step 3 requires an explicit user response of "yes" or "override". Never dispatch speculatively. |
+| Counting a single subdirectory with a manifest as multimodule | Multimodule requires **2 or more** sibling subdirectories, each with a build manifest. One is not enough. |
+| Treating `package.json` with an empty `"workspaces": []` as a monorepo | The `workspaces` field must be a non-empty array. An empty array is not a monorepo signal. |
+| Dispatching before user confirms | Step 3 requires an explicit "yes" or "override". Never dispatch speculatively. |
 | Using `>/dev/null` for stderr suppression in bash blocks | Use `2>&1 | grep -v "^pattern"` instead. Output suppression is banned by the "Shell command self-check" rule in `shared/common-constraints.md`. |

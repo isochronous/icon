@@ -11,9 +11,9 @@ Initialize a `.context/` directory for a repository node. This skill is loaded
 inline by `@context-specialist` when `mode` is `create` or absent (default).
 It handles tree-position resolution and implementation skill selection.
 
-**You cannot delegate to sub-agents.** All work — detection, implementation, and commit —
+**You cannot delegate to sub-agents.** All work — detection, implementation, commit —
 is performed inline by you. Copilot CLI nested dispatch produces no output; attempting to
-sub-delegate will silently fail.
+sub-delegate silently fails.
 
 ---
 
@@ -84,9 +84,9 @@ Warnings: [any gaps, ambiguities, or skipped files — or "none"]
   inline, not as a sub-agent dispatch.
 - Implementation: load and execute the impl skill inline, not as a sub-agent dispatch.
 
-**Do not inline tree-position detection logic.** The detection algorithm lives in
+**Do not inline tree-position detection logic.** The algorithm lives in
 `context-specialist-detect-tree-position`. Always load that skill when detection is
-needed — do not copy or re-implement the algorithm here.
+needed — don't copy or re-implement the algorithm here.
 
 **Scope git operations strictly.** `git add` targets files inside `working_directory`
 only. Never stage files outside this directory.

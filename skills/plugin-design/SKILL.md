@@ -9,9 +9,9 @@ user-invocable: true
 
 ## Overview
 
-A two-mode skill for building and reviewing Claude Code plugins. **Create mode** scaffolds a new plugin from an empty directory through boilerplate, metadata, optional git setup, context initialization, and optional marketplace preparation. **Audit mode** evaluates an existing plugin's structural integrity, internal consistency, and forward-looking improvement opportunities.
+A two-mode skill for building and reviewing Claude Code plugins. **Create mode** scaffolds a new plugin from an empty directory through boilerplate, metadata, optional git setup, context initialization, and optional marketplace prep. **Audit mode** evaluates an existing plugin's structural integrity, internal consistency, and improvement opportunities.
 
-This skill is plugin-agnostic — it ships with ICON but applies to any Claude Code plugin. It does **not** publish to a marketplace (the marketplace phase prepares artifacts and documents the submission process; the user submits manually). It does **not** duplicate `/icon-init` (the context-init phase delegates to it).
+Plugin-agnostic — it ships with ICON but applies to any Claude Code plugin. It does **not** publish to a marketplace (the marketplace phase prepares artifacts and documents submission; the user submits manually). It does **not** duplicate `/icon-init` (the context-init phase delegates to it).
 
 ## When to Use
 
@@ -29,14 +29,14 @@ This skill is plugin-agnostic — it ships with ICON but applies to any Claude C
 
 ## Mode Detection
 
-When the user invokes this skill, determine the mode from their language:
+Determine the mode from the user's language:
 
 | Trigger words | Mode | Companion file to load |
 |---------------|------|------------------------|
 | "create", "new", "start", "scaffold", "bootstrap", "from scratch" | create | `create-mode.md` |
 | "audit", "review", "check", "validate", "evaluate", "assess" | audit | `audit-mode.md` |
 
-If the request is ambiguous (e.g., "help me with my plugin"), ask the user which mode they want before loading either companion file. Do not guess.
+If the request is ambiguous (e.g. "help me with my plugin"), ask which mode they want before loading either companion file. Do not guess.
 
 ## Companion Files
 

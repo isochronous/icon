@@ -9,7 +9,7 @@ user-invocable: true
 
 ## Overview
 
-**Incidents that aren't reviewed are incidents that repeat.** This skill turns a one-off production failure into organizational memory by guiding a structured classify → timeline → root-cause → comms → action-items → retro-append process. The retrospective entry at the end is the durability mechanism — without it, the review evaporates.
+**Incidents that aren't reviewed are incidents that repeat.** This skill turns a one-off production failure into organizational memory via a structured classify → timeline → root-cause → comms → action-items → retro-append process. The retrospective entry at the end is the durability mechanism — without it, the review evaporates.
 
 ## When to Use
 
@@ -23,17 +23,17 @@ user-invocable: true
 
 ## Relationship to systematic-debugging
 
-`systematic-debugging` includes a brief Post-Incident Follow-Up checklist that flags the concern this skill addresses; this skill is the full expansion of that checklist. Cross-reference `systematic-debugging` for the root-cause trace technique (the backward-trace to first-point-of-invalid-state); do not restate it here.
+`systematic-debugging` includes a brief Post-Incident Follow-Up checklist flagging the concern this skill addresses; this skill is the full expansion. Cross-reference `systematic-debugging` for the root-cause trace technique (backward-trace to first-point-of-invalid-state); do not restate it here.
 
 ---
 
 ## post-incident-review: Phase 1: Classify
 
-Establish what kind and magnitude of incident this is before going further.
+Establish the kind and magnitude of incident before going further.
 
 | Dimension | Questions |
 |-----------|-----------|
-| **User impact** | Were users affected? How many? Were any features unavailable or degraded? |
+| **User impact** | Were users affected? How many? Features unavailable or degraded? |
 | **Data** | Was data lost, corrupted, or exposed? Was any data written that shouldn't have been? |
 | **Credentials / Secrets** | Were secrets, tokens, keys, or credentials exposed — even briefly? In logs? In a response body? |
 | **Duration** | When did the incident begin? When was it fully resolved? |
@@ -54,36 +54,36 @@ Classify before continuing — severity drives which later phases are required.
 
 ## post-incident-review: Phase 2: Timeline Reconstruction
 
-Produce a named timeline from trigger to resolution. Absence of precise times is not a blocker — estimate, and mark estimates explicitly.
+Produce a named timeline from trigger to resolution. Missing precise times is not a blocker — estimate, and mark estimates explicitly.
 
 Required events:
 
 1. **Trigger** — What caused the incident to begin? (code deploy, config change, external event)
 2. **Detection** — When and how was it noticed? (alert, user report, internal observation)
 3. **Diagnosis** — When was root cause identified? Who identified it?
-4. **Fix applied** — What change resolved the incident? When was it deployed?
-5. **Verification** — When was it confirmed that the incident was fully resolved?
+4. **Fix applied** — What change resolved it? When was it deployed?
+5. **Verification** — When was full resolution confirmed?
 
-Keep actor names generic (e.g., "on-call engineer") unless the specific person is relevant to a structural finding. The goal is process clarity, not blame attribution.
+Keep actor names generic (e.g., "on-call engineer") unless the specific person matters to a structural finding. The goal is process clarity, not blame.
 
 ---
 
 ## post-incident-review: Phase 3: Root-Cause Analysis
 
-Use the `systematic-debugging` Phase 2 backward-trace or the "5 whys" technique. The goal is a single **first-point-of-invalid-state** conclusion — the earliest point in time or code path where the system entered an incorrect state.
+Use the `systematic-debugging` Phase 2 backward-trace or "5 whys". The goal is a single **first-point-of-invalid-state** conclusion — the earliest point in time or code path where the system entered an incorrect state.
 
 Anti-patterns to avoid:
-- Stopping at "human error" — that's a symptom, not a cause
+- Stopping at "human error" — a symptom, not a cause
 - Identifying the fix as the cause (circular)
-- Multiple root causes listed without ordering them by which one enables the others
+- Multiple root causes listed without ordering them by which enables the others
 
-The root-cause statement format: *"The system entered an invalid state when [specific condition] because [structural reason], which was not detected before [detection point]."*
+Root-cause statement format: *"The system entered an invalid state when [specific condition] because [structural reason], which was not detected before [detection point]."*
 
 ---
 
 ## post-incident-review: Phase 4: Comms Template
 
-**Required for P1/P2 incidents where users were affected.** Optional for P3/P4 and internal-only incidents.
+**Required for P1/P2 incidents where users were affected.** Optional for P3/P4 and internal-only.
 
 Internal summary structure:
 
@@ -101,14 +101,14 @@ Do not include root-cause speculation in user-facing comms — that belongs in t
 
 ## post-incident-review: Phase 5: Action Items with Owners
 
-Each finding from Phase 3 must produce at least one action item. Action items without owners and due dates are not action items — they are intentions.
+Each Phase 3 finding must produce at least one action item. Action items without owners and due dates are not action items — they are intentions.
 
 Required fields per action item:
 
 | Field | Requirement |
 |-------|-------------|
 | **Action** | Concrete verb + deliverable (not "monitor", "improve", "consider") |
-| **Owner** | Named person or named role if person is unknown |
+| **Owner** | Named person, or named role if person unknown |
 | **Due date** | Specific date or milestone — not "soon" or "later" |
 | **Verification** | How will completion be confirmed? |
 
@@ -145,11 +145,11 @@ The retrospective entry should:
 | Rationalization | Reality | Correct Action |
 |----------------|---------|----------------|
 | "It was a small incident, no review needed" | Small incidents signal systemic gaps as reliably as large ones | Run Phase 1 at minimum — if truly P4, the review is short |
-| "We already know the root cause" | Assumed root cause is often wrong; timeline reconstruction reveals actual cause | Complete Phase 2 before writing the root-cause statement |
+| "We already know the root cause" | Assumed root cause is often wrong; timeline reconstruction reveals the actual cause | Complete Phase 2 before writing the root-cause statement |
 | "The action item owner will figure out the details" | Action items without specific deliverables are never done | Write the deliverable, not the intention |
 | "We fixed it, so we don't need comms" | Users affected during the incident deserve closure even after resolution | Complete Phase 4 for any P1/P2 user-affecting incident |
 | "I'll write the retrospective entry later" | "Later" means the review evaporates | Phase 6 is part of the review, not a follow-up task |
-| "Severity should be P3 in hindsight — the fix was easy" | Severity is determined at time of incident, not by ease of fix | Keep the original severity classification; note the fix simplicity separately |
+| "Severity should be P3 in hindsight — the fix was easy" | Severity is determined at time of incident, not by ease of fix | Keep the original severity; note the fix simplicity separately |
 | "It was human error" | Human error is a symptom — the root cause is why the system permitted it | Continue Phase 3 until you reach a structural cause |
 
 ## Red Flags — STOP and Run the Missing Phase

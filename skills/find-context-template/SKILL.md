@@ -7,13 +7,13 @@ user-invocable: false
 
 # Find Context Template
 
-Locate the `context_template/` directory within the current tool's plugin install path and set `$TEMPLATE_DIR` for use in subsequent copy commands.
+Locate the `context_template/` directory within the current tool's plugin install path and set `$TEMPLATE_DIR` for subsequent copy commands.
 
-This skill is also a **callable primitive** for plugin-asset discovery. Other ICON skills that need the resolved plugin install path should invoke this skill rather than re-implementing `${CLAUDE_PLUGIN_ROOT}` / Copilot-install-path resolution inline. Calling skills follow the standard Read-and-Use pattern: read this `SKILL.md`, run the appropriate Discovery Command block for the active tool, then use `$TEMPLATE_DIR` (or its parent for non-template assets) in their own commands. The invocation shape is `$TEMPLATE_DIR`-out; no arguments are passed in.
+This skill is also a **callable primitive** for plugin-asset discovery. Other ICON skills needing the resolved plugin install path should invoke it rather than re-implementing `${CLAUDE_PLUGIN_ROOT}` / Copilot-install-path resolution inline. Calling skills follow the standard Read-and-Use pattern: read this `SKILL.md`, run the Discovery Command block for the active tool, then use `$TEMPLATE_DIR` (or its parent for non-template assets) in their own commands. Invocation shape: `$TEMPLATE_DIR`-out, no arguments in.
 
 ## Marketplace Name
 
-The Copilot CLI install path includes the marketplace's folder name. By default this is `icon-marketplace` (the canonical ICON marketplace). Organizations that fork the marketplace under a different slug can override the default by exporting `MARKETPLACE_NAME` before running ICON skills (or by editing the default in their fork of this file):
+The Copilot CLI install path includes the marketplace's folder name, by default `icon-marketplace` (the canonical ICON marketplace). Organizations that fork under a different slug can override the default by exporting `MARKETPLACE_NAME` before running ICON skills (or by editing the default in their fork of this file):
 
 ```bash
 export MARKETPLACE_NAME="my-org-marketplace"
@@ -23,7 +23,7 @@ export MARKETPLACE_NAME="my-org-marketplace"
 $env:MARKETPLACE_NAME = "my-org-marketplace"
 ```
 
-The Discovery Commands below honor `$MARKETPLACE_NAME` when set and fall back to `icon-marketplace` otherwise. Claude Code variants do not need this — `${CLAUDE_PLUGIN_ROOT}` already resolves the full install path regardless of marketplace slug.
+The Discovery Commands below honor `$MARKETPLACE_NAME` when set, else fall back to `icon-marketplace`. Claude Code variants don't need this — `${CLAUDE_PLUGIN_ROOT}` already resolves the full install path regardless of marketplace slug.
 
 ## Discovery Command
 
@@ -60,7 +60,7 @@ $TEMPLATE_DIR = "$env:CLAUDE_PLUGIN_ROOT/context_template"
 
 ### Copilot CLI
 
-`$TEMPLATE_DIR` is always assigned a string — checking for an empty variable is not meaningful. Instead, verify that the path exists on disk:
+`$TEMPLATE_DIR` is always assigned a string — checking for an empty variable isn't meaningful. Instead verify the path exists on disk:
 
 **Bash / zsh:**
 ```bash
@@ -72,7 +72,7 @@ $TEMPLATE_DIR = "$env:CLAUDE_PLUGIN_ROOT/context_template"
 if (-not (Test-Path $TEMPLATE_DIR)) { Write-Host "Template not found at: $TEMPLATE_DIR" }
 ```
 
-If the path does not exist, the plugin may not be installed or may be at a non-standard location. Ask the user to verify:
+If the path doesn't exist, the plugin may not be installed or may be at a non-standard location. Ask the user to verify:
 
 ```bash
 copilot plugin list
@@ -80,7 +80,7 @@ copilot plugin list
 
 ### Claude Code
 
-`$CLAUDE_PLUGIN_ROOT` may be unset if the plugin runtime did not inject it, making `$TEMPLATE_DIR` empty or null. Check for that before using it:
+`$CLAUDE_PLUGIN_ROOT` may be unset if the plugin runtime didn't inject it, making `$TEMPLATE_DIR` empty or null. Check before using it:
 
 **Bash / zsh:**
 ```bash

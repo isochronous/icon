@@ -3,9 +3,9 @@ description: >
   Set managerDefault: true in ~/.claude/icon-user-settings.json to enable the manager-role default (Claude Code only)
 ---
 
-Enable the manager-default behavior for the ICON plugin. When enabled, every new Claude Code session launched from a directory with a `.context/` folder opens with `@manager` as the default role. Sessions in directories without `.context/` are unaffected.
+Enable the manager-default behavior. When on, every new Claude Code session launched from a directory with a `.context/` folder opens with `@manager` as the default role; sessions elsewhere are unaffected.
 
-The SessionStart hook is declared in the plugin's own `hooks/hooks.json` and activates automatically when the plugin is installed. This command toggles a single key (`managerDefault`) in `~/.claude/icon-user-settings.json` and migrates any legacy hook entry from earlier plugin versions out of `~/.claude/settings.json` (which used to host the wiring directly and produced a `${CLAUDE_PLUGIN_ROOT} is not associated with a plugin` error every session).
+The SessionStart hook is declared in the plugin's own `hooks/hooks.json` and activates automatically on install. This command sets `managerDefault` in `~/.claude/icon-user-settings.json` and migrates any legacy hook entry from earlier plugin versions out of `~/.claude/settings.json` (which used to host the wiring directly and errored `${CLAUDE_PLUGIN_ROOT} is not associated with a plugin` every session).
 
 ## Steps
 

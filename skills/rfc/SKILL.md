@@ -9,43 +9,39 @@ user-invocable: true
 
 ## Overview
 
-This skill produces RFC (Request for Comments) documents that meet ORG-004 standards. It supports two entrypoints through a single branching procedure:
+Produces RFC (Request for Comments) documents meeting ORG-004 standards, via two entrypoints in a single branching procedure:
 
-- **Scaffold path** — no draft exists; the skill collects inputs (problem, context, proposal, alternatives, implementation details, metadata table fields) and builds the RFC from scratch.
-- **Refactor path** — a rough, informal, or incomplete draft exists; the skill reorganizes content into the standard sections, fills gaps with explicit markers, and improves clarity without changing the author's technical decisions.
+- **Scaffold path** — no draft exists; collect inputs (problem, context, proposal, alternatives, implementation details, metadata fields) and build the RFC from scratch.
+- **Refactor path** — a rough or incomplete draft exists; reorganize into the standard sections, mark gaps explicitly, and improve clarity without changing the author's technical decisions.
 
-Both entrypoints converge on the same authoritative ORG-004 schema and the same quality checklist — the output format does not diverge based on how the RFC was started.
+Both converge on the same authoritative ORG-004 schema and quality checklist — output format does not diverge based on how the RFC started.
 
-Reference documentation: `<your-rfc-process-doc>` (RFC-001 RFC Process) · `<your-rfc-guidance-doc>` (General RFC Guidance) — link these to your team's RFC index (e.g. a `docs/rfc/` directory or the repository wiki).
+Reference docs: `<your-rfc-process-doc>` (RFC-001 RFC Process) · `<your-rfc-guidance-doc>` (General RFC Guidance) — link these to your team's RFC index (e.g. a `docs/rfc/` directory or the wiki).
 
 ### Why RFCs Matter
 
-RFCs serve multiple critical functions:
-
-- **Decision Documentation**: Capture the "why" behind technical choices for future reference.
-- **Stakeholder Alignment**: Ensure all parties understand the proposal, alternatives, and trade-offs.
-- **Knowledge Transfer**: Enable new team members to understand historical decisions.
-- **Implementation Clarity**: Provide clear guidance for developers executing the work.
-- **Risk Mitigation**: Surface concerns and abandoned ideas to prevent revisiting failed approaches.
+- **Decision Documentation**: capture the "why" behind technical choices.
+- **Stakeholder Alignment**: ensure all parties understand the proposal, alternatives, and trade-offs.
+- **Knowledge Transfer**: let new team members understand historical decisions.
+- **Implementation Clarity**: give developers clear guidance.
+- **Risk Mitigation**: surface concerns and abandoned ideas to prevent revisiting failed approaches.
 
 ## When to Use This Skill
-
-Use this skill when you need to:
 
 - Propose new features or capabilities.
 - Document architectural changes or technical decisions.
 - Evaluate multiple solution approaches.
 - Ensure team alignment on significant technical work.
 - Polish an informal draft into a reviewable RFC.
-- Create a historical record of a decision-making process.
+- Create a historical record of a decision.
 
 ### Target Audience
 
-- **Technical Leadership**: Need to evaluate feasibility and alignment with strategy.
-- **Development Teams**: Need clear implementation guidance.
-- **Product Management**: Need to understand user impact and business value.
-- **Operations**: Need to understand deployment, monitoring, and operational requirements.
-- **Future Team Members**: Need historical context for decisions made.
+- **Technical Leadership**: evaluate feasibility and strategic alignment.
+- **Development Teams**: need clear implementation guidance.
+- **Product Management**: understand user impact and business value.
+- **Operations**: understand deployment, monitoring, operational requirements.
+- **Future Team Members**: need historical context for decisions.
 
 ## rfc: Step 1: Entry Point — Do You Have a Draft?
 
@@ -58,14 +54,14 @@ Both paths converge at Step 3 (ORG-004 Output Schema) and share Steps 4–6 for 
 
 ## rfc: Step 2-S: Scaffold Path — Collect Inputs
 
-Gather the following from the user. Required inputs are needed before drafting; optional inputs shape the Implementation and Operationalization sections.
+Gather the following. Required inputs are needed before drafting; optional inputs shape the Implementation and Operationalization sections.
 
 **Required**:
 
-1. **Title** — concise, descriptive (e.g., "Enhance Notification Service with Email Delivery").
+1. **Title** — concise, descriptive (e.g. "Enhance Notification Service with Email Delivery").
 2. **Problem Statement** — what issue needs to be addressed?
-3. **Context** — why is this needed now? What led to this proposal? Include links to related RFCs, documentation, or historical decisions.
-4. **Proposed Solution** — high-level approach to solving the problem.
+3. **Context** — why now? What led to this proposal? Include links to related RFCs, docs, or historical decisions.
+4. **Proposed Solution** — high-level approach.
 
 **Metadata Table Fields** (collect now; mark `TBD` for any not provided — never invent):
 
@@ -81,34 +77,34 @@ Gather the following from the user. Required inputs are needed before drafting; 
 
 **Optional**:
 
-5. **Alternatives Considered** — other approaches evaluated, and why they were rejected. If no alternatives were considered, state that explicitly with a brief reason.
-6. **Implementation Details** — UX / UI / API specifics that the proposal commits to.
+5. **Alternatives Considered** — other approaches evaluated and why rejected. If none were considered, state that explicitly with a brief reason.
+6. **Implementation Details** — UX / UI / API specifics the proposal commits to.
 7. **Operational Considerations** — logging, monitoring, resilience, security expectations.
 
-Once collected, proceed to **Step 3**. The scaffold path treats missing optional inputs as genuinely optional — do not fabricate content to fill them.
+Once collected, proceed to **Step 3**. Missing optional inputs are genuinely optional — do not fabricate content to fill them.
 
 ## rfc: Step 2-R: Refactor Path — Read, Extract, Map
 
 ### 2-R.1 Read and Understand the Draft
 
-Carefully review the draft and any supplied context. Identify:
+Review the draft and any supplied context. Identify:
 
 - What problem is being solved?
-- What solution is being proposed?
+- What solution is proposed?
 - What implementation details are provided?
 - What context or rationale is given?
 - What is missing, unclear, or contradictory?
 
-If the draft references external documents you cannot access, note what additional context is needed — do not invent it.
+If the draft references external documents you cannot access, note what context is needed — do not invent it.
 
 ### 2-R.2 Extract and Map Content to ORG-004 Sections
 
 **Metadata table fields — extract first:**
 
-Before mapping body sections, extract (or note as `TBD`) all metadata fields needed for the table at the top of the RFC:
+Before mapping body sections, extract (or note as `TBD`) all metadata fields for the table at the top of the RFC:
 
 - **Summary** — 1–2 sentence summary from the draft.
-- **Owner** / **Contributors** / **Other Stakeholders** / **Approvers** — extract from any authorship/ownership information present; mark `TBD` if absent — **never invent names**.
+- **Owner** / **Contributors** / **Other Stakeholders** / **Approvers** — extract from any authorship/ownership info present; mark `TBD` if absent — **never invent names**.
 - **Requirements** — extract any links to tickets, specs, or requirements; leave blank if none.
 - **Created** — preserve the existing date if present; use today's date only if absent.
 - **Current Version** / **Target Version** — preserve existing values if present; default to `0.1.0` / `1.0.0` if absent.
@@ -139,7 +135,7 @@ Once mapping is complete, proceed to **Step 3**.
 
 ## rfc: Step 3: ORG-004 Output Schema (Authoritative)
 
-Single canonical definition — the schema does not vary by path. Output is **Markdown** (CommonMark).
+Single canonical definition — schema does not vary by path. Output is **Markdown** (CommonMark).
 
 ```markdown
 # [Page Title]
@@ -175,34 +171,34 @@ Single canonical definition — the schema does not vary by path. Output is **Ma
 
 ### Title
 
-A concise, descriptive title that clearly indicates what the RFC proposes. Example: "Enhance Notification Service with Email Delivery".
+Concise, descriptive, clearly indicating what the RFC proposes. Example: "Enhance Notification Service with Email Delivery".
 
 ### Metadata Table (Required)
 
-The metadata table is the first element in the RFC body (before any prose). All fields use bold labels in the left column via `**bold**` syntax:
+First element in the RFC body (before any prose). All fields use bold labels via `**bold**`:
 
-- **Summary** — 1–2 sentences that fit in a single table cell; a quick read that conveys the core proposal.
-- **Created** — ISO date (`YYYY-MM-DD`) the RFC was first written. Scaffold path: default to today's date. Refactor path: preserve if present.
-- **Owner** — primary author / DRI for the RFC. Mark `TBD` if not provided.
+- **Summary** — 1–2 sentences fitting a single table cell; conveys the core proposal.
+- **Created** — ISO date (`YYYY-MM-DD`) the RFC was first written. Scaffold path: default to today. Refactor path: preserve if present.
+- **Owner** — primary author / DRI. Mark `TBD` if not provided.
 - **Current Version** — SemVer of the RFC document itself (not the software). New drafts: `0.1.0`. Ready for comment: bump minor (e.g. `0.2.0`). Approved: bump major → `1.0.0`.
-- **Contributors** — comma-separated names of contributors. Mark `TBD` if not provided.
-- **Target Version** — the version the RFC reaches if approved; typically `1.0.0`.
-- **Other Stakeholders** — teams or individuals with an interest but not listed as contributors. Mark `TBD` if not provided.
+- **Contributors** — comma-separated names. Mark `TBD` if not provided.
+- **Target Version** — the version if approved; typically `1.0.0`.
+- **Other Stakeholders** — interested teams/individuals not listed as contributors. Mark `TBD` if not provided.
 - **Requirements** — links to tickets, specs, or requirements. Leave blank if none.
-- **Approvers** — names of people who must approve before the RFC is finalised. Mark `TBD` if not provided.
+- **Approvers** — who must approve before finalising. Mark `TBD` if not provided.
 
-After the table, add `---` (Markdown horizontal rule) and then the optional introductory paragraph.
+After the table, add `---` (horizontal rule) then the optional introductory paragraph.
 
 ### Background (Required)
 
-Explain the context and rationale:
+Explain context and rationale:
 
-- **Current State**: what exists today, and what problems or limitations does it have?
+- **Current State**: what exists today, and its problems/limitations.
 - **Desired State**: goals and objectives of the proposal.
-- **Context**: why is change necessary now? What led to this proposal?
-- Include links to related RFCs, documentation, or historical decisions.
+- **Context**: why change now? What led to this?
+- Include links to related RFCs, docs, or historical decisions.
 
-Goal: a new team member should understand why this RFC exists after reading this section.
+Goal: a new team member understands why this RFC exists after reading this section.
 
 ### Proposal (Required)
 
@@ -210,38 +206,38 @@ Describe the proposed solution at a high level:
 
 - What approach are we taking?
 - What are the key components or changes?
-- How does this address the problem stated in Background?
+- How does this address the Background problem?
 
 Focus on "what" and "how" conceptually, not detailed implementation.
 
 ### Abandoned Ideas (Optional)
 
-Document alternatives considered and why they were rejected. Purpose: prevent revisiting dead-ends and provide insight into the decision-making process. If no alternatives were considered, state that explicitly rather than omitting the section.
+Document alternatives considered and why rejected — prevents revisiting dead-ends and shows the decision process. If none were considered, state that explicitly rather than omitting the section.
 
 ### Implementation (Optional)
 
-Break implementation into logical subsections:
+Break into logical subsections:
 
-- **UX** — changes to user workflows, backward-compatibility considerations, feature flags, phased rollout.
+- **UX** — user-workflow changes, backward-compatibility, feature flags, phased rollout.
 - **UI** — interface changes, wireframes, visual design, accessibility, responsive design.
-- **API** — new or modified endpoints, request/response formats, auth, versioning, affected services.
+- **API** — new/modified endpoints, request/response formats, auth, versioning, affected services.
 
 ### Operationalization (Optional)
 
-Detail how the proposal will run in production. Operationalization contains four subsections:
+How the proposal runs in production. Four subsections:
 
 - **Logging** — what is logged, where (Grafana, CloudWatch, etc.), retention, PII handling.
 - **Monitoring** — metrics, dashboards, alerts, SLIs/SLOs.
 - **Resilience** — health checks, redundancy, failover, circuit breakers, retry policy.
-- **Security** — network security, authentication/authorization, data encryption (in-transit, at-rest), compliance, attack surface considerations.
+- **Security** — network security, authn/authz, data encryption (in-transit, at-rest), compliance, attack surface.
 
 ### Addendum (Optional)
 
-Future enhancements, deferred items, or late-breaking considerations that are related but not central to the current proposal.
+Future enhancements, deferred items, or late-breaking considerations related but not central to the proposal.
 
 ### Scope and Constraints (Optional, refactor-path emphasis)
 
-When the draft explicitly names scope or constraints, render them as a subsection (typically under Implementation or as its own `## Scope and Constraints` section):
+When the draft explicitly names scope or constraints, render them as a subsection (typically under Implementation or its own `## Scope and Constraints` section):
 
 - **In Scope**: what the proposal commits to.
 - **Out of Scope / Constraints**: what is deliberately excluded, and why.
@@ -250,51 +246,51 @@ When the draft explicitly names scope or constraints, render them as a subsectio
 
 ### Scaffold path (arrived from Step 2-S)
 
-- Verify the metadata table is present as the first body element and all non-blank fields are populated (or explicitly marked `TBD`).
-- Verify Created defaults to today's date and Current Version defaults to `0.1.0`.
-- Verify every collected input is incorporated into the output.
-- Confirm at least one alternative is documented in Abandoned Ideas, or the section explicitly states "no alternatives considered" with a reason.
-- Verify optional sections were included only when there was content to fill them — do not pad.
+- Metadata table present as first body element, all non-blank fields populated (or marked `TBD`).
+- Created defaults to today; Current Version defaults to `0.1.0`.
+- Every collected input is incorporated.
+- At least one alternative documented in Abandoned Ideas, or the section explicitly states "no alternatives considered" with a reason.
+- Optional sections included only when there was content to fill them — do not pad.
 
 ### Refactor path (arrived from Step 2-R)
 
-- Verify the metadata table is present as the first body element; fields extracted from the draft are used as-is — names and dates are never invented.
-- Verify existing Created and Current Version values are preserved (not overwritten with defaults).
+- Metadata table present as first body element; fields extracted from the draft are used as-is — names and dates never invented.
+- Existing Created and Current Version values preserved (not overwritten with defaults).
 - Preserve the author's technical decisions — never change fundamental proposals.
-- Preserve content: reorganize rather than rewrite. Never remove content from the original draft.
+- Reorganize rather than rewrite; never remove content from the original draft.
 - Mark missing information as **"Requires Further Detail"** or **"To Be Determined"**. Never fabricate technical specifications.
-- Verify stream-of-consciousness prose is reorganized into structured paragraphs but the original meaning is preserved.
-- Highlight contradictions in the draft rather than resolving them by guessing — request clarification from the author.
+- Stream-of-consciousness prose reorganized into structured paragraphs, original meaning preserved.
+- Highlight contradictions rather than resolving them by guessing — request clarification from the author.
 
 ## rfc: Step 6: Shared Quality Checklist
 
 Before finalizing the RFC (both paths), verify:
 
 **Structure**:
-- [ ] Title clearly describes what is being proposed.
-- [ ] Metadata table is present as the first body element with all fields populated or marked `TBD`.
-- [ ] All required body sections are present (Background, Proposal).
-- [ ] Sections appear in the order defined by the ORG-004 schema in Step 3.
+- [ ] Title clearly describes what is proposed.
+- [ ] Metadata table is the first body element, all fields populated or marked `TBD`.
+- [ ] Required body sections present (Background, Proposal).
+- [ ] Sections in the ORG-004 schema order from Step 3.
 - [ ] Security is a subsection of Operationalization, not a top-level peer.
 
 **Content**:
-- [ ] Metadata table Summary cell provides a 1–2 sentence overview of the proposal.
-- [ ] Background explains current state, desired state, and rationale.
-- [ ] Proposal articulates the high-level solution approach.
+- [ ] Metadata Summary cell gives a 1–2 sentence overview.
+- [ ] Background explains current state, desired state, rationale.
+- [ ] Proposal articulates the high-level approach.
 - [ ] Abandoned Ideas documents alternatives (or explicitly states none).
 - [ ] Implementation provides actionable detail when included.
 - [ ] Operationalization addresses production concerns when included.
-- [ ] Missing information is clearly marked (refactor path) or genuinely optional content is omitted (scaffold path) — never fabricated.
+- [ ] Missing info is marked (refactor path) or genuinely-optional content omitted (scaffold path) — never fabricated.
 
 **Clarity**:
-- [ ] All jargon is explained or defined.
+- [ ] All jargon explained or defined.
 - [ ] A new team member could understand the context.
-- [ ] Decision rationale is clear and well-documented.
-- [ ] Trade-offs are explicitly discussed.
-- [ ] Technical terminology is used consistently throughout.
+- [ ] Decision rationale is clear and documented.
+- [ ] Trade-offs explicitly discussed.
+- [ ] Technical terminology used consistently.
 
 **Formatting**:
-- [ ] Markdown formatting is consistent and readable.
+- [ ] Markdown formatting consistent and readable.
 - [ ] Headings use `##` / `###` hierarchy correctly.
 - [ ] Code blocks use fenced `` ``` `` blocks with optional language tag.
 - [ ] Bullet lists use `-` or `*`; numbered lists use `1.`, `2.`, etc.
@@ -303,25 +299,25 @@ Before finalizing the RFC (both paths), verify:
 - [ ] Links use `[text](url)` syntax.
 
 **Completeness**:
-- [ ] Optional sections are included only when they add value.
-- [ ] Code samples and examples are accurate.
-- [ ] The RFC is self-contained and actionable.
+- [ ] Optional sections included only when they add value.
+- [ ] Code samples and examples accurate.
+- [ ] RFC is self-contained and actionable.
 
 ## Example: Notification Service Email Enhancement (Canonical)
 
-A complete worked RFC that follows every section of the ORG-004 schema lives in [`examples/notification-service-email.md`](examples/notification-service-email.md). It is formatted in Markdown (CommonMark) and includes the mandatory metadata table. Read it after Step 4 (Section-by-Section Guidance) when you need a concrete reference for tone, depth, and section interplay.
+A complete worked RFC following every section of the ORG-004 schema lives in [`examples/notification-service-email.md`](examples/notification-service-email.md) — Markdown (CommonMark), with the mandatory metadata table. Read it after Step 4 for a concrete reference on tone, depth, and section interplay.
 
 ## Best Practices
 
 1. **Be Clear and Specific**: avoid jargon, or explain it when necessary.
-2. **Provide Context**: do not assume readers have full background knowledge.
+2. **Provide Context**: don't assume readers have full background.
 3. **Document Trade-offs**: explain why you chose one approach over another.
-4. **Link to Related Work**: reference other RFCs, documentation, or decisions.
+4. **Link to Related Work**: reference other RFCs, docs, or decisions.
 5. **Write for Diverse Audiences**: technical and non-technical readers should both follow.
-6. **Be Concise but Complete**: provide sufficient detail without overwhelming.
-7. **Use Visual Aids**: include diagrams, code samples, or wireframes when helpful.
-8. **Get Early Feedback**: share drafts for review before finalizing.
-9. **Update as You Learn**: RFCs can evolve based on discovery and feedback.
+6. **Be Concise but Complete**: sufficient detail without overwhelming.
+7. **Use Visual Aids**: diagrams, code samples, or wireframes when helpful.
+8. **Get Early Feedback**: share drafts before finalizing.
+9. **Update as You Learn**: RFCs evolve based on discovery and feedback.
 10. **Preserve Content on Refactor**: never remove or rewrite fundamental proposals from a source draft — reorganize and clarify only.
 
 ## What to Avoid
@@ -329,7 +325,7 @@ A complete worked RFC that follows every section of the ORG-004 schema lives in 
 - Using jargon without explanation.
 - Assuming readers have full context.
 - Skipping required sections (Metadata Table, Background, Proposal).
-- Providing only high-level platitudes without specifics.
+- Only high-level platitudes without specifics.
 - Forgetting to document why alternatives were abandoned.
 - Including every optional section unnecessarily.
 - Inventing technical details to fill gaps (refactor path).
@@ -337,17 +333,17 @@ A complete worked RFC that follows every section of the ORG-004 schema lives in 
 
 ## Usage Guidelines
 
-1. **Start with Step 1**: answer the "Do you have a draft?" question before proceeding.
-2. **Fill required sections**: Title (page title), Metadata Table, Background, and Proposal are always required.
-3. **Include optional sections selectively**: Implementation and Operationalization subsections only when they provide value.
-4. **Use clear headings and Markdown formatting** (`##`/`###` headings, `**bold**`, fenced code blocks) for readability.
-5. **Be specific and concise**: sufficient detail without unnecessary verbosity.
-6. **Link to related documents**: reference other RFCs, documentation, or decisions.
+1. **Start with Step 1**: answer "Do you have a draft?" before proceeding.
+2. **Fill required sections**: Title, Metadata Table, Background, Proposal are always required.
+3. **Include optional sections selectively**: Implementation and Operationalization subsections only when they add value.
+4. **Use clear headings and Markdown** (`##`/`###` headings, `**bold**`, fenced code blocks).
+5. **Be specific and concise**: sufficient detail without verbosity.
+6. **Link to related documents**: other RFCs, docs, or decisions.
 7. **Keep it accessible**: write for someone unfamiliar with the context.
 8. **Adapt to your needs**: not every RFC needs every section.
-9. **Get feedback early**: share drafts for review before finalizing.
-10. **Update as you learn**: RFCs are living documents that can evolve.
+9. **Get feedback early**: share drafts before finalizing.
+10. **Update as you learn**: RFCs are living documents.
 
 ## Design Notes
 
-**Section-5 resolution (Operationalization ⊇ Security)**: Security is rendered as a subsection of Operationalization, not a peer-level top-level section. Security is one of several production concerns alongside Logging, Monitoring, and Resilience — all operational. Promoting Security to peer level would require the same treatment for the others, inflating the schema. Refactor-path drafts with heavy security content render Security prominently as a well-developed `### Security` subsection under Operationalization; this is semantically correct and visually equivalent to a promoted section in a properly-formatted document. Predecessor skills disagreed on this point — `rfc-format` used Operationalization as top-level with Security as subsection; `rfc-refactor` used Security as top-level with Operationalization relegated to Addendum. The consolidated skill adopts the Operationalization-as-container form.
+**Section-5 resolution (Operationalization ⊇ Security)**: Security is a subsection of Operationalization, not a top-level peer. It is one production concern alongside Logging, Monitoring, and Resilience — all operational; promoting it to peer level would require the same for the others, inflating the schema. Refactor-path drafts with heavy security content render it as a well-developed `### Security` subsection — semantically correct and visually equivalent to a promoted section. Predecessor skills disagreed (`rfc-format` used Operationalization top-level with Security as subsection; `rfc-refactor` did the reverse); the consolidated skill adopts the Operationalization-as-container form.

@@ -10,12 +10,12 @@ user-invocable: false
 A root node is the top-level directory of a monorepo, workspace, or multi-module
 directory (identified by `nx.json`, `turbo.json`, `go.work`, `.sln`, a
 `package.json` with `"workspaces"`, or a `pom.xml` with `<modules>` and no
-`src/`; or simply a parent directory containing multiple independent sub-projects
-with no formal manifest). This skill generates cross-project
-and infrastructure-level `.context/` documentation for the entire repository.
+`src/`; or a parent directory holding multiple independent sub-projects with no
+formal manifest). This skill generates cross-project and infrastructure-level
+`.context/` documentation for the whole repository.
 
 **Do not modify sub-project `.context/` folders.** Root context covers what is
-shared across or between projects — not what is specific to any one project.
+shared across or between projects — not what is specific to one.
 
 ---
 
@@ -43,7 +43,7 @@ shared across or between projects — not what is specific to any one project.
 
 ## context-specialist-impl-root: Step 1: Read Sub-Project Context
 
-Before generating any root-level content, read each area's `.context/overview.md`
+Before generating root-level content, read each area's `.context/overview.md`
 to understand what exists. Record:
 - The first sentence of each area's overview (for projects.md descriptions)
 - The primary language/stack of each area
@@ -55,8 +55,8 @@ This step is critical — root content must synthesize across areas, not guess.
 
 ## context-specialist-impl-root: Step 2: Generate `projects.md`
 
-The canonical project map that agents use (via `resolve-repo-context`) to locate
-any area by name. This is the most important file at root level.
+The canonical project map agents use (via `resolve-repo-context`) to locate any
+area by name — the most important root-level file.
 
 Format:
 
@@ -70,8 +70,8 @@ Format:
 Rules:
 - Derive names and descriptions from each area's `overview.md` first sentence
 - Use the directory name as the project name if no better name exists
-- Include every area discovered in the repo — do not omit any
-- Paths should be relative to the repo root
+- Include every area discovered in the repo — omit none
+- Paths relative to the repo root
 
 ---
 
@@ -87,7 +87,7 @@ Scan the repo root for infrastructure that applies across all areas:
 - **Shared scripts**: `Makefile`, `scripts/`, `.tool-versions`, `.nvmrc`
 - **Solution files**: `*.sln`
 
-Record findings — they feed into `workflows/ci-cd.md` and `architecture/patterns.md`.
+Record findings — they feed `workflows/ci-cd.md` and `architecture/patterns.md`.
 
 ---
 
@@ -97,8 +97,8 @@ Check for `.claude/claude.md` at the repo root:
 
 - **If it exists**: Update it to reflect the full multi-area structure.
   Add or update a section referencing `projects.md` in `.context/` as the area
-  inventory. Ensure it lists all areas and their roles. Do not remove existing
-  content that is still accurate.
+  inventory. Ensure it lists all areas and their roles. Keep existing content
+  that's still accurate.
 - **If it does not exist**: Create it covering:
   - What this monorepo is (1–2 sentences)
   - Full list of areas and their roles (reference `projects.md`)
@@ -120,7 +120,7 @@ Required content:
 - Cross-cutting concepts that span 2+ areas
 - Link to `projects.md` for the full area inventory
 
-Do not duplicate what is in area `overview.md` files — reference areas by path.
+Don't duplicate area `overview.md` content — reference areas by path.
 
 ---
 
@@ -132,7 +132,7 @@ Architectural decisions that affect two or more areas. Examples:
 - Patterns intentionally *not* used (and why)
 - Cross-area migrations in progress
 
-Format: one ADR per `NNN-kebab-slug.md` file, with `README.md` as the index. See `context-document-guidelines § Folder Split Rule` for the layout convention. Omit if no cross-area decisions are identifiable.
+Format: one ADR per `NNN-kebab-slug.md` file, with `README.md` as the index. See `context-document-guidelines § Folder Split Rule` for the layout convention. Omit if no cross-area decisions exist.
 
 ---
 
@@ -147,20 +147,21 @@ Cross-area integration patterns and shared abstractions:
 Keep strictly to patterns used by 2+ areas. Per-area patterns belong in the
 area's own `architecture/patterns.md`.
 
+
 ---
 
 ## context-specialist-impl-root: Step 8: Generate `domains/` files
 
-One file per business or technical domain that spans 2 or more areas.
-Format follows the same structure as leaf-level domain files (overview, key
-entities, API endpoints, business rules, important code paths).
+One file per business or technical domain spanning 2+ areas. Same structure as
+leaf-level domain files (overview, key entities, API endpoints, business rules,
+important code paths).
 
 Examples of root-level domains:
 - `authentication.md` — if auth is shared across all services
 - `event-bus.md` — if a shared message queue is used by 2+ services
 - `shared-models.md` — if common DTOs or entities span multiple areas
 
-Do not create domain files for concepts internal to a single area.
+Don't create domain files for concepts internal to a single area.
 
 ---
 
@@ -204,7 +205,7 @@ This file is the authoritative source agents use when writing commit messages.
 
 ## context-specialist-impl-root: Step 11b: Emit the `## Related` graph seam
 
-Every content doc you generated in Steps 6–11 — files under `domains/`, `architecture/patterns.md`, and `workflows/` — feeds the `.context/` knowledge graph. Give each one an explicit relationship footer so no doc is a silent orphan:
+Every content doc you generated in Steps 6–11 — files under `domains/`, `architecture/patterns.md`, and `workflows/` — feeds the `.context/` knowledge graph. Give each an explicit relationship footer so no doc is a silent orphan:
 
 1. **Append a `## Related` section as the LAST `## ` section** of each generated content doc, built from the cross-references you identified while synthesizing across areas. Use bulleted `label: [text](path)` links.
 2. When you generate an **ADR** (`decisions/NNN-*.md`) that supersedes an earlier one, emit the `**Supersedes**` / `**Superseded-by**` bold-fields alongside `**Status**`.
@@ -239,7 +240,7 @@ Wire the automatic task-pruning hook at the repo root if not already wired:
 git config core.hooksPath .githooks
 ```
 
-Confirm `.githooks/post-commit` exists. If it does not, copy it from
+Confirm `.githooks/post-commit` exists. If not, copy it from
 `$TEMPLATE_DIR/context/workflows/post-commit` and `chmod +x` it.
 
 ### context-specialist-impl-root: Step 13b: Ensure repo-root `.gitattributes`
@@ -273,15 +274,15 @@ fi
 ## context-specialist-impl-root: Step 14: Create Root `.iconrc`
 
 Invoke the `create-iconrc` skill at the repository root with the `repo_type`
-value supplied by the dispatcher prompt, passing the ticket prefixes detected
-in Step 11 so the skill can reject a colliding `local_task_id_prefix`:
+from the dispatcher prompt, passing the ticket prefixes from Step 11 so the
+skill can reject a colliding `local_task_id_prefix`:
 
 > Invoke skill: `create-iconrc` — `repo_type: <repo_type>`, `forbidden_prefixes: <set detected in Step 11>`, `local_task_id_prefix: <distinct value>`
 
 The chosen `local_task_id_prefix` MUST be distinct (case-insensitive) from every
 prefix in `forbidden_prefixes`. If the team has no opinion, default to `LOCAL`.
-Local task IDs use the format `<PREFIX>-<NNN>` with a numeric suffix at least
-3 digits wide and zero-padded (e.g., `LOCAL-001`).
+Local task IDs use `<PREFIX>-<NNN>` with a zero-padded numeric suffix at least 3
+digits wide (e.g. `LOCAL-001`).
 
 ---
 
@@ -304,16 +305,16 @@ Verify all root-level files are present:
 Commit all created/updated files with a message following the repo's commit convention.
 Example: `chore: initialize agent-system context at repo root`
 
-**Flag any gaps** — areas where infrastructure was too complex to document fully.
-A list of "needs attention" items is better than shallow docs that look complete.
+**Flag any gaps** — infrastructure too complex to document fully. A "needs
+attention" list beats shallow docs that look complete.
 
 ---
 
 ## Content Quality Standard
 
-Root context is **cross-project and infrastructure-level**. It covers what is
-shared across or between areas — not what any individual area does in detail.
-Reference area paths rather than duplicating area content.
+Root context is **cross-project and infrastructure-level** — what is shared
+across or between areas, not what an individual area does in detail. Reference
+area paths rather than duplicating area content.
 
 | Shallow (bad) | Thorough (good) |
 |---|---|

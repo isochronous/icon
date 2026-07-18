@@ -9,7 +9,7 @@ user-invocable: true
 
 ## Overview
 
-**Understand the blast radius before changing a dependency.** Upgrading a library is not a code change — it's a contract change that affects every consumer of that library across the project. Agents routinely suggest outdated APIs after upgrades or miss transitive breakage.
+**Understand the blast radius before changing a dependency.** Upgrading a library is not a code change — it's a contract change affecting every consumer of that library across the project. Agents routinely suggest outdated APIs after upgrades or miss transitive breakage.
 
 ## When to Use
 
@@ -30,10 +30,10 @@ user-invocable: true
 
 Before touching `package.json`, `pom.xml`, `*.csproj`, or any manifest:
 
-1. **Read the changelog/migration guide** for the target version. Use `@researcher` if the guide is long or the library is unfamiliar.
+1. **Read the changelog/migration guide** for the target version. Use `@researcher` if it's long or the library is unfamiliar.
 2. **Identify breaking changes** — renamed APIs, removed features, changed defaults, new required config.
 3. **Check transitive impact** — does the upgrade force upgrades in other packages? Run the package manager's dry-run or resolution check first.
-4. **Check project usage** — search the codebase for every import/usage of the library. Know what you're about to break.
+4. **Check project usage** — search the codebase for every import/usage. Know what you're about to break.
 
 ```
 # Examples of pre-upgrade discovery
@@ -47,8 +47,8 @@ npm outdated                                 # See what's behind
 For major version upgrades or library swaps:
 
 - List every API change that affects this project (not the full changelog — just what matters here)
-- Order changes by dependency: update types/interfaces first, then implementations, then tests
-- Identify whether the migration can be done incrementally or requires a big-bang change
+- Order changes by dependency: types/interfaces first, then implementations, then tests
+- Determine whether the migration can be incremental or requires a big-bang change
 - If incremental, define the coexistence strategy (adapter pattern, feature flags, parallel imports)
 
 ### dependency-management: Step 3: Execute and Verify
@@ -56,13 +56,13 @@ For major version upgrades or library swaps:
 1. **Update the dependency** in the manifest
 2. **Run the build** — fix compilation/type errors first
 3. **Run the full test suite** — not just the files you changed
-4. **Search for runtime-only breakage** — some changes (renamed config keys, changed default behavior) won't cause build errors but will fail at runtime. Check integration tests or run the application.
+4. **Search for runtime-only breakage** — some changes (renamed config keys, changed defaults) won't cause build errors but fail at runtime. Check integration tests or run the app.
 
 ### dependency-management: Step 4: Document What Changed
 
 If the upgrade introduced non-obvious changes (new defaults, removed features, required config):
-- Note in the commit message body what migration steps were applied
-- Update `.context/` if the upgrade changes established patterns (e.g., new routing API, new state management approach)
+- Note in the commit message body which migration steps were applied
+- Update `.context/` if the upgrade changes established patterns (e.g., new routing API, new state management)
 
 ## Evaluating New Dependencies
 
@@ -104,8 +104,8 @@ If you catch yourself doing any of these, the upgrade is not ready:
 
 - About to bump a major version while existing tests are red.
 - About to upgrade multiple unrelated dependencies in a single commit.
-- About to skip the changelog because the version bump "looks small".
+- About to skip the changelog because the bump "looks small".
 - Treating a green build as proof the library's behavior didn't change.
 - About to ignore peer-dependency warnings ("they'll resolve themselves").
 
-**All of these mean: re-plan the upgrade as a single-dependency commit with the changelog read and runtime behavior verified.**
+**All of these mean: re-plan as a single-dependency commit with the changelog read and runtime behavior verified.**

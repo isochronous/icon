@@ -26,13 +26,13 @@ Render the provided story content into a standard GitHub issue body in Markdown.
 
 ## Execution
 
-Upon invocation, perform these steps in order — do not stop at rendering the issue in chat:
+Perform these steps in order — do not stop at rendering the issue in chat:
 
-1. Render the complete issue content using the format defined in **Issue Output Format** below.
-2. Write the file to `{output_path}/{output_filename}` using your available file-write tool.
-3. Confirm the file was saved by reporting the full path written.
+1. Render the complete issue content using the format in **Issue Output Format** below.
+2. Write the file to `{output_path}/{output_filename}` using your file-write tool.
+3. Confirm the save by reporting the full path written.
 
-**Do not** output the issue as chat text only. The file must be written to disk. If `output_path` or `output_filename` are missing, ask for them before proceeding.
+**Do not** output the issue as chat text only — the file must be written to disk. If `output_path` or `output_filename` are missing, ask for them first.
 
 ## Outputs
 
@@ -40,8 +40,8 @@ A cleanly formatted GitHub issue body with:
 - **Title**: `[Area] Concise Summary`
 - **Objective**: 1-3 sentences stating the goal clearly
 - **Why is this needed**: Business value/rationale
-- **Acceptance Criteria**: Observable, testable conditions rendered as a GitHub task list, scoped to the correct layer (frontend vs backend)
-- **Technical Notes**: Actionable implementation guidance with specific file paths, methods, and patterns (filtered for relevance)
+- **Acceptance Criteria**: Observable, testable conditions as a GitHub task list, scoped to the correct layer (frontend vs backend)
+- **Technical Notes**: Actionable guidance with specific file paths, methods, and patterns (filtered for relevance)
 - **Open Questions**: Unresolved decisions requiring input
 - **Labels**: Suggested labels for the issue
 - **References**: Cross-references to related issues (`#123`) or PRs

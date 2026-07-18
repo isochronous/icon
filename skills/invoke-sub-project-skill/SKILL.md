@@ -9,16 +9,16 @@ user-invocable: false
 
 ## Overview
 
-Loads a skill from an absolute path and frames it as an active invocation. The framing is the key distinction: without it, an agent treats a skill file as reference material. With it, the agent executes the skill's instructions.
+Loads a skill from an absolute path and frames it as an active invocation. The framing is the key distinction: without it, an agent treats a skill file as reference material; with it, it executes the skill's instructions.
 
 ## When to Use
 
 - The manager received `available_skills` from `resolve-repo-context` and needs to invoke one of those skills
-- A specific skill path is known and a task is ready to be executed with it
+- A specific skill path is known and a task is ready to run with it
 
 ## When NOT to Use
 
-- You need to find which skills are available — that is `resolve-repo-context`'s job; call it first
+- You need to find which skills are available — that's `resolve-repo-context`'s job; call it first
 - The target skill is already loaded from the ICON plugin — invoke it by name directly
 - You only want to read a skill file for reference — just read it; this skill is for execution, not consultation
 
@@ -44,7 +44,7 @@ Read the full contents of `skill_path`, including frontmatter.
 
 ## invoke-sub-project-skill: Step 3: Frame and execute
 
-Construct the invocation using this exact structure — the framing language is mandatory:
+Construct the invocation with this exact structure — the framing language is mandatory:
 
 ```
 The following is a skill definition. Read it and execute its instructions to accomplish the task.
@@ -56,10 +56,10 @@ The following is a skill definition. Read it and execute its instructions to acc
 Task: <task>
 ```
 
-Execute with this framing. The framing signals that this content is to be followed as active instructions, not consulted as documentation.
+Execute with this framing. It signals the content is to be followed as active instructions, not consulted as documentation.
 
 ## Loading vs. Discovery
 
-This skill handles **loading and framing only**. Discovering which skills are available at a given path — scanning `.copilot/skills/` or reading `available_skills` from the resolution result — is done by `resolve-repo-context`, not here.
+This skill handles **loading and framing only**. Discovering which skills are available at a path — scanning `.copilot/skills/` or reading `available_skills` from the resolution result — is `resolve-repo-context`'s job, not this.
 
 Call this skill only after you have a specific `skill_path`.

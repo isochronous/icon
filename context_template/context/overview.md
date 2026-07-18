@@ -1,10 +1,10 @@
 # Architecture Overview
 
-> **Note:** This documentation serves both **human developers** and **AI agents**. It is designed to support an AI agent delegation model where a manager agent coordinates specialized agents to accomplish tasks efficiently.
+> **Note:** This documentation serves both **human developers** and **AI agents**, supporting a delegation model where a manager agent coordinates specialized agents to accomplish tasks.
 
 ## Purpose of This Documentation
 
-This `.context` directory provides comprehensive project-specific knowledge that enables:
+This `.context` directory provides project-specific knowledge that enables:
 
 ### For Human Developers
 - Quick onboarding to project patterns and conventions
@@ -22,7 +22,7 @@ This `.context` directory provides comprehensive project-specific knowledge that
 
 ## AI Agent Delegation Model
 
-This documentation is designed for a **"manager of engineers"** model where a manager agent coordinates specialized agents:
+This documentation supports a **"manager of engineers"** model where a manager agent coordinates specialized agents:
 
 ### Available Agent Roles
 

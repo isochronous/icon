@@ -19,8 +19,7 @@ via the `context-specialist-impl-leaf` skill.
 
 <!-- Fallback only — not reached in standard flows. @context-specialist's own
      Process (Step 3) maps tree_position directly to impl skills without ever
-     reading initialize-repo. This branch exists as a safety net for unforeseen
-     future invocations. -->
+     reading initialize-repo. A safety net for unforeseen future invocations. -->
 Load the `context-specialist-impl-leaf` skill and execute it inline.
 Do not dispatch a sub-agent.
 
@@ -31,8 +30,8 @@ Do not dispatch a sub-agent.
 Dispatch `@context-specialist` as an isolated background agent using the
 task tool with `agent_type: "ICON:context-specialist"`.
 
-Use the following prompt, substituting `<CWD>` with the absolute path of the
-target project directory:
+Use the following prompt, substituting `<CWD>` with the target project's
+absolute path:
 
 ~~~
 You are @context-specialist. Initialize agent-system context for a project.

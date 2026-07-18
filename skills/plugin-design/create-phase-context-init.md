@@ -2,11 +2,11 @@
 
 ## Overview
 
-Populate the plugin's `.context/` directory by delegating to the `/icon-init` skill, which is the canonical context-folder initializer.
+Populate the plugin's `.context/` directory by delegating to the `/icon-init` skill, the canonical context-folder initializer.
 
 ## Why Delegate
 
-`/icon-init` already handles repo-type detection, template copying, `.iconrc.json` creation, git-hook wiring, and the post-init affordances (`/icon-status` hint, conditional MCP onboarding hint). Duplicating any of that here would create drift the next time `/icon-init` changes. The job of this phase is simply to make sure that flow runs against the new plugin's working directory.
+`/icon-init` already handles repo-type detection, template copying, `.iconrc.json` creation, git-hook wiring, and post-init affordances (`/icon-status` hint, conditional MCP onboarding hint). Duplicating any of it here would drift the next time `/icon-init` changes. This phase just runs that flow against the new plugin's working directory.
 
 ## Run
 
@@ -16,7 +16,7 @@ From the plugin root, invoke:
 /icon-init
 ```
 
-`/icon-init` will auto-detect the repo shape. For a fresh plugin scaffold from Phase 1, the detected type will be `project` (single-project leaf — there is no monorepo manifest, no `*.code-workspace`, no multimodule layout). Confirm `project` when prompted.
+`/icon-init` auto-detects the repo shape. For a fresh Phase 1 scaffold, the detected type will be `project` (single-project leaf — no monorepo manifest, no `*.code-workspace`, no multimodule layout). Confirm `project` when prompted.
 
 ## Validation
 
@@ -32,4 +32,4 @@ PowerShell:
 if (Test-Path .context/iconrc.json) { 'context initialized' } else { 'context-init failed' }
 ```
 
-If the file is missing, surface the failure rather than continuing to the next phase — Phase 5 (marketplace) and audit-mode both assume `.context/` is populated.
+If the file is missing, surface the failure rather than continuing — Phase 5 (marketplace) and audit-mode both assume `.context/` is populated.

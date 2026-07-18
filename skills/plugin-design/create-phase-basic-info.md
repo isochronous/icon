@@ -6,7 +6,7 @@ Interactively collect plugin metadata and write it to `plugin.json` and `README.
 
 ## Fields to Collect
 
-Ask the user for each field in order. Validate as you go.
+Ask for each field in order, validating as you go.
 
 | Field | Validation | Notes |
 |-------|------------|-------|
@@ -21,7 +21,7 @@ If a field fails validation, surface the rule and prompt again rather than proce
 
 ## Update plugin.json (Bash)
 
-Use `jq` to update fields in place. If `jq` is not installed, fall back to the Python snippet below.
+Use `jq` to update fields in place. If `jq` is not installed, use the Python fallback below.
 
 ```bash
 jq --arg n "<name>" \
@@ -111,7 +111,7 @@ Set-Content -Path README.md -Value $lines -Encoding UTF8
 
 ## Validation
 
-Re-parse `plugin.json` after every edit to catch malformed writes immediately:
+Re-parse `plugin.json` after every edit to catch malformed writes:
 
 ```bash
 python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"

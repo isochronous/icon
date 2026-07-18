@@ -2,13 +2,13 @@
 
 ## Overview
 
-Audit mode runs a three-phase structural review of an existing Claude Code plugin: file/folder + frontmatter structure, internal consistency, and improvement opportunities. The output is a structured findings report — no severity tiering (that is `icon-audit`-specific and does not generalize), but always at least three improvement opportunities even when no defects are found.
+Audit mode runs a three-phase structural review of an existing Claude Code plugin: file/folder + frontmatter structure, internal consistency, and improvement opportunities. Output is a structured findings report — no severity tiering (that is `icon-audit`-specific and does not generalize), but always at least three improvement opportunities even when no defects are found.
 
 ## Hard Precondition
 
-Audit mode requires the plugin to have been initialized with `/icon-init`. Without `.context/` populated, the audit degenerates into a generic file-structure linter — it cannot read the plugin's own standards, decisions, or domain docs to ground architectural-consistency checks.
+Audit mode requires the plugin to have been initialized with `/icon-init`. Without a populated `.context/`, the audit degenerates into a generic file-structure linter — it cannot read the plugin's own standards, decisions, or domain docs to ground architectural-consistency checks.
 
-Confirm the precondition before sequencing any phases.
+Confirm this before sequencing any phases.
 
 Bash:
 
@@ -42,7 +42,7 @@ Halt the skill on failure. Do not continue to Phase 1.
 
 ## Phase Sequence
 
-Load and execute each phase file in order. Each phase appends findings to the running report; the final synthesis happens after Phase 3.
+Load and execute each phase file in order. Each phase appends findings to the running report; final synthesis happens after Phase 3.
 
 1. **Structure validation** — load `audit-phase-structure.md`. Check `plugin.json`, required directories, frontmatter validity, CHANGELOG presence.
 2. **Internal consistency** — load `audit-phase-consistency.md`. Check skill references, file-path references, frontmatter quality, role-overlap heuristic.
@@ -63,4 +63,4 @@ After Phase 3, present the findings as a single report with three sections:
 - <free-text suggestions, at least 3 entries>
 ```
 
-Do **not** assign Critical / Moderate / Minor tiers — that is an ICON-internal convention. Generic consumers running this skill ad-hoc should evaluate the findings against their own release-readiness bar.
+Do **not** assign Critical / Moderate / Minor tiers — that is an ICON-internal convention. Generic consumers running this skill ad-hoc should evaluate findings against their own release-readiness bar.

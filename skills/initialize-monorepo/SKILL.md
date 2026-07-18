@@ -11,19 +11,18 @@ user-invocable: false
 
 # Initialize Monorepo
 
-Bootstrap the full agent-system context for every functional area in a monorepo,
-then generate root-level cross-project context. Each area runs in its own
-isolated session to prevent context from one project polluting another.
-All work happens on a feature branch — nothing lands on the integration branch
-without a human reviewing and merging a pull request.
+Bootstrap agent-system context for every functional area in a monorepo, then
+generate root-level cross-project context. Each area runs in an isolated session
+so one project's context does not pollute another. All work happens on a feature
+branch — nothing lands on the integration branch without a human reviewing and
+merging a PR.
 
 ---
 
 ## initialize-monorepo: Step 0: Branch Guard
 
 Before touching any files, determine the repository's integration branch and
-create a dedicated feature branch. All subsequent steps work exclusively on
-this branch.
+create a dedicated feature branch. All later steps work exclusively on it.
 
 ```bash
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -52,24 +51,23 @@ else
 fi
 ```
 
-Record `INTEGRATION_BRANCH` and `FEATURE_BRANCH` — you will need both in
-subsequent steps and in every sub-session prompt.
+Record `INTEGRATION_BRANCH` and `FEATURE_BRANCH` — both are needed in later steps
+and in every sub-session prompt.
 
 ---
 
 ## initialize-monorepo: Step 1: Discover Project Area Roots
 
-A **project area root** is a directory that groups a coherent set of source
-files that can be understood together. The right granularity varies by
-repository type — use the first matching rule below.
+A **project area root** is a directory grouping a coherent set of source files
+understood together. The right granularity varies by repository type — use the
+first matching rule below.
 
 ### Rule 1: .NET Solution repos
 
 If the repo contains one or more `.sln` files, the project areas are the
-**solution group folders** — NOT individual `.csproj` files. In a .NET
-solution the solution groups appear as top-level logical folders (e.g.,
-`<service-a>`, `<service-b>`, `<data-provider>`, `<integrations>`) and each one
-maps to a directory containing multiple related `.csproj` projects.
+**solution group folders** — NOT individual `.csproj` files. Solution groups are
+top-level logical folders (e.g. `<service-a>`, `<service-b>`, `<data-provider>`,
+`<integrations>`), each holding multiple related `.csproj` projects.
 
 To identify the solution group directories:
 
@@ -92,13 +90,12 @@ grep '\.csproj"' "$SLN" \
     done
 ```
 
-Additionally, any directory with an `angular.json` (Angular app) or a
-standalone `package.json` without a `workspaces` array (standalone Node app)
-is a separate project area, even inside a .NET repo.
+Additionally, any directory with an `angular.json` (Angular app) or a standalone
+`package.json` without a `workspaces` array (standalone Node app) is a separate
+project area, even inside a .NET repo.
 
-**Do not** list individual `.csproj` directories as project roots — a .NET
-solution may contain 50–100 `.csproj` files. The solution group is the correct
-unit of context.
+**Do not** list individual `.csproj` directories as project roots — a .NET solution
+may contain 50–100 of them. The solution group is the correct unit.
 
 ### Rule 2: npm workspace / Nx / Turborepo repos
 
@@ -109,9 +106,9 @@ Exclude `node_modules`, `dist`, `build`, `.cache`.
 ### Rule 3: All other repos (Maven multi-module, Go workspace, etc.)
 
 Look for primary manifest files (`pom.xml`, `go.mod`, `Cargo.toml`,
-`pyproject.toml`, `Gemfile`) at depth 1–2 from the repo root only. Do not
-recurse deeper. Exclude aggregator roots (a `pom.xml` with only `<modules>`
-and no `<src>`, a `Cargo.toml` with only `[workspace]`).
+`pyproject.toml`, `Gemfile`) at depth 1–2 from the repo root only — no deeper.
+Exclude aggregator roots (a `pom.xml` with only `<modules>` and no `<src>`, a
+`Cargo.toml` with only `[workspace]`).
 
 ### Result
 
@@ -127,22 +124,20 @@ Produce a flat, deduplicated list. Example for a .NET solution:
 
 ## initialize-monorepo: Step 2: Classify Each Area
 
-For each area path in `AREA_LIST`, determine whether it needs initialization
-or upgrade:
+For each area path in `AREA_LIST`, determine whether it needs initialization or
+upgrade:
 
 - Apply the **Entry-Point Detection Primitive** (canonical definition:
   `skills/context-specialist-detect-tree-position/SKILL.md` § "Entry-Point
-  Detection Primitive (callable)"). Use the **detection form** with
-  `$dir=$area`. Read that section to obtain the exact conditional, then run
-  it against each area.
-- If the primitive's detection-form check passes for the area (entry-point
-  file present AND `.context/` directory present): the action is
-  `upgrade-repo`.
-- Otherwise: the action is `initialize-repo`.
+  Detection Primitive (callable)"). Use the **detection form** with `$dir=$area`.
+  Read that section for the exact conditional, then run it against each area.
+- If the detection-form check passes (entry-point file present AND `.context/`
+  directory present): the action is `upgrade-repo`.
+- Otherwise: `initialize-repo`.
 
 `.claude/claude.md` is the canonical agent entry point;
-`.github/copilot-instructions.md` is the legacy fallback — both are accepted
-by the primitive.
+`.github/copilot-instructions.md` is the legacy fallback — both accepted by the
+primitive.
 
 Build a decision table before proceeding:
 
@@ -155,20 +150,19 @@ Build a decision table before proceeding:
 
 ## initialize-monorepo: Step 3: Run Isolated Sessions (Max 3 Parallel)
 
-For each area, dispatch a **background agent** using the task tool.
-Never exceed **3 concurrent agents** — `initialize-repo` is context-intensive
-and quality degrades under load.
+For each area, dispatch a **background agent** via the task tool. Never exceed
+**3 concurrent agents** — `initialize-repo` is context-intensive and quality
+degrades under load.
 
-Each background agent runs in its own isolated context window automatically.
-You will be notified when each one completes — use `read_agent` to retrieve
-the result.
+Each background agent runs in its own isolated context window automatically. You
+are notified when each completes — use `read_agent` to retrieve the result.
 
 ### Dispatch pattern
 
-For each area, dispatch a background `ICON:context-specialist` agent with the
-appropriate prompt below (substituting the real paths). Dispatch up to 3
-at a time. After each completion notification, verify the area (Step 4
-criteria) and dispatch the next pending area if any remain.
+Dispatch a background `ICON:context-specialist` agent per area with the appropriate
+prompt below (substituting the real paths), up to 3 at a time. After each completion
+notification, verify the area (Step 4 criteria) and dispatch the next pending area,
+if any.
 
 ### Prompt — `initialize-repo` areas
 
@@ -241,28 +235,27 @@ After all sessions finish, check each area:
   (canonical definition:
   `skills/context-specialist-detect-tree-position/SKILL.md` § "Entry-Point
   Detection Primitive (callable)"). Use the **verification form** with
-  `$dir=$area`. Read that section to obtain the exact soft-fail check, then
-  run it against each area. The verification form accumulates failures into
-  the caller-owned `FAILURES` array.
-- In addition to the entry-point check, verify the following per area; on
-  miss, emit a `MISSING …: $area` message and mark the area as failed:
+  `$dir=$area`. Read that section for the exact soft-fail check, then run it
+  against each area. The verification form accumulates failures into the
+  caller-owned `FAILURES` array.
+- Also verify the following per area; on miss, emit a `MISSING …: $area` message
+  and mark the area failed:
   - `$area/.context/` directory exists
   - `$area/.context/domains/` directory exists
   - `$area/.context/overview.md` file exists
-- If `FAILURES` is non-empty after the loop: re-run the sessions for those
-  areas with the same logic as Step 3.
+- If `FAILURES` is non-empty after the loop: re-run those areas with the same
+  logic as Step 3.
 
-Do not proceed to Step 5 until every area passes verification. The root
-session reads each area's `.context/overview.md` — gaps cause incomplete
-cross-project context.
+Do not proceed to Step 5 until every area passes. The root session reads each
+area's `.context/overview.md` — gaps cause incomplete cross-project context.
 
 ---
 
 ## initialize-monorepo: Step 5: Root-Level Context Discovery
 
-After all areas pass verification, generate cross-project context at the
-**repository root**. Dispatch one final background `ICON:context-specialist` agent
-at the repo root with the prompt below.
+After all areas pass, generate cross-project context at the **repository root**.
+Dispatch one final background `ICON:context-specialist` agent at the repo root
+with the prompt below.
 
 ### Root session prompt
 
@@ -295,8 +288,8 @@ Replace `<COMMA_SEPARATED_AREA_PATHS>` with the actual list.
 
 ## initialize-monorepo: Step 6: Push Branch and Open Pull Request
 
-After the root session succeeds, push the feature branch and raise a
-pull request for human review.
+After the root session succeeds, push the feature branch and raise a pull request
+for review.
 
 ```bash
 git push --set-upstream origin "$FEATURE_BRANCH"
@@ -331,7 +324,7 @@ them to review before merging.
 ## initialize-monorepo: Step 7: Clean Up
 
 Surface any area agent failures to the user with a summary of which areas
-succeeded and which need to be re-run. Do not silently swallow failures.
+succeeded and which need re-running. Do not silently swallow failures.
 
 ---
 
@@ -339,12 +332,12 @@ succeeded and which need to be re-run. Do not silently swallow failures.
 
 | Mistake | Fix |
 |---------|-----|
-| Using individual `.csproj` files as project roots in a .NET solution | Use solution group directories (e.g., `src/<service-a>`) — typically 8–12 groups, not 50+ files |
-| Running more than 3 sessions in parallel | Hard cap at 3; quality and rate limits both degrade above this |
-| Forgetting to pass `REPO_ROOT` and `AREA_PATH` in sub-session prompts | Each session must know both paths — the area session works in the area but must commit relative to the git root |
-| Starting root context before all area sessions finish | Do not dispatch the root agent until all area agents have completed and passed Step 4 verification |
+| Using individual `.csproj` files as project roots in a .NET solution | Use solution group directories (e.g. `src/<service-a>`) — typically 8–12 groups, not 50+ files |
+| Running more than 3 sessions in parallel | Hard cap at 3; quality and rate limits both degrade above it |
+| Forgetting to pass `REPO_ROOT` and `AREA_PATH` in sub-session prompts | Each session needs both — the area session works in the area but commits relative to the git root |
+| Starting root context before all area sessions finish | Do not dispatch the root agent until all areas completed and passed Step 4 |
 | Root context duplicating per-area detail | Root covers cross-area relationships only; link to area paths |
-| Omitting `projects.md` from root context | This is the primary navigation artifact for `@manager` and `resolve-repo-context` |
+| Omitting `projects.md` from root context | It is the primary navigation artifact for `@manager` and `resolve-repo-context` |
 | Not verifying areas before Step 5 | Root prompt reads area `overview.md` files — missing ones create gaps |
-| Committing directly to the integration branch | Step 0 creates `chore/initialize-agent-context`; sub-session prompts must reinforce this |
+| Committing directly to the integration branch | Step 0 creates `chore/initialize-agent-context`; sub-session prompts must reinforce it |
 | Merging the PR without human review | Always surface the PR URL and stop — do not self-merge |

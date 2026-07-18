@@ -2,14 +2,14 @@
 
 ## Overview
 
-Cross-file checks that detect drift between what a file claims and what other files actually contain. Structure can be valid (Phase 1) while still being internally inconsistent — a skill that references `/foo` when no `skills/foo/SKILL.md` exists, a description that is boilerplate placeholder text, or two agents whose stated responsibilities overlap.
+Cross-file checks that detect drift between what a file claims and what other files contain. Structure can be valid (Phase 1) yet internally inconsistent — a skill referencing `/foo` when no `skills/foo/SKILL.md` exists, a placeholder description, or two agents whose responsibilities overlap.
 
 ## Checks
 
-1. **Skill references resolve** — any `/foo` invocation in `agents/*.agent.md` or `skills/*/SKILL.md` body text must correspond to an existing `skills/foo/SKILL.md` (or to a built-in slash command, which the auditor should distinguish if known).
+1. **Skill references resolve** — any `/foo` invocation in `agents/*.agent.md` or `skills/*/SKILL.md` body text must correspond to an existing `skills/foo/SKILL.md` (or a built-in slash command, which the auditor should distinguish if known).
 2. **File-path references resolve** — any `.context/<subdir>/<file>.<ext>` reference in shipped surfaces (agents, skills, shared, commands) must resolve under the plugin's `.context/`. (For the ICON self-audit case where `.context/` content lives under `context_template/context/`, prefer that location when present.) This generalizes the dead-ref pattern from ICON's own pre-commit hook.
-3. **Frontmatter `description` is non-boilerplate** — heuristic: description must not be empty, must not equal the skill/agent name, must not be the literal `TODO` or `<description>`, must be longer than 20 characters.
-4. **Agent/skill role-overlap heuristic** — if two agents have descriptions whose first sentence mentions overlapping responsibilities (similar verb + object), surface it as a concern. This is a heuristic only; flag for review, do not auto-fail.
+3. **Frontmatter `description` is non-boilerplate** — heuristic: must not be empty, must not equal the skill/agent name, must not be the literal `TODO` or `<description>`, must exceed 20 characters.
+4. **Agent/skill role-overlap heuristic** — if two agents have first-sentence descriptions with overlapping responsibilities (similar verb + object), surface it as a concern. Heuristic only; flag for review, do not auto-fail.
 
 ## Validation Snippets
 
@@ -135,7 +135,7 @@ PY
 
 ### Role-overlap heuristic
 
-This is a judgment call, not a deterministic check. List every agent's `name` + first-sentence verb phrase, then surface pairs whose verb + object look similar (e.g., two agents that both "review code", two that both "manage tasks"). Examples:
+A judgment call, not a deterministic check. List every agent's `name` + first-sentence verb phrase, then surface pairs whose verb + object look similar (e.g. two agents that both "review code" or "manage tasks"):
 
 - `coder` "implements features" vs `developer` "implements changes" → flag.
 - `tester` "writes tests" vs `qa` "creates tests" → flag.
@@ -145,4 +145,4 @@ Report the pair, the overlapping phrase, and the recommended action: consult `ag
 
 ## Cross-references
 
-When role overlap is detected, the next step is the dedicated single-agent review: invoke `agent-evaluation` against the involved agents.
+When role overlap is detected, invoke `agent-evaluation` against the involved agents for a dedicated single-agent review.
