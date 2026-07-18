@@ -39,12 +39,12 @@ The manager loads phase-specific guidance on demand from `workflows/task-plan/`:
 
 1. **Task Initiation** - Gather context, assess complexity
 2. **Research** (conditional) - @researcher fetches current library documentation
-3. **Planning** - @planner breaks down the work (`task-plan/phase-investigation.md`)
-4. **Architecture Review** - @architect validates approach (`task-plan/phase-architecture.md`)
-5. **Implementation** - @coder builds following patterns (`task-plan/phase-implementation.md`)
-6. **Testing** - @tester validates implementation (`task-plan/phase-testing.md`)
+3. **Planning** - @planner breaks down the work ([task-plan/phase-investigation.md](workflows/task-plan/phase-investigation.md))
+4. **Architecture Review** - @architect validates approach ([task-plan/phase-architecture.md](workflows/task-plan/phase-architecture.md))
+5. **Implementation** - @coder builds following patterns ([task-plan/phase-implementation.md](workflows/task-plan/phase-implementation.md))
+6. **Testing** - @tester validates implementation ([task-plan/phase-testing.md](workflows/task-plan/phase-testing.md))
 7. **Review** - @reviewer checks quality
-8. **Completion** - Document lessons learned (`task-plan/phase-completion.md`)
+8. **Completion** - Document lessons learned ([task-plan/phase-completion.md](workflows/task-plan/phase-completion.md))
 
 ### Context Recovery After Compaction
 

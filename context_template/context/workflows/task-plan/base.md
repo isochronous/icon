@@ -1,4 +1,6 @@
 <!-- template-version: 1.0 -->
+<!-- orphan-ok rationale: scaffold stub read programmatically by the task-plan skill, not linked from a knowledge doc. A populated repo indexes it via rules-index. -->
+<!-- context-graph:orphan-ok -->
 # Plan Document Format
 
 > Customize the template below for your team's workflow. The `task-plan` skill

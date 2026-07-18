@@ -289,6 +289,17 @@ After populating `standards/`, `workflows/`, and `decisions/`, **generate** `.co
 
 ---
 
+## context-specialist-impl-leaf: Step 4.6: Emit the `## Related` graph seam
+
+Every content doc you populated in Step 4 — files under `domains/`, `standards/`, `workflows/`, `architecture/`, `testing/`, and `styling/` — feeds the `.context/` knowledge graph. Give each one an explicit relationship footer so no doc is a silent orphan:
+
+1. **Append a `## Related` section as the LAST `## ` section** of each content doc, built from the cross-references you identified while scanning (the by-name mentions and related files you would otherwise bury in prose). Use bulleted `label: [text](path)` links.
+2. When you generate an **ADR** (`decisions/NNN-*.md`) that supersedes an earlier one, emit the `**Supersedes**` / `**Superseded-by**` bold-fields alongside `**Status**`.
+
+Follow `context-document-guidelines § Related Section (graph seam)` for the exact format, placement, ADR bold-field convention, and the sparing use of escape-hatch markers — do not restate it here.
+
+---
+
 ## context-specialist-impl-leaf: Step 5: Verify
 
 After creating all files, confirm quality:

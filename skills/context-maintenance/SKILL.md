@@ -54,6 +54,8 @@ Scan all `.context/` files. For each file, check for these issue types:
 | **Orphaned entries** | Task folders in `tasks/` for completed or abandoned work; retrospective entries for issues that no longer represent active learnings |
 | **Unpromoted lessons** | Retrospective entries with learnings that should have been promoted to persistent docs but were not |
 | **Index-coverage gap** | A top-level file under `standards/`, `workflows/`, or `decisions/` (an ADR `NNN-*.md`) has no row in `rules-index.md`. A file *inside* an already-indexed sub-directory (e.g. `standards/skill-decomposition/`, `workflows/task-plan/`) is covered by that directory's parent row — not a gap. **Detect with the `check-rules-index.sh` script (see § Tooling) — do not hand-scan.** |
+| **Dangling reference** | A `[text](path)` link (or a `## Related` link) in **any** content doc — `domains/`, `architecture/`, `standards/`, prose links, ADR supersede targets — whose target does not resolve on disk. Generalizes the rules-index-only backward check to the whole tree. **Detect with `context-graph --check` (see § Tooling) — do not hand-scan.** |
+| **Orphan / unreachable node** | A content doc with no in-edges that is not a known discovery root (`overview.md`, `projects.md`, `rules-index.md`) — e.g. a `domains/` file nothing links to and no index covers. **Detect with `context-graph --check` (see § Tooling).** `tasks/*` files are never orphan-flagged. |
 
 Build an **audit report** in working memory as you scan. For each finding, record:
 - File path
@@ -226,4 +228,51 @@ bash "$SKILL_DIR/scripts/check-rules-index.sh" "$(git rev-parse --show-toplevel)
 missing a row (listed on stderr — add an "Applies when…" row for each before
 proceeding to Phase 3); `2` = `.context/` or `rules-index.md` absent (create
 the index first — `context-specialist-impl-leaf` Step 4.5).
+
+## Tooling: context-graph
+
+The **Dangling reference** and **Orphan / unreachable node** audits (Phase 1)
+are script-backed — run `context-graph --check` rather than hand-scanning
+`.context/` for broken links and unlinked docs. A sibling reference,
+[`context-graph.md`](context-graph.md), documents both the `.sh` and `.ps1`
+variants in `./scripts/`, the node/edge model, the escape-hatch markers, and
+the fail-closed exit contract (`0` clean / `1` violations / `2` parser or
+environment error — any non-zero must block; invoke as `… || exit 1`, never
+`if context-graph …; then`).
+
+Run it from the target repo, passing the repo root or the `.context/` tree:
+
+### Claude Code (Bash)
+
+```bash
+bash "${CLAUDE_SKILL_DIR}/scripts/context-graph.sh" --check "$(git rev-parse --show-toplevel)/.context" || exit 1
+```
+
+### Copilot CLI (Bash)
+
+```bash
+# Override via MARKETPLACE_NAME=<your-marketplace-slug>, or edit this line in forks.
+[ -n "${MARKETPLACE_NAME+x}" ] || MARKETPLACE_NAME="icon-marketplace"
+SKILL_DIR="${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/${MARKETPLACE_NAME}/ICON/skills/context-maintenance"
+bash "$SKILL_DIR/scripts/context-graph.sh" --check "$(git rev-parse --show-toplevel)/.context" || exit 1
+```
+
+### Disjoint ownership — no double-reporting
+
+`context-graph --check` owns a **disjoint** edge set from the two other
+consistency gates, so no dangling reference is ever reported twice:
+
+- It owns **content-doc → content-doc** links (including `## Related` links) and
+  **ADR supersede targets**.
+- It **ingests** `rules-index.md` rows only as reachability edges (so a
+  rule file reachable via the index is not flagged as an orphan) but does
+  **not** re-validate them — dead rules-index rows stay owned by
+  `check-rules-index.sh`'s backward check. Run `check-rules-index.sh` first;
+  their edge sets do not overlap, so their verdicts cannot conflict.
+- It does not touch plugin-doc → `.context/` references (the `pre-commit`
+  dead-ref resolver's domain).
+
+The `## Related` seam and the ADR `**Supersedes**` / `**Superseded-by**`
+bold-fields the graph keys on are defined by the `context-document-guidelines`
+skill — consult it for the seam authoring rules rather than restating them here.
 

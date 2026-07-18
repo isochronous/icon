@@ -883,3 +883,7 @@ $[config]: (
 *Last Updated: [Date]*  
 *Style System Version: [Version]*  
 *Status: [Draft/Active]*
+
+## Related
+
+- See also: [code style](../standards/code-style.md)

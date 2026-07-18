@@ -233,3 +233,8 @@ export const testConfig = {
 3. **Test error paths** - Include network failures, timeouts, invalid responses
 4. **Keep tests fast** - Integration tests should still complete in reasonable time
 5. **Document dependencies** - Note what services/databases are needed
+
+## Related
+
+- See also: [unit testing](unit-testing.md)
+- Governed by: [CI/CD workflow](../workflows/ci-cd.md)

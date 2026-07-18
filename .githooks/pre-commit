@@ -484,6 +484,8 @@ cap_check_files=()
 skill_registration_check_needed=0
 rules_index_check_needed=0
 shellcheck_needed=0          # ICON-0075: armed when a staged file is a shell script or git hook
+context_graph_dotcontext_needed=0   # ICON-0081: armed when a staged file is under .context/
+context_graph_template_ctx_needed=0 # ICON-0081: armed when a staged file is under context_template/context/
 
 for f in "${staged[@]}"; do
   # Dead-ref check scope: staged files under agents/, skills/, shared/,
@@ -559,6 +561,18 @@ for f in "${staged[@]}"; do
   case "$f" in
     *.sh|.githooks/pre-commit|.githooks/post-commit)
       shellcheck_needed=1 ;;
+  esac
+
+  # ICON-0081: context-graph --check gate fires when any staged path is under
+  # .context/ or context_template/context/. The two trees are checked
+  # separately (design §8.3) because each is an independent graph of the same
+  # shape. Any .context/ path arms the trigger — the script itself excludes
+  # tasks/* nodes, so a tasks-only commit still safely parses the whole tree.
+  case "$f" in
+    .context/*)                context_graph_dotcontext_needed=1 ;;
+  esac
+  case "$f" in
+    context_template/context/*) context_graph_template_ctx_needed=1 ;;
   esac
 done
 
@@ -739,6 +753,69 @@ if (( rules_index_check_needed == 1 )); then
   fi
 
   bash "$check_script" "$repo_root" || exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# ICON-0081: context-graph --check fail-closed gate (delegated to shared SSOT)
+# -----------------------------------------------------------------------------
+# skills/context-maintenance/scripts/context-graph.sh --check validates the
+# .context/ knowledge graph: every content-doc -> content-doc `references` edge
+# (incl. `## Related` links) resolves on disk, and every content doc is
+# reachable (has an in-edge, or is a root/index-covered node). It owns an edge
+# set DISJOINT from the two gates around it (design §8.2): it INGESTS
+# rules-index rows as reachability edges but never re-validates them (that
+# stays check-rules-index.sh's backward check), and it does not touch
+# plugin-doc -> .context refs (the dead-ref resolver's domain below). No dead
+# ref is therefore reported twice with conflicting messages.
+#
+# Ordering (design §8.2): this runs AFTER check-rules-index — the narrow,
+# fast, authoritative index gate goes first, so a rule-index failure aborts
+# the commit before this heavier whole-tree parse runs.
+#
+# FAIL-CLOSED exit contract (design §8.1) — the load-bearing ICON-0075 defense.
+# context-graph.sh --check exits 0 = clean / 1 = violations / 2 =
+# parser-or-environment error (incl. zero-nodes-on-a-populated-tree). The
+# invocation below is `bash … --check || { …; exit 1; }`, so ANY non-zero
+# (1 OR 2) BLOCKS the commit. It is deliberately NOT written as
+# `if context-graph …; then` — that construct reads a non-zero exit as the
+# `else` branch and swallows exit 2, failing OPEN (the exact ICON-0075 class).
+#
+# Scope (design §8.3): .context/ staged -> check the live .context/ tree;
+# context_template/context/ staged -> check that tree too (two invocations of
+# one script). Intentional gaps use the markers the script honors: wrap a
+# deliberately-dangling ref in
+#   <!-- pre-commit:dead-ref-ok-start --> ... <!-- pre-commit:dead-ref-ok-end -->
+# and mark a deliberate orphan stub with a file-level
+#   <!-- context-graph:orphan-ok -->
+# No 2>/dev/null: the script's diagnostics stay visible (ADR-007).
+if (( context_graph_dotcontext_needed == 1 || context_graph_template_ctx_needed == 1 )); then
+  graph_script="$repo_root/skills/context-maintenance/scripts/context-graph.sh"
+
+  if [[ ! -f "$graph_script" ]]; then
+    echo "[pre-commit] error: context-graph check script missing: $graph_script" >&2
+    echo "  fix: restore skills/context-maintenance/scripts/context-graph.sh" >&2
+    exit 1
+  fi
+
+  if (( context_graph_dotcontext_needed == 1 )); then
+    bash "$graph_script" "$repo_root/.context" --check || {
+      echo "[pre-commit] error: context-graph --check failed for .context/ (see above)" >&2
+      echo "  fix: resolve the dangling reference(s) / orphan(s), or mark an intentional gap:" >&2
+      echo "       dangling ref -> <!-- pre-commit:dead-ref-ok-start --> ... <!-- pre-commit:dead-ref-ok-end -->" >&2
+      echo "       orphan stub  -> file-level <!-- context-graph:orphan-ok -->" >&2
+      exit 1
+    }
+  fi
+
+  if (( context_graph_template_ctx_needed == 1 )); then
+    bash "$graph_script" "$repo_root/context_template/context" --check || {
+      echo "[pre-commit] error: context-graph --check failed for context_template/context/ (see above)" >&2
+      echo "  fix: resolve the dangling reference(s) / orphan(s), or mark an intentional gap:" >&2
+      echo "       dangling ref -> <!-- pre-commit:dead-ref-ok-start --> ... <!-- pre-commit:dead-ref-ok-end -->" >&2
+      echo "       orphan stub  -> file-level <!-- context-graph:orphan-ok -->" >&2
+      exit 1
+    }
+  fi
 fi
 
 # -----------------------------------------------------------------------------

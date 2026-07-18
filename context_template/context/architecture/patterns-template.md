@@ -604,3 +604,7 @@ Use this matrix to choose between patterns:
 *Last Updated: [Date]*  
 *Pattern Count: [Number]*  
 *Status: [Draft/In Review/Current]*
+
+## Related
+
+- See also: [migration guide](migration-guide-template.md)
