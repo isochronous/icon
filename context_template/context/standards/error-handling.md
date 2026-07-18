@@ -192,3 +192,7 @@ logger.error('Login failed', { password: user.password });
 ### [Service/Module 2]
 - [Specific error types used]
 - [Handling patterns]
+
+## Related
+
+- See also: [code style](code-style.md)

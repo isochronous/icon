@@ -41,3 +41,8 @@
 | Status | Transitions To | Trigger |
 |--------|---------------|---------|
 | [Status] | [Next status] | [What causes transition] |
+
+## Related
+
+- See also: [glossary](glossary.md)
+- Governed by: [naming conventions](../standards/naming-conventions.md)

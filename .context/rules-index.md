@@ -38,3 +38,4 @@ On-demand router for this repo's governing rules across `standards/`, `workflows
 | 009 | Writing a skill description that names its callers | [decisions/009-skill-description-callers.md](decisions/009-skill-description-callers.md) |
 | 010 | Promoting content into the template or re-tiering carried-forward content | [decisions/010-template-promotions-and-carryforward-retier.md](decisions/010-template-promotions-and-carryforward-retier.md) |
 | 011 | Referencing the DataScan production instance (Superseded by ICON-0080 — GitHub-only conversion; retained as history) | [decisions/011-datascan-production-instance.md](decisions/011-datascan-production-instance.md) |
+| 012 | building or validating the .context knowledge graph, or authoring the `## Related` / ADR supersede seam | [decisions/012-context-knowledge-graph.md](decisions/012-context-knowledge-graph.md) |

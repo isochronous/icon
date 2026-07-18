@@ -654,3 +654,7 @@ After successful migration:
 *Migration Guide Version: 1.0*  
 *Last Updated: [Date]*  
 *Status: [Draft/Active/Complete]*
+
+## Related
+
+- See also: [patterns](patterns-template.md)

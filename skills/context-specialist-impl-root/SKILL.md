@@ -202,6 +202,17 @@ This file is the authoritative source agents use when writing commit messages.
 
 ---
 
+## context-specialist-impl-root: Step 11b: Emit the `## Related` graph seam
+
+Every content doc you generated in Steps 6–11 — files under `domains/`, `architecture/patterns.md`, and `workflows/` — feeds the `.context/` knowledge graph. Give each one an explicit relationship footer so no doc is a silent orphan:
+
+1. **Append a `## Related` section as the LAST `## ` section** of each generated content doc, built from the cross-references you identified while synthesizing across areas. Use bulleted `label: [text](path)` links.
+2. When you generate an **ADR** (`decisions/NNN-*.md`) that supersedes an earlier one, emit the `**Supersedes**` / `**Superseded-by**` bold-fields alongside `**Status**`.
+
+Follow `context-document-guidelines § Related Section (graph seam)` for the exact format, placement, ADR bold-field convention, and the sparing use of escape-hatch markers — do not restate it here.
+
+---
+
 ## context-specialist-impl-root: Step 12: Copy Infrastructure Files
 
 Invoke the `find-context-template` skill to locate `$TEMPLATE_DIR`, then:

@@ -1,5 +1,8 @@
 > **[DEPRECATED — use `task-plan/base.md` + phase files]** — This monolithic template is the legacy fallback. Run `/upgrade-repo` to migrate to the phase-based model (`base.md` + per-phase files under `task-plan/`).
 
+<!-- orphan-ok rationale: deprecated legacy scaffold retained only as an upgrade fallback; intentionally not linked from any live doc. -->
+<!-- context-graph:orphan-ok -->
+
 # Task Workflow Template
 
 ## Overview

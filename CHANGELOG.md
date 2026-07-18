@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `security-review` skill and `secure-coding` standard — a runnable checklist and the rules behind it for security-reviewing changes to ICON's own shell/JS hooks and scripts (fail-open enforcement, never-log-secrets, tight credential regexes, ADR-005/006/007) before merge. (ICON-0076)
 - `context-specialist-impl-branch` gains a Verify step (parity with impl-leaf/impl-root) that catches missing/placeholder branch-node context before commit. (ICON-0077)
 - Documents the `${VAR+x}` presence-test vs `${VAR:-fallback}` convention as Rule 5 in the shell-portability standard; `icon-init` and `icon-status` now cite it instead of re-explaining inline. (ICON-0079)
+- Added an on-demand `.context/` knowledge graph (`context-graph.{sh,ps1}` in the `context-maintenance` skill): the manager now traverses cross-references transitively during context discovery on medium/complex tasks so related domains and standards are no longer missed, `context-maintenance` gains a `--check` consistency pass (dangling references, orphaned docs) also wired as a fail-closed pre-commit gate, and content docs gain a `## Related` links footer plus ADR `**Supersedes**`/`**Superseded-by**` bold-fields that ship in `context_template/` (schema 1.8→1.9) so `/upgrade-repo` applies the seam to existing repos. (ICON-0081)
 
 ### Changed
 

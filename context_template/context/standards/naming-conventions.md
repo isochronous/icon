@@ -89,3 +89,8 @@ const permission = false;
 
 ### [Feature Area 2]
 - [Convention]
+
+## Related
+
+- See also: [code style](code-style.md)
+- Governed by: [branching workflow](../workflows/branching.md)

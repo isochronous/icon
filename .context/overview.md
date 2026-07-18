@@ -35,7 +35,7 @@ The `icon-marketplace` listing at `github.com/isochronous` references this repo 
 
 The `.context/` tree is **complete**. The following components are populated and in use:
 
-- `domains/` — skill system, GitHub access (`gh` CLI), plugin resource paths, hooks
+- `domains/` — [skill system](domains/skill-system.md), [GitHub access](domains/github-access.md) (`gh` CLI), [plugin resource paths](domains/plugin-resource-paths.md), [hooks](domains/hooks.md)
 - `standards/` — skill decomposition, changelog discipline
 - `workflows/` — branching, commit conventions, changelog, prune-context script
 - `cache/` — research cache (TTL from `iconrc.json`)

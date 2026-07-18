@@ -40,3 +40,4 @@ What did we reject and why?
 | [009](009-skill-description-callers.md) | Skill `description` frontmatter does not enumerate callers | Accepted | 2026-05-22 |
 | [010](010-template-promotions-and-carryforward-retier.md) | Phase-template promotions and carry-forward re-tier registry | Accepted | 2026-05-23 |
 | [011](011-datascan-production-instance.md) | This repo IS DataScan's production plugin instance | Superseded (ICON-0080) | 2026-06-12 |
+| [012](012-context-knowledge-graph.md) | Context knowledge graph — on-demand script, edge seams, fail-closed gate | Accepted | 2026-07-17 |

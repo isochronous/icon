@@ -243,3 +243,7 @@ expect(result).toBeTruthy();
 expect(result.status).toBe('SUCCESS');
 expect(result.data).toEqual(expectedData);
 ```
+
+## Related
+
+- See also: [integration testing](integration-testing.md)

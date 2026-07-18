@@ -133,3 +133,10 @@ try {
 
 ### [Area 2]
 - [Rule]
+
+## Related
+
+- See also: [naming conventions](naming-conventions.md)
+- See also: [error handling](error-handling.md)
+- See also: [style guide](../styling/style-guide-template.md)
+- Governed by: [commit conventions](../workflows/commit-conventions.md)
