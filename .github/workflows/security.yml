@@ -17,7 +17,7 @@ jobs:
     container:
       image: zricethezav/gitleaks:v8.30.1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       # Working-tree scan; --redact keeps secrets out of the CI log; fail on find.
       - name: gitleaks detect
         run: gitleaks detect --source . --no-git --redact --verbose --exit-code 1
@@ -28,7 +28,7 @@ jobs:
     container:
       image: semgrep/semgrep:1.167.0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       # p/ci: curated low-FP cross-language ruleset (JS hooks + shell). --error
       # exits non-zero on findings.
       - name: semgrep scan
@@ -40,7 +40,7 @@ jobs:
     container:
       image: koalaman/shellcheck-alpine:v0.11.0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       # busybox-safe (no bash/mapfile): the *.sh set minus the ICON-0013 artifact,
       # plus the two git hooks, in two clean invocations.
       - name: install git
