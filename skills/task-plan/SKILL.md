@@ -36,6 +36,33 @@ not by users directly.
 For simple tasks, use the plan format below directly without invoking any phase
 skills.
 
+## task-plan: Phase Plan & Phase-Per-Session Model
+
+Medium and complex tasks record a **per-task phase plan** in `plan.md`
+`## Phase State`: an ordered **subsequence** of the canonical five phases
+(`investigation → architecture → implementation → testing → completion`), with
+`completion` always last. A pure refactor might be
+`[implementation, testing, completion]`; an investigation-heavy task uses all
+five. The manager writes the phase plan when the task is created; it changes only
+on an explicit re-open (re-mark the target phase `pending` and re-append it — an
+explicit, recorded edit, not an implicit jump).
+
+Each phase can run in its own **fresh session**. This is opt-in and
+launcher-driven: a phase launcher reads the lean `## Phase State` pointer, runs
+the next `pending` phase in a fresh session via the entrypoint, then stops. A
+human driving **interactively** still runs phases back-to-back in one session —
+but **always writes the `## Phase Handoff Log` block + `## Phase State` update at
+each boundary**, so the hardened, resumable artifact is produced universally.
+
+Every phase resumes **reconstruct-first**: its opening step reads `## Phase State`
++ the preceding handoff and validates a fail-closed entry contract before doing
+any work; its closing step writes the handoff block, updates Phase State, and
+commits with a `Phase-Handoff: <phase>` trailer. This skill is a router — the
+`## Phase State` / `## Phase Handoff Log` shape and Section Guidance live in
+`.context/workflows/task-plan/base.md`; the per-phase entry contract and
+write/commit steps live in each phase's `phase-<name>.md` template and its
+`task-plan-phase-<name>` skill.
+
 ## task-plan: Template-Override Rule
 
 If the repo has a local `.context/workflows/task-plan/phase-<name>.md`

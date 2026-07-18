@@ -39,3 +39,4 @@ On-demand router for this repo's governing rules across `standards/`, `workflows
 | 010 | Promoting content into the template or re-tiering carried-forward content | [decisions/010-template-promotions-and-carryforward-retier.md](decisions/010-template-promotions-and-carryforward-retier.md) |
 | 011 | Referencing the DataScan production instance (Superseded by ICON-0080 — GitHub-only conversion; retained as history) | [decisions/011-datascan-production-instance.md](decisions/011-datascan-production-instance.md) |
 | 012 | building or validating the .context knowledge graph, or authoring the `## Related` / ADR supersede seam | [decisions/012-context-knowledge-graph.md](decisions/012-context-knowledge-graph.md) |
+| 013 | running a task as per-phase sessions, hardening plan.md for cold resume, or generating a phase launcher | [decisions/013-session-lifecycle-cold-resume.md](decisions/013-session-lifecycle-cold-resume.md) |
