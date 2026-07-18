@@ -4,7 +4,7 @@ Standards for writing entries in `CHANGELOG.md` at this repo's root — the cano
 
 ## Why these rules exist
 
-The changelog is a user-facing release artifact. A reader skims it for "what changed and how does that affect me," not "how was the bug fixed" or "what was the dev process." It also ships verbatim to Slack via `format-slack.sh`, where multi-paragraph entries and fenced code blocks render poorly. Tight, scannable entries serve both surfaces.
+The changelog is a user-facing release artifact. A reader skims it for "what changed and how does that affect me," not "how was the bug fixed" or "what was the dev process." Tight, scannable entries keep it that way.
 
 ## The Four Rules
 
@@ -82,4 +82,4 @@ This keeps the next `## [X.Y.Z]` heading out of the diff boundary entirely. Alte
 
 ## Pattern observed
 
-MKT-0078's first changelog draft was four sentences, included an internal mirror invariant, and had to be cleaned up in a follow-up commit and reposted to Slack. The cleanup edit is the diff to study: it kept the user-relevant claim ("fixes silent parse failures in github-issue / post-meeting / rfc") and discarded the QA reassurances and process detail.
+MKT-0078's first changelog draft was four sentences, included an internal mirror invariant, and had to be cleaned up in a follow-up commit. The cleanup edit is the diff to study: it kept the user-relevant claim ("fixes silent parse failures in github-issue / post-meeting / rfc") and discarded the QA reassurances and process detail.
