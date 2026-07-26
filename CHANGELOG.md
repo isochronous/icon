@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Two classes of `.context/` file are now exempt from the 16,000-byte folder-split threshold — historical records (append-only chronological logs and point-in-time snapshots such as `retrospectives.md` and its archive) and the plugin's fixed-shape template scaffolds (`overview.md`, `META.md`, `rules-index.md`, and the task-plan templates, whose section headings agents parse) — while template-seeded content under `domains/`, `standards/`, `testing/`, `architecture/`, and `styling/` remains splittable. (ICON-0088)
+
+- The task-plan completion phase now documents a `merge=union` coalescing hazard in retrospective logs — two branches that each prepend an entry can merge into a single paragraph record, silently undercounting the entry cap — along with the heading-count-vs-paragraph-count check that detects it, shipped in `context_template/` (schema 1.11→1.12) so `/upgrade-repo` applies it to existing repos. (ICON-0088)
+
+### Changed
+
+- `.context/` maintenance now carries a P0/P1/P2 urgency tier: inaccurate content is verified against source and corrected the moment it is identified rather than queued to task close, mechanical obligations such as an overdue file split land in the task that surfaced them instead of a follow-up, and a defect found with no active task becomes its own task. (ICON-0088)
+
 ## [2.0.0] - 2026-07-18
 
 ### Added

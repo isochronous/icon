@@ -21,6 +21,42 @@ Audit, Explore, Edit — producing a structured report of every change.
 - Retrospective entries need promotion
 - Task artifacts need pruning
 - A dependency, tool, or architectural pattern changed
+- A `.context/` defect was identified during other work — that work owns the fix (see § Ownership and Urgency)
+
+---
+
+## Ownership and Urgency
+
+**Inaccurate `.context/` content is poison.** Agents load it and act on it as fact, so a doc that
+now says something false does damage on every read — worse than no doc at all. Urgency follows
+from that, not from convenience.
+
+**Ownership.** A `.context/` defect identified *during* a task is that task's work — not a
+candidate follow-up, not a backlog note, not "whoever runs maintenance next." The one sanctioned
+deferral is a defect surfaced with **no active task**: that gets its own task, filed and worked.
+
+**Severity decides *when*.** Tag every Phase 1 finding:
+
+| Severity | What qualifies | Fixed when |
+|---|---|---|
+| **P0 — inaccurate** | Content asserting something false today: a deleted module or renamed API documented as current, a fixed bug described as live, two files contradicting each other. An agent reading it would act wrongly. | **Verified against source the moment it's suspected, then corrected or deleted immediately on confirmation.** Resume the interrupted step afterward. Never carried to a later phase, a later task, or task close. |
+| **P1 — mechanical** | A rule-driven obligation with no judgement call: an oversized file to split, a missing `rules-index` row, a dangling link, an orphan node, a drifted literal. | Before the current task closes. Never handed to a later task. |
+| **P2 — untidy** | Out-of-scope content, unpromoted lessons, stale task folders. Nothing false, nothing rule-violating. | The normal task-close maintenance pass. |
+
+**Audit mode:** the table above describes maintenance-mode behavior. In `mode: audit`, a P0
+fixes nothing — it's flagged **BLOCKING** per Phase 0 instead.
+
+> **A prior deferral is not precedent.** If an earlier task already deferred a P1 obligation — the
+> recurring case is a file left over the 16,000-byte split threshold — that is not evidence
+> deferring is acceptable. It means the debt survived a full cycle. Treat the repeat as escalation
+> and fix it in this task.
+
+| Rationalization | Reality | Correct Action |
+|---|---|---|
+| "I'll file the stale doc as a follow-up ticket" | It misleads every agent that loads it until the follow-up lands — and follow-ups are the tickets that don't get worked | Correct or delete it now, in this task. |
+| "The split can wait — a previous task deferred it too" | A deferral that survived a cycle is compounding debt, not precedent | Split it in this task. |
+| "This defect isn't what I was asked to work on" | The task that finds a `.context/` defect owns it; that is what keeps the tree true | Fix it in-task. Only a defect found with no active task becomes its own task. |
+| "I'll batch it into the task-close maintenance pass" | Right for P2, wrong for P0 — a false statement is live damage for the rest of the task | Verify P0 against source on identification, correct on confirmation; batch only P2. |
 
 ---
 
@@ -31,7 +67,9 @@ Audit, Explore, Edit — producing a structured report of every change.
 If loaded by `@context-specialist` with `mode == audit`:
 - Execute Phase 1 (Audit) and Phase 2 (Explore/Verify) only.
 - **Stop before Phase 3 (Edit).** Modify no `.context/` files.
-- Return the verified Phase 2 audit report as final output.
+- Return the verified Phase 2 audit report as final output. Label any **P0** finding
+  **BLOCKING** at the top of the report — audit mode cannot fix it, so the dispatching
+  manager must dispatch the correction immediately rather than queue it (§ Ownership and Urgency).
 
 Otherwise (mode `maintenance` or absent): run all three phases.
 
@@ -40,29 +78,35 @@ Otherwise (mode `maintenance` or absent): run all three phases.
 ## context-maintenance: Phase 1: Audit (~⅓ of effort)
 
 **Goal**: Build a full audit report of what exists and what needs to change — modifying
-no files yet.
+no files yet, except a suspected P0 fixed on the spot (see below).
 
 Scan all `.context/` files. For each, check these issue types:
 
-| Issue Type | What to Look For |
-|------------|-----------------|
-| **Out-of-scope content** | Content belonging in a different `.context/` file |
-| **Stale/outdated info** | References to deleted modules, renamed APIs, removed patterns, or fixed bugs |
-| **Oversized files** | Files exceeding 16,000 bytes (see § File Size Rule) |
-| **Cross-file inconsistencies** | Same concept described differently in two files (e.g. an auth pattern one way in `domains/auth.md`, differently in `standards/api.md`) |
-| **Orphaned entries** | `tasks/` folders for completed or abandoned work; retrospective entries no longer active learnings |
-| **Unpromoted lessons** | Retrospective entries whose learnings should have been promoted to persistent docs but weren't |
-| **Index-coverage gap** | A top-level file under `standards/`, `workflows/`, or `decisions/` (an ADR `NNN-*.md`) has no row in `rules-index.md`. A file *inside* an already-indexed sub-directory (e.g. `standards/skill-decomposition/`, `workflows/task-plan/`) is covered by that directory's parent row — not a gap. **Detect with `check-rules-index.sh` (see § Tooling) — do not hand-scan.** |
-| **Dangling reference** | A `[text](path)` link (or a `## Related` link) in **any** content doc — `domains/`, `architecture/`, `standards/`, prose links, ADR supersede targets — whose target doesn't resolve on disk. Generalizes the rules-index backward check to the whole tree. **Detect with `context-graph --check` (see § Tooling) — do not hand-scan.** |
-| **Orphan / unreachable node** | A content doc with no in-edges that isn't a known discovery root (`overview.md`, `projects.md`, `rules-index.md`) — e.g. a `domains/` file nothing links to and no index covers. **Detect with `context-graph --check` (see § Tooling).** `tasks/*` files are never orphan-flagged. |
+| Issue Type | Severity | What to Look For |
+|------------|----------|-----------------|
+| **Out-of-scope content** | P2 | Content belonging in a different `.context/` file |
+| **Stale/outdated info** | **P0** | References to deleted modules, renamed APIs, removed patterns, or fixed bugs |
+| **Oversized files** | P1 | Files exceeding 16,000 bytes (see § File Size Rule) |
+| **Cross-file inconsistencies** | **P0** | Same concept described differently in two files (e.g. an auth pattern one way in `domains/auth.md`, differently in `standards/api.md`) |
+| **Orphaned entries** | P2 | `tasks/` folders for completed or abandoned work; retrospective entries no longer active learnings |
+| **Unpromoted lessons** | P2 | Retrospective entries whose learnings should have been promoted to persistent docs but weren't |
+| **Index-coverage gap** | P1 | A top-level file under `standards/`, `workflows/`, or `decisions/` (an ADR `NNN-*.md`) has no row in `rules-index.md`. A file *inside* an already-indexed sub-directory (e.g. `standards/skill-decomposition/`, `workflows/task-plan/`) is covered by that directory's parent row — not a gap. **Detect with `check-rules-index.sh` (see § Tooling) — do not hand-scan.** |
+| **Dangling reference** | P1 | A `[text](path)` link (or a `## Related` link) in **any** content doc — `domains/`, `architecture/`, `standards/`, prose links, ADR supersede targets — whose target doesn't resolve on disk. Generalizes the rules-index backward check to the whole tree. **Detect with `context-graph --check` (see § Tooling) — do not hand-scan.** |
+| **Orphan / unreachable node** | P1 | A content doc with no in-edges that isn't a known discovery root (`overview.md`, `projects.md`, `rules-index.md`) — e.g. a `domains/` file nothing links to and no index covers. **Detect with `context-graph --check` (see § Tooling).** `tasks/*` files are never orphan-flagged. |
 
 Build an **audit report** in working memory as you scan. For each finding, record:
 - File path
 - Issue type (from table above)
+- **Severity** (P0 / P1 / P2 — from the same table; see § Ownership and Urgency)
 - Proposed action (update, delete, split, promote, prune)
 - Brief justification
 
-**Modify no files in Phase 1.**
+**Modify no files in Phase 1 — except a suspected P0.** The moment a P0 candidate is
+noticed, verify it against source immediately rather than waiting for Phase 2, and correct
+or delete it on confirmation before resuming the scan. Never carried to a later phase, a
+later task, or task close. Mark it **done** in the audit report (not merely "verified") so
+Phase 3 does not re-apply a finding this step already corrected. *Maintenance mode only* —
+in audit mode the Phase 0 scope gate still holds: modify nothing, flag it BLOCKING instead.
 
 ---
 
@@ -77,7 +121,13 @@ For each finding in the audit report:
    interface, or pattern still exist?
 3. Mark each finding **verified** (proceed with proposed action) or **invalidated**
    (finding was wrong — leave content unchanged).
-4. Update the audit report: retain only verified findings.
+4. Update the audit report: retain only verified findings, each carrying its severity.
+5. **A P0 confirmed here is fixed the same way** — verified against source per step 3, then
+   corrected or deleted immediately on confirmation, before continuing the pass. Never carried
+   into Phase 3, a later task, or task close (§ Ownership and Urgency). *Maintenance mode only*
+   — in audit mode the Phase 0 scope gate still holds: modify nothing, flag it BLOCKING instead.
+   Mark it **done** in the audit report (not merely "verified") so Phase 3 does not re-apply
+   a finding this step already corrected.
 
 **Don't skip this phase even for obvious findings.** Stale docs persist precisely
 because they look plausible without checking the code.
@@ -86,9 +136,11 @@ because they look plausible without checking the code.
 
 ## context-maintenance: Phase 3: Edit (~⅓ of effort)
 
-**Goal**: Apply all verified findings from the audit report.
+**Goal**: Apply all verified findings from the audit report, other than any P0 already
+marked **done** in Phase 1 or in Phase 2 step 5 — those are already corrected and are not
+re-applied.
 
-Work through each verified finding:
+Work through each remaining verified finding:
 
 ### Updates
 
@@ -122,6 +174,8 @@ looks as it does, even if the decision was later reversed.
 
 ### File Size Rule
 
+**Two classes of file are exempt** from this rule regardless of size: a historical record — an append-only chronological log or a point-in-time snapshot — and a distributed template — a fixed-shape scaffold whose template counterpart makes it, and only it, exempt (most template-seeded content is not). See `context-document-guidelines § Folder Split Rule → Split Exemptions` for the full test and current member list for both arms — do not re-enumerate members here. `.context/retrospectives.md` is mutated only via the `append-retrospective-entry` script (§ Tooling), never edited or split by hand — do not split it.
+
 After writing or updating any `.context/*.md` file, measure its size:
 
 ```bash
@@ -144,6 +198,11 @@ If oversized but lacking ≥ 3 discrete peer `## ` sections (single continuous n
 
 **Prune first, split second.** If pruning brings the file under 16,000 bytes, prune only — no split.
 
+**The split is owned by the task that surfaced it** — normally the task whose edit pushed the file
+over the threshold. It is P1: done before that task closes, never handed to a later one. A previous
+task having deferred the same split raises urgency rather than licensing another deferral
+(§ Ownership and Urgency).
+
 See `context-document-guidelines § Folder Split Rule` for the canonical rule and slug-naming conventions.
 
 ### Stage (commit ownership depends on caller mode)
@@ -157,6 +216,10 @@ After all edits, **stage the writes with `git add`**. The commit is owned by the
 After all three phases, return this structured report to the caller:
 
 ```
+**P0 (inaccurate) findings — verified and corrected the moment each was confirmed, never carried to a later phase, task, or task close:**
+- [path]: [what it falsely asserted] → [correction or removal]
+  (audit mode: list these as BLOCKING and unfixed — the caller must dispatch the fix now)
+
 **Files modified:**
 - [path]: [one-line description of change]
 

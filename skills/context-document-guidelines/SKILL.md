@@ -75,7 +75,31 @@ After splitting, update `.context/` cross-references that pointed at the origina
 
 If the original file had a row in `.context/rules-index.md`, repoint that row's link at the new `<name>/` folder (or `<name>/README.md`) in the same change — don't leave it pointing at the deleted file.
 
-> For the maintenance-cycle action that triggers this rule, see `context-maintenance § File Size Rule`.
+> For the maintenance-cycle action that triggers this rule — and which task owns the split — see `context-maintenance § File Size Rule`.
+
+### Split Exemptions
+
+The gates above exist to keep **live guidance** findable — breaking a sprawling live doc into topic files helps a reader reach the current rule faster. Two independent arms exempt a file from the gates even when both would otherwise fire — a file need only satisfy one: the file is a **historical record**, or the file is a **distributed template** copy.
+
+#### Historical Record
+
+The gates do not apply to a historical record: an append-only chronological log or a point-in-time snapshot, where entries accumulate in time order and are never restructured. Splitting a record by topic fragments it and destroys the chronology that makes it a record in the first place — the split would make the artifact worse, not better, so the size gate does not apply to it regardless of byte count.
+
+**The test is shape, not readership.** Ask: is the file's organizing axis *time* — entries appended in sequence, never reorganized — or *topic* — sections grouping subject areas, meant to be found and read independently? A chronological record has no topic structure for the gate to split along, so the gate has nothing to act on. A topic-organized guidance doc is exactly what the gate exists to split, because dividing it by subject genuinely improves findability. This holds **regardless of whether the record is also consulted for current guidance** — that question is about readership, and readership is not the axis the test turns on. `.context/retrospectives.md` is the case that proves it: it is skimmed at Session Start to inform current decisions, and it is still exempt, because its shape is a chronological log, not a topic index.
+
+Exempt (chronological logs and point-in-time records): a task's snapshot artifact (e.g. `word-count-snapshot.md`), a closed archive that exists solely to receive overflow from a live file's own pruning mechanism (e.g. `retrospectives-archive.md`), and `.context/retrospectives.md` itself — entries accumulate in date order and are never rewritten or split by topic. (`retrospectives.md` is mutated only via the `append-retrospective-entry` script — `context-maintenance § Tooling` — which is a true and useful authoring warning, but the reason the size gate doesn't govern it is its shape, not that script.)
+
+Not exempt: topic-organized guidance documents — `domains/`, `standards/`, `architecture/`, and any doc whose sections are subject areas rather than dated or sequential entries. These are exactly the files the split rule exists for. A doc does not become chronological merely because some of its sections carry dates — the question is whether the *file* is a sequence of entries or a set of subjects, so a `domains/` file with dated subsections grouped under topic headings is still topic-organized and not exempt.
+
+**Living in `decisions/` does not itself confer the exemption.** An ADR that still carries a live, normative rule is, in shape, a topic-organized guidance doc — an agent reads its Decision/Consequences sections to learn the current rule, not a sequence of dated entries — so the gates apply in full, regardless of its historical framing or of record-keeping language elsewhere that describes `decisions/` as history. A superseded or withdrawn ADR, by contrast, falls under the exemption's *point-in-time snapshot* case: supersession freezes its Decision/Consequences content at that moment, so the file no longer describes a live rule — that frozen state, not who reads it or why, is what makes it exempt under the test above.
+
+#### Distributed Template
+
+The gates do not apply to a **fixed-shape scaffold** distributed by the plugin's template: a file whose section structure is a parse contract rather than consumer content — agents locate what they need by these files' section headings (e.g. `workflows/task-plan/base.md`'s required core sections), so restructuring one breaks the agents that depend on that structure instead of helping any reader. That is a narrower claim than "came from the template." Most template-seeded content — `domains/`, `standards/`, `testing/`, `architecture/`, `styling/` — is **not** exempt under this arm: the consumer replaces the seed with their own conventions, so it diverges from the template by design from day one, and splitting an oversized one is exactly what the gates exist for.
+
+**The test has two parts, both required.** (1) A counterpart exists at the template's matching path. Resolve the template root with the `find-context-template` skill — the same idiom `context-maintenance § Tooling` uses for its own scripts — and check `$TEMPLATE_DIR/context/<same relative path>`; a bare `context_template/` path has no meaning inside an installed consumer repo, so don't test against it directly. (2) The file is one of the fixed-shape scaffolds whose structure is a parse contract, not a content seed the consumer is meant to fill in or replace. Both parts must hold — a template counterpart alone is not enough, which is what keeps the seeded files above out of this arm.
+
+Exempt under this arm (the current scaffold set — verify against the template tree if this list is suspected stale): `workflows/task-plan/base.md` and its `phase-*.md` siblings (`phase-investigation.md`, `phase-architecture.md`, `phase-implementation.md`, `phase-testing.md`, `phase-completion.md`), `META.md`, `overview.md`, and `rules-index.md`.
 
 ## Related Section (graph seam)
 
@@ -159,6 +183,7 @@ These are **opt-outs, not general escape hatches** — use them only for a genui
 | "I'll split it later when it gets bigger" | Splitting after the fact is harder. Start focused. |
 | "Adding one more section won't hurt" | One more section is how every bloated file started. Check scope before adding. |
 | "Agents can just skip the parts they don't need" | They can't reliably. Every token in the file costs context budget. |
+| "This oversized file feels historical, so it's exempt" | The historical-record test is shape — an append-only chronological log or point-in-time snapshot, not vibe or prose tone. A topic-organized guidance doc reads as "historical" all it wants and is still not exempt. Apply the test explicitly (§ Split Exemptions → Historical Record); split it if the honest answer is "topic-organized." |
 
 ## Self-Check
 
