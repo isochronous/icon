@@ -41,11 +41,18 @@
 - [x] Phase 1 Discovery — baseline established (see Baseline Preamble below)
 - [x] Create branch + task folder + plan.md
 - [x] Phase 2a — domains 01–05 dispatched in parallel, all returned. Raw counts before synthesis dedup: **5 Critical** (3 × domain 03 consumer-facing, 2 × domain 05 release-path), **25 Moderate**, **39 Minor**, **~34 script-offload candidates**.
-- [ ] Phase 2b — dispatch domain 06 (cross-cutting), consuming 01–05 ← IN PROGRESS
-- [ ] In-task `.context/` correction (P0, ICON-0088 urgency rule): two inaccuracies surfaced by the audit, dispatched immediately rather than queued
-- [ ] Phase 3 — synthesize `audit-report.md` from the six research files
+- [x] Phase 2b — domain 06 (cross-cutting) returned. 34 candidates merged to 20 + 2 prerequisites; corrected two upstream specifications and one premise in the dispatch brief.
+- [x] In-task `.context/` correction (P0, ICON-0088 urgency rule) — 4 fixes, committed `8de5f48`. One dispatched claim invalidated; 2 of 4 fixes found by class-sweep rather than the cited line.
+- [x] Phase 3 — `audit-report.md` synthesized (706 lines). Deduplicated: **5 Critical / 24 Moderate / 39 Minor** + 33 improvement opportunities. Delta vs ICON-0058: ~24 fixed / 19 still-present-or-partial / 13 net-new. Verdict **FAIR**, down from STRONG.
+- [x] @reviewer pass over the only content change on this branch (commit `8de5f48`, two `.context/domains` files)
+- [ ] Commit audit artifacts (research ×6 + audit-report.md + plan.md) ← IN PROGRESS
+- [ ] Retrospective (`task-retrospective`, two-stage handoff)
 - [ ] Post chat summary; offer to file follow-up tasks as GitHub issues (user confirmation required)
-- [ ] Completion — retrospective, CHANGELOG decision, commit, PR
+- [ ] Completion — PR
+
+## Review Checkpoint
+- **Stamped**: after commit `8de5f48`, covering the complete changed-file set of content changes on this branch — `.context/domains/hooks.md` and `.context/domains/github-access.md`. Reviewer: @reviewer (tier `default`), dispatched to verify each corrected value against its source of truth (`hooks/hooks.json`, `hooks/`, `.claude-plugin/plugin.json`, `standards/security.md`), sweep-completeness, and `context-document-guidelines` conformance.
+- **Not covered, by design**: `.context/tasks/ICON-0089-icon-audit/**` (audit artifacts — the deliverable, produced by six independent domain agents plus a synthesis agent, each of which verified its own findings against source and cited `file:line`) and `plan.md` (manager-owned orchestration artifact). No plugin source file was modified by this task, so there is no source diff to review.
 
 ## Open Questions / Blockers
 - Whether audit follow-ups get filed as GitHub issues is a user decision at triage time — do not file without confirmation.
