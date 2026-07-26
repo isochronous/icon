@@ -63,7 +63,7 @@ _(appended at each phase boundary)_
 - [x] CHANGELOG third bullet for the template-shipped note (manager-owned).
 - [x] @reviewer Stamp 8 — **approved for commit.** Sweep confirmed owed (neither exception applies: `context-specialist-impl-leaf` Step 3b installs the same `merge=union` in every consumer repo, so the hazard is consumer-facing; `phase-completion.md` is not on the ICON-0074 divergent list) and complete, with `(ICON-0088)` correctly present locally and stripped from both shipped copies. Root cause independently **proven** by per-commit heading-vs-paragraph counts (10/10 at merge-base, 10/10 on each branch, 11/10 only at the merge) plus source-tracing the script's unconditional separator. Counts now 11/11. The 11-vs-cap-10 state verified benign — `.gitattributes` documents that a transient over-cap self-heals on the next append, and discharging it now would need either a forbidden hand-edit or a spurious entry. 1.7-vs-1.9 divergence confirmed correct to leave: the two copies differ on 138 lines by audience design.
 - [x] Fix Stamp-8 minor — @coder (basic). `process-doc-sweeps.md` presented a paraphrase as a quotation of the original bullet text; replaced with the actual string. A misquote in a `.context/` precedent is inaccurate content, which this task's own rule classifies as fix-on-identification.
-- [ ] Completion: commit, PR ← IN PROGRESS
+- [x] Completion: committed as `9c581cb` (18 files, +380/−35); branch pushed; PR https://github.com/isochronous/icon/pull/9 opened against `main`. Close-gate evidence below.
 
 ## Close-Gate Evidence
 1. **@reviewer coverage** — Stamp 8 covers the final changed-file set; the only post-Stamp-8 edit is the one-line misquote fix Stamp 8 itself requested.
