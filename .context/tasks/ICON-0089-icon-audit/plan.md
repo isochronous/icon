@@ -17,6 +17,13 @@
 - Branched off freshly-updated `main` (`ae4cf39`, PR #9 / ICON-0088 merged) rather than the ICON-0088 feature branch. Rationale: audit the released + merged state, not an in-flight branch.
 - User-directed focus this cycle: **script-offload opportunities** — every domain brief carries an added directive to surface work currently done by LLM judgment that a deterministic script, hook, or generator could do instead. This is additive to the standard brief scope, not a replacement.
 - Six domain sub-agents dispatched per the standard brief set (01–05 in parallel, 06 cross-cutting after). Model tier `complex` (Opus) for all six — audit findings are architectural/cross-cutting judgment work, the explicit `complex` trigger in `manager-routing-guide`.
+- **Brief premise correction (domain 04)**: the dispatch brief asserted the `ecological-impact` / ADR-004 Moderate was a three-cycle carry-forward heading for a fourth. False — ICON-0059 closed it (`CHANGELOG.md:91`), verified on disk. The stale premise came from the manager's dispatch prompt, not from the ICON-0058 report. Recorded here so synthesis reports the correction rather than the premise, and so future audit dispatches derive carry-forward status from the CHANGELOG rather than from the prior report alone.
+- **`.context/` inaccuracies corrected in-task, not queued** (`context-maintenance § Ownership and Urgency`, ICON-0088 P0 tier). Dispatched to @context-specialist `mode: maintenance` concurrently with the domain-06 pass; the Hardcoded rule forbids deferring an identified `.context/` inaccuracy to a follow-up, since every agent that loads the file is misled until the fix lands. Outcome — **one of the two dispatched claims was itself false, and the sweep found two defects nobody had cited**:
+  - `.context/domains/github-access.md:11` — **claim invalidated.** The line already described the ICON-0080 removal in the past tense and was accurate against the current `skills/` tree. Left untouched. The stale premise originated in the manager's dispatch prompt, not in the domain-04 research file.
+  - `.context/domains/github-access.md:24` — **net-new, found by the sweep.** Said "a single Node.js hook wrapper"; corrected to two, with a cross-reference to `domains/hooks.md`.
+  - `.context/domains/hooks.md:52` — **confirmed as cited.** "One hook" → two, plus the missing `guardrail-pretooluse` table row (`PreToolUse`, matcher `*`).
+  - `.context/domains/hooks.md` hook table — **net-new, found by the sweep.** The `inject-manager-role` matcher literal read `startup|resume`; `hooks/hooks.json` actually registers `startup|resume|clear`. Corrected to source.
+  - Lesson for the audit's own method, worth carrying into the report: **2 of the 4 corrections came from the instruction to sweep the file for the whole staleness class rather than fixing only the cited line, and 1 of the 2 cited lines was wrong.** A manager-relayed finding is a lead, not a verified fact — the "verify against source before editing" instruction is what caught it. This is the same verify-don't-assume class as the ICON-0085 retro entry.
 
 ## Key Files
 - `.claude/skills/icon-audit/SKILL.md` — the audit procedure being executed.
@@ -33,7 +40,9 @@
 ## Progress
 - [x] Phase 1 Discovery — baseline established (see Baseline Preamble below)
 - [x] Create branch + task folder + plan.md
-- [ ] Phase 2 — dispatch domain sub-agents 01–05 in parallel, then 06 ← IN PROGRESS
+- [x] Phase 2a — domains 01–05 dispatched in parallel, all returned. Raw counts before synthesis dedup: **5 Critical** (3 × domain 03 consumer-facing, 2 × domain 05 release-path), **25 Moderate**, **39 Minor**, **~34 script-offload candidates**.
+- [ ] Phase 2b — dispatch domain 06 (cross-cutting), consuming 01–05 ← IN PROGRESS
+- [ ] In-task `.context/` correction (P0, ICON-0088 urgency rule): two inaccuracies surfaced by the audit, dispatched immediately rather than queued
 - [ ] Phase 3 — synthesize `audit-report.md` from the six research files
 - [ ] Post chat summary; offer to file follow-up tasks as GitHub issues (user confirmation required)
 - [ ] Completion — retrospective, CHANGELOG decision, commit, PR

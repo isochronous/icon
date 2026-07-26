@@ -49,11 +49,12 @@ This is also the [community-endorsed pattern](https://claudefa.st/blog/tools/hoo
 | `hooks/hooks.json` | Single source of truth for hook wiring. Declares the event, matcher, and handler shape. |
 | `hooks/<name>.mjs` | The cross-platform implementation script. One per logical hook. |
 
-ICON currently ships one hook:
+ICON currently ships two hooks:
 
 | Hook | Event | Matcher | Wrapper | Purpose |
 |------|-------|---------|---------|---------|
-| inject-manager-role | `SessionStart` | `startup\|resume` | `hooks/inject-manager-role.mjs` | Inject a small read-and-adopt bootstrap (as `system-reminder` context) directing the model to load `agents/manager.agent.md` and adopt the full role, in projects with a `.context/` folder. |
+| inject-manager-role | `SessionStart` | `startup\|resume\|clear` | `hooks/inject-manager-role.mjs` | Inject a small read-and-adopt bootstrap (as `system-reminder` context) directing the model to load `agents/manager.agent.md` and adopt the full role, in projects with a `.context/` folder. |
+| guardrail-pretooluse | `PreToolUse` | `*` | `hooks/guardrail-pretooluse.mjs` | Block credential-like writes to files and remote-fetch-piped-into-a-shell commands, regardless of prose instructions, and append a local tool-use audit log entry (`~/.icon/guardrail-audit.log`). See `standards/security.md § Harness-Enforced Controls` for the full control table. (ICON-0073) |
 
 The `inject-manager-role` substring is load-bearing in the wrapper's filename — `/ICON:enable-manager-default` and `/ICON:disable-manager-default` substring-match this token when cleaning up legacy entries from `~/.claude/settings.json`. Do not rename the wrapper without also updating the migration logic in those commands.
 
