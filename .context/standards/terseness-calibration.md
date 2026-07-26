@@ -26,6 +26,7 @@ Give the pass a concrete **word-count target** (~15–20% reduction on verbose a
 ICON has no test runner, but "reliability preserved" is still verifiable on a concision diff. Check, per batch:
 
 - **discipline / anti-rationalization table row-counts unchanged** — a compressed table must keep every row (a dropped row is a dropped rule);
+- **every row's cell count matches its table's column count** — a row written with one more cell than its table has columns silently drops the last cell at render (e.g. a 3-cell row in a 2-column `| Excuse | Reality |` table loses its Correct-Action content with no error), and no gate catches a column-count mismatch; count `|`-delimited cells against the header row when adding or editing any row (ICON-0088);
 - **`description:` frontmatter byte-identical** — the skill/agent routing surface must not shift;
 - **parity scripts byte-unchanged** — `.sh`/`.ps1` pairs and the inlined `common-constraints` copies stay in sync;
 - **gates green** — `context-graph --check` and `check-rules-index.sh` both exit 0, and a real `.githooks/pre-commit` run passes;

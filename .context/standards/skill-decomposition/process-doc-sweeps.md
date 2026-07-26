@@ -56,6 +56,22 @@ When a **mechanical guard** (a pre-commit gate, a CI check, a lint rule) is adde
 
 **Precedent (ICON-0060)**: the O-M1b cap-literal gate covered `agents/skills/shared/commands`, but the 15→10 drift it targeted lived in `context_template/context/retrospectives.md` and `.context/standards/skill-decomposition/process-sweeps.md` — both outside that scope. The gate would have passed clean while leaving its own motivating bug unguarded; the gap was caught by cross-referencing gate scope against the sweep-site list, and the reviewer's regression tests at the real bug locations confirmed it.
 
+## Satellite Sites Point by Reference; Only the Canonical Site Enumerates
+
+When a rule's canonical definition lives at one site (e.g. `context-document-guidelines § Folder Split Rule → Split Exemptions`) and a **satellite** site elsewhere needs to gloss the same rule for its own local context (e.g. a bullet in `in-task-maintenance.md` mentioning that some oversized files are exempt from the split obligation), the satellite must point at the canonical site **by reference** — never re-enumerate the exempt class's members by name.
+
+**The rule**: a parenthetical member list at a satellite site (e.g., "some files are exempt — snapshots, closed archives") goes stale the instant the canonical rule's exempt class widens or its test changes, and it goes stale silently: the satellite isn't touched by the edit that changed the canonical rule, so nothing signals the drift. This is worse than a missing cross-reference, because the satellite is often exactly the site an agent consults for that obligation in the moment — a stale enumeration there actively misleads rather than merely failing to help.
+
+**Correct pattern**: the satellite states the obligation and points at the canonical site by name for "the full test" or "the current list" — it never lists members itself. Only the single canonical site (the rule's own definition) enumerates.
+
+**Precedent (ICON-0088)**: `in-task-maintenance.md`'s split-obligation bullet originally glossed the exemption with "(historical records — snapshots, closed archives — are exempt; see that rule's Historical Record Exemption)" — a parenthetical member list. When the maintainer widened the exempt class to include `.context/retrospectives.md` itself (a live rolling log, not a snapshot or closed archive), the satellite's enumeration excluded the newly-exempt member entirely rather than being extended — caught by @reviewer, not by any gate, because no mechanical check compares a satellite's prose gloss against the canonical rule's actual member set. The fix reframed the bullet to point at `context-document-guidelines § Folder Split Rule`'s Split Exemptions for "the full test," with zero members named locally — the satellite cannot go stale again because it no longer carries a copy of the list.
+
+**Anti-rationalization:**
+
+| Excuse | Reality | Correct Action |
+|---|---|---|
+| "A quick parenthetical example is more helpful to the reader than a bare pointer" | The example is read as the current, complete list — not as illustrative — and drifts silently the moment the canonical rule changes without the satellite being touched. | Point at the canonical site by name; let the reader follow the reference for the current member set. |
+
 ---
 
 See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.

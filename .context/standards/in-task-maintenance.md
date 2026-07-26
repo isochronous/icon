@@ -8,10 +8,19 @@ When a mechanical maintenance obligation surfaces during a task, do it now. This
 
 Representative obligations (non-exhaustive):
 
-- A `.context/` doc pushed **over the 16KB split threshold** by this task's edit → split it now per `context-document-guidelines § Folder Split Rule`.
+- A `.context/` doc pushed **over the 16KB split threshold** by this task's edit → split it now per `context-document-guidelines § Folder Split Rule` (some files are exempt; see that rule's Split Exemptions for the full test).
 - A **new skill missing its `using-skills` README registration** → register it now (see `skill-decomposition/skill-mechanics.md § using-skills Registration`).
 - A **stale cap or version literal** (e.g. an entry-cap `N` that drifted from the canonical `ENTRY_CAP`, a template version that no longer matches) → correct it now.
 - A **new or removed rule file** under `standards/`, `workflows/`, or `decisions/` → add or remove its row in `rules-index.md` in the same task (parent-row granularity: files inside an indexed sub-directory are already covered).
+
+## Urgency Above In-Task
+
+"Before this task closes" is the floor, not the ceiling. Two obligations are stricter:
+
+- **Inaccurate content is fixed at the moment of identification.** A `.context/` doc that asserts something false today — a renamed API described as current, a convention the codebase no longer follows, a fixed bug documented as live — is poison: every agent that loads it acts on the falsehood, including agents working this very task. Interrupt the current step, correct or delete the content, then resume. It does not wait for the task-close maintenance pass, and it is not the same "now" as the retrospective's promote-at-close rule.
+- **A prior deferral raises urgency; it does not create license.** When an earlier task already deferred the same mechanical obligation — the recurring case is a doc left over the 16,000-byte split threshold — that is not precedent that deferring is acceptable. It means the debt survived a full cycle unaddressed. Treat the repeat as escalation and clear it in this task.
+
+A defect surfaced with **no active task** is the one sanctioned deferral, and it becomes its own task — not a backlog note, not a "candidate follow-up."
 
 ## The Distinguishing Test
 
@@ -33,4 +42,6 @@ If applying the rule requires no judgement beyond following the rule, it is in-t
 | "This split is a clean follow-up ticket" | The edit that crossed the threshold is part of *this* task; deferring ships a known-oversized doc. | Split it in the same task that enlarged it. |
 | "The reviewer flagged it, but it's out of scope" | A sub-agent flag on a mechanical obligation IS the in-task signal to fix it, not a reason to file it away. | Fix the flagged mechanical defect before reporting complete. |
 | "The cap literal drift is cosmetic" | A drifted literal defeats the guard that scans for it; it is exactly the defect the canon exists to prevent. | Reconcile to the canonical value now. |
+| "The stale doc can wait for the task-close maintenance pass" | Task-close is too late for an inaccuracy — every load between now and then acts on false content, including this task's own sub-agents. | Correct or delete it the moment it is identified. |
+| "A previous task deferred this same split, so deferring is normal" | A deferral that survived a cycle is compounding debt, not precedent. | Treat the repeat as escalation; clear it in this task. |
 | "Doing it now expands the task" | Mechanical rule-following is not scope expansion; it is completing the task to standard. Genuine scope questions still go to the user. | Apply the test: mechanical → do it; design decision → surface it. |

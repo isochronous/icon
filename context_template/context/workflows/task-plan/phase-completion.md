@@ -1,4 +1,4 @@
-<!-- template-version: 1.8 -->
+<!-- template-version: 1.9 -->
 # Completion Phase Templates
 
 > Loaded by the `task-plan-phase-completion` skill when present.
@@ -97,6 +97,8 @@ Review focus:
 **Stage 1 (manager)**: Answer Q1 (Avoid) and Q2 (Repeat) by reflecting on the task. Identify which `.context/` files need updating (Q3 planning). Draft the complete retrospective entry text, leaving an `[specialist to complete]` placeholder in the **Updated** field.
 
 **Stage 2 (handoff to @context-specialist)**: Delegate to `@context-specialist` with `mode: maintenance`, providing the drafted entry text, the list of `.context/` files to update, and instructions to (i) run the `append-retrospective-entry` script from the `context-maintenance` skill's `scripts/` folder, (ii) replace the **Updated** placeholder with the actual files touched and the pruning result before the entry is inserted, and (iii) stage its writes with `git add` only — the manager owns the commit. Wait for the specialist's structured report (files modified, entries promoted, entries pruned), then record it in session state.
+
+**Merge-coalescing hazard**: `retrospectives.md` carries a `merge=union` driver (see `.gitattributes`) so two branches that each independently prepend a new entry merge cleanly instead of conflicting. That union merge has a failure mode this ceremony must guard against: when two branches each run `append-retrospective-entry` and each correctly inserts its own entry plus the required trailing blank-line separator before the same then-first entry, a 3-way merge can recognize both sides' added blank line as the same insertion and coalesce them into one — silently dropping the separator between the two new entries. This is a property of the union merge, not a script defect (the append script emits the separator unconditionally on every run; verified against actual merge history). The consequence: the two entries collapse into a single `awk RS=""` paragraph-mode record, so the append script's entry-count parser undercounts by one against a `grep -c '^### '` heading count, and the rolling-log cap over-retains — invisible in rendered Markdown and undetected by any pre-commit gate. **Cheap detection**: after any merge that touches `retrospectives.md`, confirm `grep -c '^### '` and an `awk RS=""` record count agree; a mismatch means a separator was coalesced and needs manual repair (restore the missing blank line between the affected entries).
 
 ## Completion Summary Template
 
