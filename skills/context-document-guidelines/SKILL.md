@@ -127,6 +127,33 @@ Rules:
 - **It is a navigational footer, not a second topic** — like a folder-README index table or a `rules-index` row. It does **not** violate one-facet-per-file, and it is **excluded from the folder-split gate (2)** section count (see `## Folder Split Rule`).
 - **Purpose:** convert a by-name prose mention (`` `domains/auth.md` ``, "the auth pattern in domains/auth") into an explicit link, and give every `domains/` file a curated out-edge set so no content doc is a silent orphan.
 
+### Correcting a stale ADR: amend, scope-supersede, or supersede
+
+An ADR records a **decision**, not a snapshot of the repo. When one goes stale, the disposition
+turns on a single question: **did the position change, or only the world it described?**
+
+| What went stale | Disposition | Mechanism |
+|---|---|---|
+| A supporting fact, a consequence, or a rejection's stated grounds — the Decision still holds | **Amend in place** | Correct the prose and append a dated `## Amendments` entry. `**Status**` stays `Accepted`. No new ADR. |
+| One sub-decision is now decided differently; the rest stands | **Scope-supersede** | New ADR plus scoped bold-fields in both directions (below). The old Decision prose is left intact. |
+| The Decision itself no longer holds | **Supersede** | New ADR plus bold-fields; the old ADR's `**Status**` becomes `Superseded by ADR-NNN` and its content freezes. |
+
+**Do not supersede an ADR whose Decision still stands.** `**Supersedes**: ADR-NNN` asserts that a
+later decision replaced an earlier one; where no such decision was taken, the record manufactures a
+deliberation that never happened. Superseding also *freezes* the old ADR (see § Split Exemptions),
+which is wrong for a record other documents still cite as the live rule — and it leaves the stale
+text in place for anyone who lands on it directly, adding a hop rather than removing the error.
+
+**An amendment must not erase what was believed.** Every correction gets an `## Amendments` entry —
+dated and task-attributed — naming what the text said, what is true, and, where the original
+reasoning was wrong rather than merely overtaken, why. Git history is the exhaustive record; the
+`## Amendments` section is the discoverable one.
+
+**Proportionality.** An `## Amendments` entry is owed when the corrected text was load-bearing —
+a reader could have acted on it. A typo, a renamed skill, or a stale path is corrected in place
+with no entry. Correcting one ADR's passing summary of *another* ADR's scope does count as
+load-bearing: that is exactly the kind of sentence a reader acts on.
+
 ### ADR supersede bold-fields (`decisions/NNN-*.md`)
 
 ADRs extend their existing bold-field metadata idiom (`**Date**:`, `**Status**:`) with two machine-readable supersede fields:

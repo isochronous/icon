@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- `context-document-guidelines` now defines a "Correcting a stale ADR" convention distinguishing amend-in-place from scope-supersede and full supersede, so a stale supporting fact gets corrected in place with a dated `## Amendments` entry instead of wrongly freezing a decision that still holds. (ICON-0091)
+
 - Two classes of `.context/` file are now exempt from the 16,000-byte folder-split threshold — historical records (append-only chronological logs and point-in-time snapshots such as `retrospectives.md` and its archive) and the plugin's fixed-shape template scaffolds (`overview.md`, `META.md`, `rules-index.md`, and the task-plan templates, whose section headings agents parse) — while template-seeded content under `domains/`, `standards/`, `testing/`, `architecture/`, and `styling/` remains splittable. (ICON-0088)
 
 - The task-plan completion phase now documents a `merge=union` coalescing hazard in retrospective logs — two branches that each prepend an entry can merge into a single paragraph record, silently undercounting the entry cap — along with the heading-count-vs-paragraph-count check that detects it, shipped in `context_template/` (schema 1.11→1.12) so `/upgrade-repo` applies it to existing repos. (ICON-0088)
