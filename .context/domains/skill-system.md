@@ -97,7 +97,7 @@ Do not create a skill when:
 
 ## Skill Authoring Principles
 
-- **Earn your place**: Every instruction must prevent a real mistake. If removing a sentence wouldn't change behavior, remove it.
+- **Earn your place**: Every instruction must prevent a real mistake. If removing a sentence wouldn't change behavior, remove it. This domain file covers what skills are and how they're invoked; `standards/skill-decomposition.md` covers the wiring, structural, and sweep conventions for building or refactoring one — consult it when creating or restructuring an individual skill.
 - **Concrete over abstract**: "Check X before Y" beats "Be thorough."
 - **Phases for rigid skills**: Rigid discipline skills should have explicit numbered phases so agents cannot skip steps.
 - **`user-invocable: false`** for skills that should run only in response to an agent's decision, not direct user invocation.

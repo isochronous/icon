@@ -43,8 +43,10 @@
 - [x] Phase 3a — content-currency sample check: **5 of 5 resolved, no trigger.** Selection method stated and reproducible (every 10th distinct reference across all 4 `domains/*.md` in alphabetical order, from position 3). Drift inventory correctly skipped — a clean result, not a manufactured one.
 - [x] Phase 3b — **`## Related` seam closed**: footers added to 19 previously-footerless content docs + 1 wrong-heading fix (`github-access.md`: `## Related Skills` → `## Related`). `context-graph.sh --check` green afterward: 49 nodes, no dangling references, no orphans.
 - [x] Phase 4 — verification: **8 of 9 checks pass**; check 6 (root `claude.md` redirect) intentionally not satisfied, see Decisions.
-- [ ] @reviewer over the full task diff ← IN PROGRESS
-- [ ] Commit, retrospective, CHANGELOG decision, PR
+- [x] @reviewer over the full task diff — **approved with comments**. Mechanics verified end-to-end: canonical footer shape, all link targets resolve, hook blobs byte-identical across the mode change, scope clean. Reviewer independently reconciled the graph delta (`references` edges 26 → 53 = 34 new links − 7 pre-existing reformatted ones) rather than trusting the checker's summary line.
+- [x] Two commit-message inaccuracies confirmed and corrected here (the commit message itself is left as-is rather than rewritten): there are **15** ADRs, not 16 — 16 is the file count only if `decisions/README.md` is miscounted as an ADR. And only **4 of 15** ADRs carry structured `**Supersedes**`/`**Superseded-by**` fields (012–015); `006` uses `**Status**: Superseded by ICON-0080`, which names a *task ID*, not an ADR. The decision to exclude ADRs from the seam remains correct — `context-document-guidelines § Related Section` excludes them categorically, independent of which fields any given ADR uses — but the rationale as written overstated uniformity.
+- [ ] Fix 4 reviewer Moderates — 2 unearned links, 1 file missed by the sweep, 1 canonical heading over a non-canonical body ← IN PROGRESS
+- [ ] Commit fixes, retrospective, CHANGELOG decision, PR
 
 ## Open Questions / Blockers
 - **Does ICON count as a consumer of its own template?** Several template deltas may be inapplicable or actively wrong for the repo that *defines* the template. Each such case is a decision for the audit report, not an automatic apply.
