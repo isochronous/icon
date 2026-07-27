@@ -4,6 +4,11 @@ This folder tracks significant architectural decisions made for the ICON plugin 
 
 One ADR per file, numbered sequentially: `NNN-kebab-slug.md`. ADR numbers are immutable once assigned; superseded ADRs stay in place with their status updated.
 
+**Correcting a stale ADR.** A record whose *Decision* still holds but whose supporting facts have
+decayed is **amended in place** with a dated `## Amendments` entry — not superseded. Supersede only
+when the position itself changed; scope-supersede when one sub-decision changed and the rest stands.
+The full convention lives in `context-document-guidelines § Correcting a stale ADR`.
+
 ## Template
 
 ```markdown

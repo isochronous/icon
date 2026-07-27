@@ -58,5 +58,13 @@
 
 - Baseline measurements: `.context/tasks/ICON-0088-context-integrity-urgency/word-count-snapshot.md` (current baseline; supersedes `.context/tasks/ICON-0033-token-economy-trims/word-count-snapshot.md`, retained as history).
 - [ADR-004](004-tool-agnostic-content.md): established the common-constraints inlining policy that puts 9 × 354 words into every session.
-- [ADR-005](005-no-build-step.md): no build step; precludes auto-generated session size checks.
+- [ADR-005](005-no-build-step.md): no build step or dependency install. A committed, dependency-free script run in place is in scope, so a mechanical size check is permitted — none has been built.
 - Issue #18 (O-T1 audit, O-T2 / O-T3 / O-T4 trims shipped under the same PR).
+
+## Amendments
+
+**2026-07-26 (ICON-0091).** The Decision is unchanged. The ADR-005 cross-reference previously read
+"no build step; precludes auto-generated session size checks" — it inherited ADR-005's own conflation
+of a build step with a committed script. ADR-005 has never forbidden a dependency-free script run in
+place, so a mechanical size check is permitted; whether to build one is a cost question, not a policy
+one. (ADR-008's own scope remains open under ICON-0089 audit item O-T1.)
