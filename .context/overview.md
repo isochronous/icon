@@ -18,7 +18,7 @@ This repo is the canonical source of the **ICON** (Independent Context Orchestra
 
 ## Tech stack
 
-Pure content. Markdown for definitions, JSON for the manifest and hook wiring, a single Node.js (`.mjs`) wrapper for the SessionStart hook (cross-platform; see `.context/domains/hooks.md`), and bash + PowerShell for the maintainer-only release scripts. No compile step, no test runner, no package manager. Validation is "the JSON parses" plus structural review, plus the `.githooks/pre-commit` gates and the `security` CI workflow. The plugin bundles no MCP servers — GitHub access is via the `gh` CLI (see `.context/domains/github-access.md`).
+Pure content. Markdown for definitions, JSON for the manifest and hook wiring, two cross-platform Node.js (`.mjs`) hook wrappers — SessionStart and PreToolUse (see `.context/domains/hooks.md`) — bash for the `.githooks/` gates and the maintainer-only release script, and bash + PowerShell parity pairs for the plugin-shipped helpers under `skills/*/scripts/` (see `.context/standards/shell-portability.md`). No compile step, no test runner, no package manager (ADR-005) — but committed, dependency-free scripts run in place ARE in scope. Validation is the `.githooks/pre-commit` gate set, the `security` CI workflow (gitleaks / semgrep / shellcheck), and structural review during PR. The plugin bundles no MCP servers — GitHub access is via the `gh` CLI (see `.context/domains/github-access.md`).
 
 ## Branching and versioning
 

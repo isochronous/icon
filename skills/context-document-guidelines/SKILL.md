@@ -103,7 +103,7 @@ Exempt under this arm (the current scaffold set — verify against the template 
 
 ## Related Section (graph seam)
 
-This section is the **single authority** for the `## Related` seam and the ADR supersede bold-fields. Generators (`context-specialist-impl-leaf`, `context-specialist-impl-root`) and `context-maintenance` reference it by name rather than restating it.
+This section is the **single authority** for three things: the `## Related` seam, the ADR supersede bold-fields, and the stale-ADR disposition rule (amend / scope-supersede / supersede, including the `## Amendments` section's placement and format). Generators (`context-specialist-impl-leaf`, `context-specialist-impl-root`), `context-maintenance`, and `decisions/README.md` reference it by name rather than restating it.
 
 The `.context/` knowledge graph (`context-maintenance § context-graph`) is built from edge signals already present in the document format. Two are **authored seams** — where the author records a relationship the graph would otherwise miss (a by-name prose mention, or a `domains/` file nothing links to).
 
@@ -153,6 +153,29 @@ reasoning was wrong rather than merely overtaken, why. Git history is the exhaus
 a reader could have acted on it. A typo, a renamed skill, or a stale path is corrected in place
 with no entry. Correcting one ADR's passing summary of *another* ADR's scope does count as
 load-bearing: that is exactly the kind of sentence a reader acts on.
+
+**Verify the replacement, not just the error (ICON-0091).** A correction pass is not
+self-verifying. Every assertion written *into* an ADR — including one written to replace a false
+one — needs checking against the repo, and every citation needs reading the cited file to confirm
+it says what the sentence claims. The failure mode is concrete: an amendment corrected five
+unsourced claims and introduced a sixth, attributing to a neighbouring ADR a rule that ADR never
+stated. Prefer a description of what the repo does, with known gaps named as gaps, over a
+universal ("only in X", "always Y") that one counter-example falsifies.
+
+#### The `## Amendments` section
+
+- **Placement is fixed: the LAST `## ` section of the ADR** — after `## Alternatives Considered`.
+  Entries accumulate in date order, newest last, so the section reads as a chronological log.
+- **Format: a bold dated, task-attributed lead-in, then bullets.** `**YYYY-MM-DD (TASK-ID).**`
+  followed by a sentence stating whether the Decision changed (for an amendment it has not), then
+  one bullet per correction naming the section, quoting what the text said, and stating what is
+  true. **Quote the original erroneous text verbatim** — the quoted text is often the only
+  explanation for how the same error spread to other documents.
+- **It is a record appended to a live rule, not a second topic** — like a `## Related` footer. It
+  does **not** violate one-facet-per-file, and it is **excluded from the folder-split gate (2)**
+  section count (see `## Folder Split Rule`). Its bytes still count toward gate (1); an ADR whose
+  amendments log has genuinely outgrown the record is a sign to prune superseded entries, not to
+  split the ADR along its amendment history.
 
 ### ADR supersede bold-fields (`decisions/NNN-*.md`)
 
