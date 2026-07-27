@@ -45,8 +45,23 @@
 - [x] Phase 4 — verification: **8 of 9 checks pass**; check 6 (root `claude.md` redirect) intentionally not satisfied, see Decisions.
 - [x] @reviewer over the full task diff — **approved with comments**. Mechanics verified end-to-end: canonical footer shape, all link targets resolve, hook blobs byte-identical across the mode change, scope clean. Reviewer independently reconciled the graph delta (`references` edges 26 → 53 = 34 new links − 7 pre-existing reformatted ones) rather than trusting the checker's summary line.
 - [x] Two commit-message inaccuracies confirmed and corrected here (the commit message itself is left as-is rather than rewritten): there are **15** ADRs, not 16 — 16 is the file count only if `decisions/README.md` is miscounted as an ADR. And only **4 of 15** ADRs carry structured `**Supersedes**`/`**Superseded-by**` fields (012–015); `006` uses `**Status**: Superseded by ICON-0080`, which names a *task ID*, not an ADR. The decision to exclude ADRs from the seam remains correct — `context-document-guidelines § Related Section` excludes them categorically, independent of which fields any given ADR uses — but the rationale as written overstated uniformity.
-- [ ] Fix 4 reviewer Moderates — 2 unearned links, 1 file missed by the sweep, 1 canonical heading over a non-canonical body ← IN PROGRESS
-- [ ] Commit fixes, retrospective, CHANGELOG decision, PR
+- [x] Fixed all 4 reviewer Moderates — committed `29b1e2e`. All four relationships survived verification, so links were kept with earning prose added rather than dropped. `references` edges 53 → 57; the 4 new edges are all from `github-access.md`, the other 3 fixes added prose around pre-existing links — delta reconciles exactly.
+- [x] Retrospective — entry appended (log held at 10, single prune, ICON-0080 archived); lesson promoted as the **8th occurrence + new "Diff-direction corollary"** in `verify-design-claims-against-artifacts.md`, extending the existing axis rather than opening a second home for the rule.
+- [ ] Close-gate, commit, PR ← IN PROGRESS
+
+## Close-Gate Evidence
+
+1. **@reviewer coverage** — `f6e134b` reviewed (approved with comments); all 4 Moderates fixed in `29b1e2e`. The retrospective commit that follows touches only `retrospectives.md`, `retrospectives-archive.md` (both append-only records) and one standards file, all written by @context-specialist under the two-stage retrospective handoff, which is the reviewed path for that artifact class.
+2. **Lint** — N/A, pure-content repo (ADR-005). Substitute: `.githooks/pre-commit` ran and passed on every commit (`check-rules-index` OK, `context-graph` OK, shellcheck skipped locally with an explicit notice — CI enforces).
+3. **Tests** — N/A, no test runner (ADR-005). Behavioral verification instead: Phase 4's 9-point check (8 pass, 1 deliberately declined — see Decisions); `context-graph.sh --check` green at 49 nodes after every write; graph edge delta independently reconciled twice (26→53, then 53→57); hook blob hashes verified byte-identical across the mode change; retro log verified at 10 against `ENTRY_CAP=10`.
+4. **verification-checklist** — passed; every claim carries command output.
+5. **Commit conventions** — `.context/workflows/commit-conventions.md` applied: Pattern 1 (`ICON-NNNN: <lowercase imperative>`), no trailing period, single prefix, `Co-authored-by` trailer present on every commit of this task (the ICON-0089 omission was corrected forward, as its retrospective committed to).
+
+## Open Items for the User
+
+- **Root `claude.md` redirect** — deliberately not created; a Copilot-parity decision, not an upgrade side effect. See Decisions.
+- **Nine `upgrade-repo` defects** documented in `upgrade-audit.md`, two consumer-wide (D1 unvalidated `TEMPLATE_DIR` under PowerShell; D2 prefix-collision check with no self-exclusion, misfiring on every mature ICON repo). Untriaged, alongside ICON-0089's 62 dispositions.
+- **`verify-design-claims-against-artifacts.md` is now 14,999 bytes** against the 16,000-byte split threshold. Two more promotions to this axis and it owes a split — a mechanical obligation to watch, per ICON-0088.
 
 ## Open Questions / Blockers
 - **Does ICON count as a consumer of its own template?** Several template deltas may be inapplicable or actively wrong for the repo that *defines* the template. Each such case is a decision for the audit report, not an automatic apply.
