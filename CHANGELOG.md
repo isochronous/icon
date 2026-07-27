@@ -20,6 +20,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `.context/` maintenance now carries a P0/P1/P2 urgency tier: inaccurate content is verified against source and corrected the moment it is identified rather than queued to task close, mechanical obligations such as an overdue file split land in the task that surfaced them instead of a follow-up, and a defect found with no active task becomes its own task. (ICON-0088)
 
+### Fixed
+
+- Shipped skills no longer rely on GNU-only shell constructs — `grep -oP`, `sed -i` without a backup suffix, `mktemp -p` with a mid-template suffix, `realpath`, and an unguarded `cd` that searched `CDPATH` — so `/icon-init` .NET monorepo discovery (which previously found zero projects and set up nothing, with no error message), `/upgrade-repo` schema-version comparison, and the retrospective-append helper the task-close flow calls now work on macOS and BSD instead of failing silently or not at all. (ICON-0093)
+
+- The `commit-conventions.md` scaffold shipped to consumers no longer carries a predecessor project's ticket prefix, ICON's own commit history and scope vocabulary, or a single-assistant co-author trailer, and its task-ID generator no longer reads zero-padded IDs as octal — which silently produced a colliding ID or failed outright once a repo reached `0008`; ships in `context_template/` (schema 1.12→1.13) so `/upgrade-repo` applies it to existing repos. (ICON-0093)
+
 ### Removed
 
 - Removed the `ecological-impact` skill, so `/ecological-impact` session-footprint estimates are no longer available. (ICON-0092)
