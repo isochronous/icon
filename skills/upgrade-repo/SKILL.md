@@ -489,11 +489,17 @@ If `.context/iconrc.json` is absent, invoke the `create-iconrc` skill to generat
 **`iconrc.json` schema version update**: if the file is present and its `version` field is behind the template, update only that field — all customized values (`excludes`, `local_task_id_prefix`, etc.) are preserved:
 
 ```bash
-TEMPLATE_VER=$(grep '"version"' "$TEMPLATE_DIR/context/iconrc.json" | grep -oP '[\d.]+')
-INSTALLED_VER=$(grep '"version"' .context/iconrc.json | grep -oP '[\d.]+')
+TEMPLATE_VER=$(grep '"version"' "$TEMPLATE_DIR/context/iconrc.json" | grep -oE '[0-9.]+')
+INSTALLED_VER=$(grep '"version"' .context/iconrc.json | grep -oE '[0-9.]+')
 if [ "$INSTALLED_VER" != "$TEMPLATE_VER" ]; then
-  sed -i "s/\"version\": \"$INSTALLED_VER\"/\"version\": \"$TEMPLATE_VER\"/" .context/iconrc.json
-  echo "iconrc.json version: $INSTALLED_VER → $TEMPLATE_VER"
+  INSTALLED_VER_RE=${INSTALLED_VER//./[.]}
+  if sed "s/\"version\": \"$INSTALLED_VER_RE\"/\"version\": \"$TEMPLATE_VER\"/" .context/iconrc.json > .context/iconrc.json.tmp && mv .context/iconrc.json.tmp .context/iconrc.json; then
+    echo "iconrc.json version: $INSTALLED_VER → $TEMPLATE_VER"
+  else
+    rm -f .context/iconrc.json.tmp
+    echo "ERROR: failed to update iconrc.json version ($INSTALLED_VER → $TEMPLATE_VER)" >&2
+    exit 1
+  fi
 else
   echo "iconrc.json version: already at $INSTALLED_VER"
 fi

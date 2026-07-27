@@ -73,13 +73,13 @@ To identify the solution group directories:
 
 ```bash
 # Find the .sln file (commonly at repo root or under src/)
-SLN=$(find "$REPO_ROOT" -maxdepth 3 -name "*.sln" ! -path "*/.git/*" | head -1)
+SLN=$(find "$REPO_ROOT" -maxdepth 3 -name "*.sln" ! -path "*/.git/*" | head -n 1)
 
 # Extract all .csproj paths from the solution, derive the group directory
 # (the first path segment relative to the solution file's directory)
 SLN_DIR="$(dirname "$SLN")"
 grep '\.csproj"' "$SLN" \
-  | grep -oP '"[^"]+\.csproj"' | tr -d '"' \
+  | grep -oE '"[^"]+\.csproj"' | tr -d '"' \
   | sed 's|\\|/|g' \
   | xargs -I{} dirname {} \
   | awk -F'/' '{print $1}' \
