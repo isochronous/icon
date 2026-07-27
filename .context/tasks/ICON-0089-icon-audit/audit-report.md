@@ -704,3 +704,36 @@ Recorded here rather than in the table above because they are build/don't-build 
 | R-20 | **Blocked** on `M-P-0089-4`; sequence after | | |
 | R-12 broad form (ordered-list resolver) | **Do not build** — most displaceable entry; trains renumber-until-green | | |
 | R-19 (skill size gate) | **Do not build** — violation population is one file; fix via O-T5 | | |
+
+---
+
+## Post-Audit Verification (added after synthesis)
+
+Two findings were tested against live behavior *after* the report was written, during this task's own close-out. Both results are recorded here rather than edited into the findings above, so the audit's original claim and its verification stay separately visible.
+
+### `x-89-1` (retrospective log over cap) — **confirmed on the fact, corrected on the implication**
+
+This task's retrospective append was run as a live test of the finding. Observed:
+
+| | |
+|---|---|
+| Entry count before append | **11** (`grep -c '^### '`) |
+| `ENTRY_CAP` in source | **10** — `skills/context-maintenance/scripts/append-retrospective-entry.sh:41` |
+| Entries pruned by the append | **2** (ICON-0079, ICON-0078), both archived to `.context/retrospectives-archive.md`, not discarded |
+| Entry count after append | **10** — exactly at cap |
+
+**The fact is confirmed**: the file was one entry over cap, exactly as `x-89-1` states, and the ICON-0088 heading-vs-paragraph cross-check did report clean throughout because both counts equalled 11.
+
+**The implication needs correcting.** The over-cap state was *not* evidence of a broken pruning mechanism. The script implements documented multi-prune convergence (`append-retrospective-entry.sh:24-26`): with a pre-insert count of 11 it computed `keep = cap - 1 = 9` and dropped `11 - 9 = 2`, landing the post-insert file exactly at cap rather than tracking one-in-one-out. The mechanism self-heals accumulated drift on the next append, and the ICON-0073 archive path worked as designed.
+
+**Consequence for R-9**: the corrected specification stands, but its *justification* narrows. The `count ≤ ENTRY_CAP` assertion is still worth shipping — it detects the drift window between the drift appearing and the next append closing it, which is exactly when an audit reads the file and draws a wrong conclusion, as this one did. But it is a **detection-latency gate, not a correctness gate**, and it should not be sold as fixing a broken cap. Ship it at advisory, or fail-closed only if the drift window is judged to matter. The `heading_count == awk RS="" record_count` coalescing assertion is unaffected — that one remains a genuine correctness check.
+
+This is itself an instance of the report's own thesis: the proxy-gate risk is not only that a check can be green on a violation, but that a *reader* can infer a broken mechanism from a state the mechanism was designed to absorb.
+
+### The stale single-hook claim — class confirmed wider than reported
+
+The reviewer verifying commit `8de5f48` swept for the corrected phrase and found the same pre-ICON-0073 single-wrapper assertion still live in `.context/META.md:7`, `.context/standards/security.md:43`, and `.context/workflows/branching.md:162` — with `standards/security.md` internally inconsistent, correctly documenting the second hook at `:18` while contradicting itself at `:43`. Dispatched for correction in this task under the ICON-0088 P0 rule.
+
+`.context/decisions/005-no-build-step.md:12` carries the identical claim and was **deliberately left untouched**: ADR-005 is the subject of **R-0a**, and correcting it in passing would pre-empt the amend-or-supersede decision this report puts to the maintainer. It is covered by that item, not by the sweep.
+
+**Bearing on the roadmap**: this class was found by a human-style grep sweep during review, two dispatches deep, after two separate agents had already looked at adjacent files. It is a plain literal spanning at least five documents — precisely the population **R-3** (banned/declared-literal registry) exists to catch, and precisely the reason **R-2** and **R-3** were judged to require CI rather than a staged-file-scoped hook: nobody had touched four of these five files, so no commit-scoped gate could ever have seen them.

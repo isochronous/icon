@@ -45,10 +45,19 @@
 - [x] In-task `.context/` correction (P0, ICON-0088 urgency rule) — 4 fixes, committed `8de5f48`. One dispatched claim invalidated; 2 of 4 fixes found by class-sweep rather than the cited line.
 - [x] Phase 3 — `audit-report.md` synthesized (706 lines). Deduplicated: **5 Critical / 24 Moderate / 39 Minor** + 33 improvement opportunities. Delta vs ICON-0058: ~24 fixed / 19 still-present-or-partial / 13 net-new. Verdict **FAIR**, down from STRONG.
 - [x] @reviewer pass over the only content change on this branch (commit `8de5f48`, two `.context/domains` files)
-- [ ] Commit audit artifacts (research ×6 + audit-report.md + plan.md) ← IN PROGRESS
-- [ ] Retrospective (`task-retrospective`, two-stage handoff)
+- [x] Commit audit artifacts (research ×6 + audit-report.md + plan.md) — `02a9020`
+- [x] @reviewer verdict: **Approved**. All four values in `8de5f48` verified against `hooks/hooks.json`, the `hooks/` listing, and `guardrail-pretooluse.mjs`. No scope creep. Two informational notes (missing `## Related` footers on both files, pre-dating the commit).
+- [x] Retrospective — entry appended via script (11 → 10 entries, 2 pruned to ICON-0073 archive), lesson promoted to `.context/standards/skill-decomposition/verify-design-claims-against-artifacts.md` as a 7th occurrence + a net-new "Relayed-finding corollary (ICON-0089)".
+- [x] Post-audit verification addendum added to `audit-report.md` — `x-89-1` confirmed on the fact, corrected on the implication (see below).
+- [ ] Second P0 `.context/` sweep — stale single-hook claims in `META.md`, `standards/security.md`, `workflows/branching.md` (+ `overview.md` adjudication), found by the reviewer ← IN PROGRESS
 - [ ] Post chat summary; offer to file follow-up tasks as GitHub issues (user confirmation required)
-- [ ] Completion — PR
+- [ ] Completion — commit remaining artifacts, close-gate, PR
+
+## Post-Audit Verification Results
+
+- **`x-89-1` (retro log over cap) — fact confirmed, implication corrected.** The log was at 11 against `ENTRY_CAP=10` (`append-retrospective-entry.sh:41`), exactly as found. But the append pruned **2** entries (both archived, not discarded) and landed the file exactly at cap — the script's documented multi-prune convergence (`:24-26`), not a broken mechanism. R-9's corrected spec still ships, but as a **detection-latency gate, not a correctness gate**: its value is catching the drift window in which a reader (this audit, for one) infers a broken mechanism from a state the mechanism absorbs on next write. The coalescing assertion is unaffected and remains a genuine correctness check.
+- **Stale single-hook claim is wider than the two files first corrected.** Found live in `META.md:7`, `standards/security.md:43` (self-contradicting against its own `:18`), `workflows/branching.md:162`. Bears directly on the roadmap: four of the five sites had not been touched by any recent commit, so **no staged-file-scoped hook could ever have caught them** — the concrete justification for R-2/R-3 being CI-venue rather than pre-commit.
+- **`decisions/005-no-build-step.md:12` deliberately not corrected.** Same stale claim, but ADR-005 is the subject of roadmap item **R-0a** (amend or supersede) awaiting user triage; fixing it in passing would pre-empt a decision the report puts to the maintainer.
 
 ## Review Checkpoint
 - **Stamped**: after commit `8de5f48`, covering the complete changed-file set of content changes on this branch — `.context/domains/hooks.md` and `.context/domains/github-access.md`. Reviewer: @reviewer (tier `default`), dispatched to verify each corrected value against its source of truth (`hooks/hooks.json`, `hooks/`, `.claude-plugin/plugin.json`, `standards/security.md`), sweep-completeness, and `context-document-guidelines` conformance.
