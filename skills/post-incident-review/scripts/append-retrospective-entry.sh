@@ -65,7 +65,7 @@ If the file already contains ${ENTRY_CAP} or more entries, the oldest entry is
 removed before insertion, keeping the log capped at ${ENTRY_CAP} entries.
 
 Entry text must begin with a '### ' heading line, e.g.:
-  ### MKT-0045: Short description
+  ### TICKET-0045: Short description
   - **Avoid**: ...
   - **Repeat**: ...
   - **Updated**: ...
@@ -113,14 +113,14 @@ else
 fi
 
 # Validate entry starts with '### '
-first_line="$(head -1 "$entry_tmp")"
+first_line="$(head -n 1 "$entry_tmp")"
 [[ "$first_line" =~ ^"### " ]] \
   || die "entry text must begin with a '### ' heading line (got: ${first_line})"
 
 # ---------- file manipulation ----------
 
-retro_dir="$(dirname "$(realpath "$retro_file")")"
-out_tmp="$(mktemp -p "$retro_dir" .retro_tmp_XXXXXX.md)"
+retro_dir="$(CDPATH= cd -- "$(dirname -- "$retro_file")" && pwd -P)"
+out_tmp="${retro_dir}/$(CDPATH= cd -- "$retro_dir" && mktemp .retro_tmp_XXXXXX)"
 trap 'rm -f "$out_tmp"; rm -rf "$tmpdir"' EXIT
 
 # Pruned entries are archived here (uncapped, append-only) rather than being
@@ -154,7 +154,7 @@ BEGIN {
   sub(/[[:space:]]+$/, "", para)
   if (para == "") next
 
-  if (para ~ /^\#\#\# /)  { entries[++n] = para }
+  if (para ~ /^### /)  { entries[++n] = para }
   else if (para ~ /^<!--/) { suffix = para }
 }
 
