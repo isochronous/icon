@@ -200,7 +200,6 @@ User-facing skills (type the `/name`); the manager pulls in the rest automatical
 | `/deep-research` | Multi-source, fact-checked research report |
 | `/plugin-design` | Scaffold or audit a Claude Code plugin |
 | `/writing-skills` | Author a new ICON skill |
-| `/ecological-impact` | Footprint of your session (trees/water equivalents) |
 
 ---
 
