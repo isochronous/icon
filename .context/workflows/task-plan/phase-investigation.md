@@ -58,7 +58,7 @@ Questions:
   - [Question 2]
 Decision this research will inform: [what choice depends on the findings]
 Constraints:
-  - ICON is a pure-content plugin (no compile/test/package manager) — recommendations must not assume a build step.
+  - ICON is a pure-content plugin (ADR-005) — no manifest, install step, or generated artifacts. Recommendations may assume a committed, dependency-free script run in place; they must not assume a build or install.
   - [other relevant constraint from .context/decisions/]
 ```
 

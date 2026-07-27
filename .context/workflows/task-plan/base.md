@@ -59,7 +59,7 @@
 - [Anything the next agent or developer needs to resolve or be aware of]
 
 ## Constraints
-- ICON is pure-content (no compile/test/package manager) — see ADR-005.
+- ICON is pure-content: no build step, no test runner, no package manager (ADR-005). Committed, dependency-free scripts run in place ARE in scope.
 - `.claude-plugin/plugin.json` is the version SSOT — see ADR-003.
 - [Additional constraints from user, context, or discovered during work]
 ```

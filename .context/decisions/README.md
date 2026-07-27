@@ -4,13 +4,20 @@ This folder tracks significant architectural decisions made for the ICON plugin 
 
 One ADR per file, numbered sequentially: `NNN-kebab-slug.md`. ADR numbers are immutable once assigned; superseded ADRs stay in place with their status updated.
 
+**Correcting a stale ADR.** A record whose *Decision* still holds but whose supporting facts have
+decayed is **amended in place** with a dated `## Amendments` entry — not superseded. Supersede only
+when the position itself changed; scope-supersede when one sub-decision changed and the rest stands.
+The full convention lives in `context-document-guidelines § Correcting a stale ADR`.
+
 ## Template
 
 ```markdown
 # ADR-NNN: Title
 
 **Date**: YYYY-MM-DD
-**Status**: Accepted | Superseded by ADR-XXX | Deprecated
+**Status**: Accepted            <!-- or: Superseded by ADR-NNN | Deprecated -->
+**Supersedes**: none            <!-- or: ADR-NNN -->
+**Superseded-by**: none         <!-- or: ADR-NNN — machine-readable mirror of Status -->
 
 ## Context
 What problem prompted this decision?
@@ -23,7 +30,22 @@ What is now easier or harder as a result?
 
 ## Alternatives Considered
 What did we reject and why?
+
+## Amendments
+<!-- Omit this section until the first correction. Then it is the LAST section,
+     entries in date order:
+
+**YYYY-MM-DD (TASK-ID).** The Decision is unchanged. <what was corrected and why>
+
+- *Section* said "<verbatim quote of the erroneous text>". <What is true, and its source.>
+-->
 ```
+
+`**Supersedes**` / `**Superseded-by**` are machine-readable — `context-graph` builds the ADR
+supersede edges from them, so a new ADR needs both fields present even when the value is `none`.
+An ADR does **not** get a `## Related` footer; that seam is for content docs. The full convention is
+`context-document-guidelines § Related Section (graph seam)`; `## Amendments` placement and entry
+format live in its `§ Correcting a stale ADR` sub-section, cited above.
 
 ## Decision Log
 

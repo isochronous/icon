@@ -49,7 +49,7 @@ Patterns to follow:
   - [reference to commit-conventions in .context/workflows/commit-conventions.md]
 Research/architecture findings: [summary or "N/A"]
 Constraints:
-  - ICON is pure-content — no compile/lint/test commands; verification is structural (JSON parses, paths resolve, common-constraints byte-equal across agents).
+  - ICON is pure-content (ADR-005) — no manifest, no install step, no generated artifacts. There is no compiler or test runner, but there ARE runnable gates: `.githooks/pre-commit`, `check-rules-index.sh`, and `context-graph --check`. Run them; a committed, dependency-free script run in place is permitted and is the normal way to add a mechanical check.
   - `.claude-plugin/plugin.json` `version` is the SSOT — do not bump it during a feature commit; that belongs to `/release-plugin`.
   - If editing an agent file, never edit the embedded `common-constraints` block directly; edit `shared/common-constraints.md` — the `.githooks/pre-commit` hook re-injects the block into every agent file at commit time and re-stages any updated files automatically.
 Acceptance criteria:

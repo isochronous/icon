@@ -60,7 +60,7 @@ Specific questions:
   - [question about thin-router boundaries, dispatcher-prompt variable convention, or agent/skill role overlap]
   - [question about cross-cutting impact: does this change ripple through context_template/, all agents, or every consumer repo?]
 Constraints:
-  - ICON is pure-content (no build step) — proposals must not require a compile/test pipeline.
+  - ICON is pure-content (ADR-005) — no manifest, no install step, no generated artifacts. A committed, dependency-free script run in place is permitted and is the normal way to add a mechanical check.
   - Credentials use placeholders in committed files (`<TOKEN>`) per ADR-006 — never commit real secrets.
   - [other hard requirement from the user or .context/decisions/]
 Ticket: ICON-NNNN

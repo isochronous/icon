@@ -32,7 +32,7 @@ On-demand router for this repo's governing rules across `standards/`, `workflows
 | 002 | Choosing a branch model or proposing release branches | [decisions/002-main-only-branch-model.md](decisions/002-main-only-branch-model.md) |
 | 003 | Touching the version field — which file is the source of truth | [decisions/003-version-source-of-truth.md](decisions/003-version-source-of-truth.md) |
 | 004 | Writing content that must run on both Claude Code and Copilot CLI | [decisions/004-tool-agnostic-content.md](decisions/004-tool-agnostic-content.md) |
-| 005 | Adding a build, compile, lint, or test step to this plugin | [decisions/005-no-build-step.md](decisions/005-no-build-step.md) |
+| 005 | Adding a build, lint, or test step — or deciding whether a proposed check script is permitted | [decisions/005-no-build-step.md](decisions/005-no-build-step.md) |
 | 006 | Handling MCP credentials or secrets in templates (Superseded by ICON-0080 — MCP servers removed; retained as history) | [decisions/006-mcp-credentials-placeholders.md](decisions/006-mcp-credentials-placeholders.md) |
 | 007 | Deciding whether a `/dev/null` redirect is allowed in a given file | [decisions/007-devnull-ban-scope.md](decisions/007-devnull-ban-scope.md) |
 | 008 | Adding always-loaded content and weighing the token budget | [decisions/008-always-loaded-token-budget.md](decisions/008-always-loaded-token-budget.md) |

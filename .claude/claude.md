@@ -6,13 +6,19 @@ This repository is the canonical source of the ICON plugin — a project-agnosti
 
 - **Markdown** for all agent definitions, skills, and commands.
 - **JSON** for the plugin manifest (`.claude-plugin/plugin.json`).
-- **Node.js** for the single `hooks/inject-manager-role.mjs` cross-platform wrapper and **Bash / PowerShell** for the maintainer `release-plugin` scripts.
+- **Node.js** for the two cross-platform hook wrappers (`hooks/inject-manager-role.mjs`, `hooks/guardrail-pretooluse.mjs`).
+- **Bash** for the `.githooks/` gates (`pre-commit`, `post-commit` — both bash, no PowerShell counterpart) and for the maintainer-only scripts under `.claude/skills/*/scripts/` (e.g. `bump-versions.sh`, `structural-check.sh`).
+- **Bash and PowerShell** for the plugin-shipped helpers under `skills/*/scripts/`, where `context-graph` and `append-retrospective-entry` ship as `.sh`/`.ps1` parity pairs because they run in the consumer's environment (`.context/standards/shell-portability.md`).
 
-There is **no build step**, **no test runner**, and **no package manager**. Validation means "the JSON parses" and "the manifest validator accepts it":
+There is **no build step**, **no test runner**, and **no package manager** (ADR-005) — but committed
+scripts that run in place on an already-present runtime are in scope, and always were. Validation is
+the `.githooks/pre-commit` gate set plus the `security` CI workflow. A manifest parse check:
 
 ```bash
-python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
+node -e "const m=require('./.claude-plugin/plugin.json'); console.log('OK', m.name, m.version)"
 ```
+
+`python3` is **not** an assumed runtime — on Windows it resolves to a non-executing Store stub.
 
 ## Key paths
 
@@ -21,7 +27,7 @@ python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
 | `agents/` | The nine ICON agents (manager, coder, tester, etc.). |
 | `skills/` | User-invocable and internal skills consumed by ICON agents. |
 | `commands/` | Slash commands surfaced to Claude Code users. |
-| `hooks/` | `SessionStart` hook script that injects the manager role. |
+| `hooks/` | Harness hooks: `SessionStart` manager-role injection and the `PreToolUse` security guardrail. |
 | `context_template/` | Source template copied into target projects by `/icon-init`. |
 | `.claude-plugin/plugin.json` | Canonical plugin manifest. Single source of truth for the version. |
 | `.claude/skills/release-plugin/` | Maintainer-only release tooling. Not shipped to consumers. |
