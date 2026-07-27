@@ -39,7 +39,21 @@ This decision complements rather than supersedes the constraining ADRs: it opera
 
 ## Alternatives Considered
 
-1. **Separate `handoff.json` / per-phase carrier files, or git commit messages / `git notes` as the carrier:** rejected. A separate JSON file splits the source of truth, breaks the "one file resumes cold" invariant, and adds a parser dependency (ADR-005 friction); commit messages / notes are fragile, hard to author by hand, and invisible to the reconstruct-first read. Keeping the carrier inside `plan.md` preserves the single authoritative, human-authorable handoff record.
+1. **Separate `handoff.json` / per-phase carrier files, or git commit messages / `git notes` as the carrier:** rejected. A separate JSON file splits the source of truth and breaks the "one file resumes cold" invariant; commit messages / notes are fragile, hard to author by hand, and invisible to the reconstruct-first read. Keeping the carrier inside `plan.md` preserves the single authoritative, human-authorable handoff record.
 2. **Embed the handoff commit SHA in `plan.md`:** rejected — a commit cannot contain its own SHA, and a stored SHA drifts. The branch tip is the integrity anchor and the `Phase-Handoff:` trailer confirms the completed phase, avoiding the self-reference trap.
 3. **Fixed always-five phase sequence, or a make-every-phase-load-all-five model:** rejected in favor of a per-task declared phase plan (an ordered subsequence of the canonical order). This preserves ICON's "load only the concern(s) this task needs" philosophy while making the sequence explicit and machine-advanceable.
 4. **Push the phase-advance logic into the always-loaded manager role, or into the SessionStart bootstrap hook:** rejected — it would load reconstruct/handoff instructions into the surface ADR-008 most tightly budgets. Only a minimal phase-directive rule enters the manager; the phase directive arrives via the `-p` prompt, not the hook.
+
+## Amendments
+
+**2026-07-26 (ICON-0091).** The Decision is unchanged. Alternative 1's rejection rationale
+previously read "adds a parser dependency (ADR-005 friction)" as one reason to reject a
+separate `handoff.json` carrier — inheriting ADR-005's own conflation of "a structured format"
+with "a third-party dependency." A flat, single-level JSON object (the same shape `plan.md`'s
+`## Phase State` bullets already hold — `Current`, `Next`, `Branch`, `Attempts`, `Completed`) is
+regex-extractable with `sed`/`grep` exactly as the markdown format is: see the `field()` helper
+in `references/launcher-templates.md`, which extracts each Phase State value with a one-line
+`sed` pattern and no third-party tool. A dependency-free JSON parser for that same flat shape is
+equally possible, so ADR-005 does not bar the alternative on parsing grounds. The reasons that
+still stand are the ones that do not depend on ADR-005: a separate JSON file splits the source of
+truth and breaks the "one file resumes cold" invariant.
