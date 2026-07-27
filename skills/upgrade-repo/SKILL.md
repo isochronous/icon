@@ -636,8 +636,8 @@ Commit using this repo's format from `commit-conventions.md`.
 
 ## Retrospectives File Migration
 
-Repos initialized before MKT-0045 have a `retrospectives.md` with a preamble and
-`## Log` header. The current format starts directly with the first `### ` entry —
+Older repos have a `retrospectives.md` with a preamble and a `## Log` header before
+the first entry. The current format starts directly with the first `### ` entry —
 no preamble, no `## Log` heading.
 
 **To migrate a repo**:

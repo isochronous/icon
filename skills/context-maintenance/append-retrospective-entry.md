@@ -38,7 +38,7 @@ task retrospective.
 
 ```bash
 # Pass entry text via stdin
-echo '### MKT-0045: Short description
+echo '### TICKET-0045: Short description
 - **Avoid**: ...
 - **Repeat**: ...
 - **Updated**: ...' | ./scripts/append-retrospective-entry.sh \
@@ -54,7 +54,7 @@ echo '### MKT-0045: Short description
 ```powershell
 # Pass entry text via stdin
 @'
-### MKT-0045: Short description
+### TICKET-0045: Short description
 - **Avoid**: ...
 - **Repeat**: ...
 - **Updated**: ...
