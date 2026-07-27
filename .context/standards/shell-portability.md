@@ -60,3 +60,7 @@ Step 5 is the critical difference: `mawk + gawk extension` exits 0 with zero byt
 ## Pattern Observed — ICON-0040
 
 A first-pass coder migrated a file-splitting routine using `match($0, /regex/, arr)` (3-arg gawk extension) and `printf -v` (bash builtin) inside an awk block. On mawk 1.3.4 both silently fail: the awk block emits zero output files while the surrounding bash keeps executing — including a `git rm .context/decisions.md` that would have run unconditionally, destroying consumer data. Invisible to diff-reading, it would have shipped silently to every consumer on Debian, Ubuntu, WSL, and Alpine. The reviewer caught it by live-running the extracted block against a fixture on mawk before approving. The fix replaced the gawk-only awk block with pure bash `BASH_REMATCH` parsing — simpler, portable, and verifiable in the same live-fixture loop.
+
+## Related
+
+- See also: [secure coding](secure-coding.md) § Rule 6 — cross-references this standard's `grep` dash-argument guidance

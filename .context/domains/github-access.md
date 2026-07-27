@@ -33,7 +33,7 @@ former `.mcp.json` (GitLab + Atlassian/Jira/Confluence servers) and the
   the secret-in-write guardrail (`hooks/guardrail-pretooluse.mjs`) and documented in
   `standards/secure-coding.md`.
 
-## Related Skills
+## Related
 
 GitHub-facing skills render or triage content but never store credentials:
 

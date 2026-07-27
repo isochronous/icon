@@ -29,3 +29,10 @@ Secure-coding rules for ICON's own shell and JS hook/script source — grounded 
 12. **Pin CI GitHub Actions to a commit SHA** — every `uses:` in a `.github/workflows/*.yml` job pins a full 40-char commit SHA, never a mutable tag or branch (`@v4`, `@main`) — a tag can be silently repointed (supply-chain risk). Enforced by the semgrep `github-actions-mutable-action-tag` rule in the `security` workflow; a mutable `uses:` fails CI. Before committing a pin, verify the SHA against the upstream tag: `gh api repos/<owner>/<repo>/git/refs/tags/<tag> --jq '.object.sha,.object.type'` (dereference an annotated `tag` object to its commit) rather than copying a SHA blind. (ICON-0087.)
 
 Changes to ICON's hooks or scripts should be checked with the `security-review` skill before shipping.
+
+## Related
+
+- See also: [shell portability](shell-portability.md) § Rule 4 — `grep` dash-argument guidance this standard's Rule 6 cross-references
+- Governed by: [ADR-005: no build step](../decisions/005-no-build-step.md)
+- Governed by: [ADR-006: MCP credentials placeholders](../decisions/006-mcp-credentials-placeholders.md) (Superseded — retained for the never-commit-credentials principle)
+- Governed by: [ADR-007: devnull ban scope](../decisions/007-devnull-ban-scope.md)

@@ -37,3 +37,7 @@ Both ICON-0083 reviewers approved a ~98-file, ~−4,800-word diff against these 
 ## 4. Don't de-duplicate deliberate reinforcing redundancy without maintainer sign-off
 
 Some repetition is reliability-load-bearing, not accidental bloat — e.g. the manager's close-gate stated across multiple enforcement tiers (Step 6 + its Hardcoded mirror + the anti-rationalization row). The repetition is what makes the rule hold under pressure. **Do not collapse it as part of a concision pass** without explicit maintainer sign-off; surface the size-vs-reinforcement tradeoff instead of unilaterally cutting the reinforcing copy. (ICON-0083 stopped the manager reduction at −13.1% rather than de-dup the tiered close-gate restatement, and put the call to the user.)
+
+## Related
+
+- Governed by: [ADR-008: always-loaded token budget](../decisions/008-always-loaded-token-budget.md)

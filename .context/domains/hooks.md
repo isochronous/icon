@@ -127,3 +127,8 @@ When a task stages changes across `agents/`, `README.md`, and `skills/` together
 - **Template-version invariant (ICON-0044/0069)**: see the companion-bump rule above — any `context_template/` change needs its `iconrc.json` version bump in the same commit.
 
 **Rule**: for a sweep touching all three surfaces, sequence the commits `agents/` + `README.md` first, then `skills/`. Knowing the gate coupling before sequencing avoids a blocked or contents-polluted commit.
+
+## Related
+
+- See also: [skill system](skill-system.md) § Sync mechanism — the common-constraints re-injection this file's gate-coupling section depends on
+- See also: [branching](../workflows/branching.md) § Template-Version Bump Cadence — the companion-bump rule this file's cache/version guidance cross-references

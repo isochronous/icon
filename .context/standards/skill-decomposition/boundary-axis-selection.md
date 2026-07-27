@@ -25,6 +25,6 @@ The maintainer's ruling re-axised the test to **shape**: is the file's organizin
 
 See `context-document-guidelines § Folder Split Rule → Split Exemptions` for the shape-based test this precedent produced.
 
----
+## Related
 
-See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.
+- Index: [skill-decomposition](../skill-decomposition.md)

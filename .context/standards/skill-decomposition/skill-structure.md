@@ -80,6 +80,6 @@ per-domain content to files loaded only when dispatched.
 templates should remain single-file. Sub-file layout adds navigation cost; only
 introduce it when inlining would make `SKILL.md` unwieldy.
 
----
+## Related
 
-See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.
+- Index: [skill-decomposition](../skill-decomposition.md)

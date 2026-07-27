@@ -72,6 +72,6 @@ When a rule's canonical definition lives at one site (e.g. `context-document-gui
 |---|---|---|
 | "A quick parenthetical example is more helpful to the reader than a bare pointer" | The example is read as the current, complete list — not as illustrative — and drifts silently the moment the canonical rule changes without the satellite being touched. | Point at the canonical site by name; let the reader follow the reference for the current member set. |
 
----
+## Related
 
-See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.
+- Index: [skill-decomposition](../skill-decomposition.md)

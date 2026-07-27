@@ -46,6 +46,6 @@ If you are any other agent:
 
 **Unreachable branch note**: The `@specialist` branch of the router is typically never reached in normal flows. Add a comment: `<!-- Fallback only — not reached in standard flows -->` to prevent future confusion.
 
----
+## Related
 
-See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.
+- Index: [skill-decomposition](../skill-decomposition.md)

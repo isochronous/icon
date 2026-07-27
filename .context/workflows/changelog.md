@@ -41,3 +41,8 @@ Do not use `latest` as an endpoint in a comparison — it is mutable and will re
 Past versioned sections (`[1.13.0]`, `[1.13.1]`, etc.) describe what shipped in that release and are frozen history — do **not** rewrite them when a component is later retired or renamed.
 
 When a skill, agent, or feature is removed, record the retirement as a new entry under `[Unreleased]` (typically in a `### Removed` or `### Deprecated` subsection). The next release carries that entry forward; earlier versions keep their original text intact.
+
+## Related
+
+- See also: [changelog discipline](../standards/changelog-discipline.md) — entry-writing rules for the `[Unreleased]` section this workflow describes
+- See also: [branching](branching.md) § Tag and Release Naming — the `vX.Y.Z` / `latest` tag mechanics this workflow's release-history section relies on

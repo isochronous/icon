@@ -33,3 +33,8 @@ These are different operations and must not be conflated.
 ## Who can be invoked directly
 
 Only `@manager` and `@product-manager` are user-invocable. The other agents are internal specialists the manager delegates to; users steer them indirectly by giving instructions to the manager rather than addressing the specialist agents directly.
+
+## Related
+
+- Precedes: [branching](branching.md) — task-start happens before the branch is created
+- References: [commit conventions](commit-conventions.md) § Task ID Generation — the ID-collision check above complements this file's PR/issue-number rule

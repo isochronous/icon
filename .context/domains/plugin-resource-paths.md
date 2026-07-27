@@ -58,3 +58,8 @@ ${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/icon-marketplace/ICON/skills/<
 - `${CLAUDE_PLUGIN_ROOT}`: [Claude Code Plugins Reference — Environment Variables](https://docs.anthropic.com/en/docs/claude-code/plugins-reference#environment-variables)
 - `${CLAUDE_SKILL_DIR}`: [Claude Code Skills — Available String Substitutions](https://docs.anthropic.com/en/docs/claude-code/skills)
 - Copilot CLI (`COPILOT_HOME` documented; no skill-level variable): [GitHub Copilot CLI Plugin Reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)
+
+## Related
+
+- Governed by: [ADR-004: tool-agnostic content](../decisions/004-tool-agnostic-content.md)
+- See also: [hooks](hooks.md) — `${CLAUDE_PLUGIN_ROOT}` scope-resolution rules specific to hook configs

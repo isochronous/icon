@@ -153,3 +153,8 @@ feat(manager): selective sub-agent context isolation (1.4.5)   ← pre-split his
 - **`feat:` without a version on a non-release commit**: signals a release that never happened, confusing `release-plugin` Step 2.
 - **`ICON-NNNN: ICON-NNNN: ...` (double prefix)**: copy-paste error; the task ID appears exactly once.
 - **Bare `WIP` or `fix typo` commits on `main`**: every commit on `main` should be releasable; squash before merge if needed.
+
+## Related
+
+- See also: [branching](branching.md) — branch naming, commit signing setup, and release-tag conventions
+- See also: [task-start conventions](task-start-conventions.md) — where the `ICON-NNNN` task ID this file generates first gets assigned
