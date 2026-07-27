@@ -20,8 +20,9 @@ former `.mcp.json` (GitLab + Atlassian/Jira/Confluence servers) and the
   the CLI once. ICON does not bundle, template, or commit any GitHub credentials.
 - Because there is no MCP registry, there is no plugin-side credential placeholder,
   no `${VAR}` substitution in committed config, and no version-pinned MCP package to
-  review for CVEs. The plugin's only runtime artifacts are markdown, JSON, and a
-  single Node.js hook wrapper (ADR-005).
+  review for CVEs. The plugin's only runtime artifacts are markdown, JSON, and two
+  cross-platform Node.js hook wrappers (ADR-005; see `domains/hooks.md` for the current
+  pair).
 
 ## Security Posture
 

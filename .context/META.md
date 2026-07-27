@@ -4,7 +4,7 @@
 
 This document explains when and how to update `.context/` documentation for this repo. The goal is a living knowledge base that captures what AI agents and developers need to know beyond what's obvious from the code itself.
 
-This repo is a pure-content plugin (markdown + JSON + a single Node.js hook wrapper). `iconrc.json` excludes `architecture/`, `testing/`, and `styling/` because there is no compile step, no test runner, and no UI to style. Those directories will not appear in this repo.
+This repo is a pure-content plugin (markdown + JSON + two Node.js hook wrappers — see `domains/hooks.md`). `iconrc.json` excludes `architecture/`, `testing/`, and `styling/` because there is no compile step, no test runner, and no UI to style. Those directories will not appear in this repo.
 
 ## Separation of Concerns
 

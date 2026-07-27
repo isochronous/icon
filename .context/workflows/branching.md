@@ -159,4 +159,4 @@ Then add the GPG public key in GitHub (Settings → SSH and GPG keys → New GPG
 
 ## Why no `release/X.Y.Z` branches?
 
-ICON is content-only (markdown + JSON + a single Node.js hook wrapper). There is no compile step that benefits from a release-branch stabilization window. The lightweight scope plus the maintainer-only `release-plugin` skill makes a separate release-branch flow pure overhead. See `.context/decisions/002-main-only-branch-model.md` for the full rationale.
+ICON is content-only (markdown + JSON + two Node.js hook wrappers — see `domains/hooks.md`). There is no compile step that benefits from a release-branch stabilization window. The lightweight scope plus the maintainer-only `release-plugin` skill makes a separate release-branch flow pure overhead. See `.context/decisions/002-main-only-branch-model.md` for the full rationale.
