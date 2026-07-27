@@ -14,24 +14,32 @@ Source: ICON-0089 audit (`.context/tasks/ICON-0089-icon-audit/audit-report.md`) 
 | ICON-0090 | #11 | dogfood `/upgrade-repo` against ICON itself — 9 skill defects; applied nothing (would have deleted live content) |
 | ICON-0091 | #12 | amend ADR-005 in place; corrected ADR-008, ADR-013 and 4 inheriting sites |
 | ICON-0092 | #13 | remove `ecological-impact` |
+| ICON-0093 | #49 | shipped-content portability (#17) — 4 GNU-only construct classes cleared, `MKT` prefix removed, portability rules 7–8 added |
 
-Also landed inside those: `.context/domains` hook count + matcher literal, stale single-hook claims in 3 files, `## Related` graph seam across 20 docs, git hooks made executable (they were silently dead on fresh macOS/Linux clones), `skill-decomposition` index tallies removed.
+Also landed inside those: `.context/domains` hook count + matcher literal, stale single-hook claims in 3 files, `## Related` graph seam across 20 docs, git hooks made executable (they were silently dead on fresh macOS/Linux clones), `skill-decomposition` index tallies removed. From ICON-0093 specifically: two latent bugs in the shipped task-ID generator (`$MAX` never assigned; zero-padded IDs parsed as octal), a fail-open `sed` guard in `/upgrade-repo`, and a gawk escape warning firing on every retrospective append.
 
 ---
 
 ## Milestone 1 — Consumer-facing correctness
 
 ```
-#17  shipped-content-portability        → unblocks testing everything below on macOS/BSD
+#17  shipped-content-portability        ✅ DONE (#49) — macOS/BSD verification now possible
 #15  upgrade-repo-broken-steps
 #14  upgrade-repo-customized-vs-stale   → adds the new schema field; feeds #31
 #16  root-init-parity
 #18  research-cache-lifetime
 ```
 
-**Why #17 first.** It carries the GNU-only `grep -oP` → `grep -oE` class. Until that lands, monorepo discovery returns zero projects on macOS/BSD *silently*, and the `iconrc` sync no-ops forever — so you cannot verify a fix to #15 on those platforms; it'll look like it works because it fails quietly either way.
+**#17 is landed**, so the blocker it described is gone: monorepo discovery no longer returns zero projects silently on macOS/BSD, and the `iconrc` sync no longer no-ops forever. A fix to #15 can now actually be verified on those platforms instead of looking correct because it fails quietly either way.
+
+Two things #17 changed about how the rest of this list should be approached:
+
+- **`.context/standards/shell-portability.md` now has rules 7 (`grep -P`) and 8 (`sed -i`)**, and its Testing Pattern section carries the lesson that a portability fix must be *executed in the exact form the document prints*, not reviewed. #17 needed three review rounds; two of them found a defect the previous round's own remediation had introduced.
+- **A portability fix can trade a loud failure for a silent one.** `mktemp -p` hard-errors on macOS ≤ 13.x, but on macOS 14+ a mid-string `XXXXXX` silently produces a fixed filename with exit 0. Linux CI plus one manual test on a current Mac shows green either way. Relevant to #26.
 
 **#14 before #16/#18** only because it introduces the new schema-version field, which #31 reads later. #16 and #18 are independent of everything.
+
+Note for anyone touching `context_template/`: #17 took the template schema to **1.13**.
 
 ---
 
@@ -67,10 +75,13 @@ Also landed inside those: `.context/domains` hook count + matcher literal, stale
 #28  skill-metadata-check
 #29  harden-security-workflow
 #30  registry-driven-checks
-#26  portability-check                  ← needs M1 #17 landed + #24
+#26  portability-check                  ← #17 landed; still needs #24
 #31  template-drift-notice              ← needs M1 #14 (the new schema field)
 #32  record-checks-not-built            (independent; 10 minutes)
+#48  shellcheck-blind-to-md-fences      ← pairs with #26; share one fence extractor
 ```
+
+**#26 and #48 are the same problem seen from two sides.** The pre-commit shellcheck gate only fires on staged `*.sh`, so fenced bash inside `SKILL.md` — where most of ICON's consumer-executed shell actually lives, and where three of #17's four defect sites were — has never been checked by anything. Both need an extractor that pulls fenced blocks out of markdown, and both hit the same false-positive problem (fragments that aren't standalone scripts, variables defined in surrounding prose). Build the extractor once.
 
 **#24 is the real prerequisite.** The ten existing pre-commit checks are opt-in per clone, `--no-verify`-bypassable, and have no CI backstop — an eleventh gate raises surface without raising guarantee.
 
@@ -110,7 +121,7 @@ Also landed inside those: `.context/domains` hook count + matcher literal, stale
 ## Cross-milestone dependencies, in one place
 
 ```
-M1 #17  →  M4 #26
+M1 #17  →  M4 #26                       ✅ satisfied (#49)
 M1 #14  →  M4 #31
 M1 all  →  M6 #42
 M4 #24  →  everything else in M4
@@ -118,9 +129,19 @@ M5 #35  →  M6 #43
 M5 #33  →  M6 #39
 M2 #20  →  M2 #19
 M3 #22  →  M3 #21, #23
+M4 #48  ↔  M4 #26                       (shared fence extractor, not an ordering)
 ```
 
 Everything not listed above is independent and can be picked up in any order.
+
+---
+
+## Filed during roadmap work — not yet slotted
+
+| Issue | What | Why it isn't in a milestone yet |
+|---|---|---|
+| #46 | GNU-only `grep -P` / `\K` / octal-parse defects in ICON's **own** non-shipped docs (`.context/workflows/commit-conventions.md:58,89,91`), plus 9 residual `head -1` in shipped markdown | Doesn't reach consumers, so it missed #17's scope — but `:58` is load-bearing for `release-plugin` Step 2's release-boundary search, and ICON's task IDs are past `0090`, so the octal bug is live for maintainers on macOS |
+| #47 | `context_template/UPDATE_LOG.md` ships ICON's internal decision log into every consumer repo | Needs a design call — whether the file belongs in the template at all — not a substitution. Genericizing it leaves a header and nothing else |
 
 ---
 
