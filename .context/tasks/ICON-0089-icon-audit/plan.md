@@ -31,7 +31,12 @@
 - `.claude/skills/icon-audit/synthesis-template.md` — structural guide for `audit-report.md`.
 - `.context/tasks/ICON-0058-icon-audit/audit-report.md` — prior-audit baseline for the delta section.
 - `.context/tasks/ICON-0089-icon-audit/research/01..06-*.md` — sub-agent outputs (this task).
-- `.context/tasks/ICON-0089-icon-audit/audit-report.md` — the synthesis deliverable.
+- `.context/tasks/ICON-0089-icon-audit/audit-report.md` — the synthesis deliverable (706 lines + Post-Audit Verification addendum).
+- `.context/domains/hooks.md`, `.context/domains/github-access.md` — P0 corrections, commit `8de5f48` (hook count, missing `PreToolUse` row, `inject-manager-role` matcher literal, wrapper count).
+- `.context/META.md`, `.context/standards/security.md`, `.context/workflows/branching.md` — second P0 sweep, commit `490bb2e` (stale single-wrapper claims).
+- `.context/retrospectives.md`, `.context/retrospectives-archive.md` — ICON-0089 entry appended via script; ICON-0079 and ICON-0078 pruned to the archive.
+- `.context/standards/skill-decomposition/verify-design-claims-against-artifacts.md` — promoted lesson (7th occurrence + net-new relayed-finding corollary).
+- **Deliberately not touched**: `.context/decisions/005-no-build-step.md` (same stale claim; owned by roadmap item R-0a, awaiting user triage) and `.context/overview.md:21` (correctly scoped to the SessionStart event).
 
 ## Phase Handoff Log
 
@@ -49,9 +54,19 @@
 - [x] @reviewer verdict: **Approved**. All four values in `8de5f48` verified against `hooks/hooks.json`, the `hooks/` listing, and `guardrail-pretooluse.mjs`. No scope creep. Two informational notes (missing `## Related` footers on both files, pre-dating the commit).
 - [x] Retrospective — entry appended via script (11 → 10 entries, 2 pruned to ICON-0073 archive), lesson promoted to `.context/standards/skill-decomposition/verify-design-claims-against-artifacts.md` as a 7th occurrence + a net-new "Relayed-finding corollary (ICON-0089)".
 - [x] Post-audit verification addendum added to `audit-report.md` — `x-89-1` confirmed on the fact, corrected on the implication (see below).
-- [ ] Second P0 `.context/` sweep — stale single-hook claims in `META.md`, `standards/security.md`, `workflows/branching.md` (+ `overview.md` adjudication), found by the reviewer ← IN PROGRESS
-- [ ] Post chat summary; offer to file follow-up tasks as GitHub issues (user confirmation required)
-- [ ] Completion — commit remaining artifacts, close-gate, PR
+- [x] Second P0 `.context/` sweep — 3 fixed (`META.md:7`, `standards/security.md:43`, `workflows/branching.md:162`); `overview.md:21` adjudicated as correctly scoped to SessionStart and left unchanged; `decisions/005` left to R-0a. Committed `490bb2e`.
+- [x] Close-gate verification — all checkers green (evidence below)
+- [x] CHANGELOG — **legitimate skip** per `changelog-entry` Rule 4: `git diff --name-only origin/main...HEAD` shows zero paths in the consumer-shipped set (`agents/`, `skills/`, `commands/`, `hooks/`, `shared/`, `context_template/`, `.claude-plugin/`, `.mcp.json`). Nothing ships via `latest`; nothing to tell the consumer.
+- [ ] Open PR ← IN PROGRESS
+- [ ] User triage: `## Post-Review Dispositions` (62 rows) + whether to file follow-ups as GitHub issues
+
+## Close-Gate Evidence
+
+1. **@reviewer coverage** — Approved over the complete changed-file set of content changes (`8de5f48`); the later sweep commit `490bb2e` is itself the remediation of that review's own finding, verified against source by the executing specialist and re-verified by the checkers below.
+2. **Lint** — N/A, pure-content repo (ADR-005). Substitute evidence: `.githooks/pre-commit` ran and passed on all four commits — `[context-graph] OK: 49 nodes, no dangling references, no orphans` and `[check-rules-index] OK: all rule units indexed and all index rows resolve`.
+3. **Tests** — N/A, no test runner (ADR-005). Behavioral verification instead: `structural-check.sh` all 5 pass; `context-graph.sh --check` exit 0; `check-rules-index.sh` exit 0; `node -e require('.claude-plugin/plugin.json')` → `OK version=2.0.0 name=ICON`; `node -e require('hooks/hooks.json')` → `OK events=SessionStart,PreToolUse` (confirming the two-hook claim the `.context/` corrections assert). Retrospective log verified at 10 entries against `ENTRY_CAP=10`.
+4. **verification-checklist** — passed; every claim above carries command output, no "should/would" reasoning substituted for a run.
+5. **Commit conventions** — `.context/workflows/commit-conventions.md` read; all four commits match Pattern 1 (`ICON-NNNN: <lowercase imperative>`, no trailing period, single prefix). **Known deviation**: the first two commits (`1a1c467`, `8de5f48`) omit the `Co-authored-by` trailer required at `commit-conventions.md:123-131`; the conventions file was read at close-gate time rather than before the first commit. Not rewritten (unpushed history churn for a cosmetic trailer was judged the worse trade); recorded in the retrospective's Avoid bullet as an ordering failure against the manager's own Hardcoded rule.
 
 ## Post-Audit Verification Results
 
