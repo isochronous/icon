@@ -1,6 +1,6 @@
 # Plugin Resource Paths
 
-Reference for accessing resources bundled within the ICON plugin, across both supported AI tools (Claude Code and GitHub Copilot CLI).
+Reference for accessing resources bundled within the ICON plugin, across both supported AI tools (Claude Code and GitHub Copilot CLI). This dual-path documentation is how the plugin honors ADR-004's tool-agnostic-content decision — every resource path is recorded for both runtimes even where only one exposes a native substitution variable.
 
 ---
 
@@ -14,6 +14,8 @@ Resources at the plugin root — e.g., `context_template/` — are accessed via 
 |------|--------------------|-------|
 | Claude Code | `${CLAUDE_PLUGIN_ROOT}` | Officially documented; inline-substituted in skill content before the AI reads it; points to the plugin root directory at install time |
 | Copilot CLI | *(no official variable)* | Use deterministic install-layout path (see below) |
+
+Hook configuration is a special case of this variable: `${CLAUDE_PLUGIN_ROOT}` only resolves inside a plugin-scoped `hooks/hooks.json`, not in every context that names it — see `domains/hooks.md` for the hook-specific scope-resolution rules.
 
 **Copilot CLI — Bash:**
 ```bash
@@ -58,3 +60,8 @@ ${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/icon-marketplace/ICON/skills/<
 - `${CLAUDE_PLUGIN_ROOT}`: [Claude Code Plugins Reference — Environment Variables](https://docs.anthropic.com/en/docs/claude-code/plugins-reference#environment-variables)
 - `${CLAUDE_SKILL_DIR}`: [Claude Code Skills — Available String Substitutions](https://docs.anthropic.com/en/docs/claude-code/skills)
 - Copilot CLI (`COPILOT_HOME` documented; no skill-level variable): [GitHub Copilot CLI Plugin Reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference)
+
+## Related
+
+- Governed by: [ADR-004: tool-agnostic content](../decisions/004-tool-agnostic-content.md)
+- See also: [hooks](hooks.md) — `${CLAUDE_PLUGIN_ROOT}` scope-resolution rules specific to hook configs

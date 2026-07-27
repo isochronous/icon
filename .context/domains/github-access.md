@@ -41,3 +41,10 @@ GitHub-facing skills render or triage content but never store credentials:
 - `pr-discipline` — opening a PR, writing the description, addressing review feedback.
 - `pr-feedback-triage` — reads PR review comments (untrusted) and produces a
   prioritized resolution plan; never makes PR write calls as part of triage.
+
+## Related
+
+- Superseded credential pattern: [ADR-006: MCP credentials placeholders](../decisions/006-mcp-credentials-placeholders.md)
+- Hook wrappers: [hooks](hooks.md)
+- Untrusted content handling: [security](../standards/security.md)
+- Secret-in-write guardrail: [secure coding](../standards/secure-coding.md)

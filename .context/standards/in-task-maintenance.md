@@ -45,3 +45,8 @@ If applying the rule requires no judgement beyond following the rule, it is in-t
 | "The stale doc can wait for the task-close maintenance pass" | Task-close is too late for an inaccuracy — every load between now and then acts on false content, including this task's own sub-agents. | Correct or delete it the moment it is identified. |
 | "A previous task deferred this same split, so deferring is normal" | A deferral that survived a cycle is compounding debt, not precedent. | Treat the repeat as escalation; clear it in this task. |
 | "Doing it now expands the task" | Mechanical rule-following is not scope expansion; it is completing the task to standard. Genuine scope questions still go to the user. | Apply the test: mechanical → do it; design decision → surface it. |
+
+## Related
+
+- See also: [skill mechanics](skill-decomposition/skill-mechanics.md) § using-skills Registration — a representative mechanical obligation this standard names
+- See also: [rules-index.md](../rules-index.md) — the index this standard's rule-file obligation keeps current

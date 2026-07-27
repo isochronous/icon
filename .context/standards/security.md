@@ -41,3 +41,8 @@ The secret-scan patterns are intentionally tight (real-token shapes, not bare pr
 ## Third-Party Runtime Dependencies
 
 ICON ships **no MCP servers and no third-party runtime packages**. After the ICON-0080 GitHub-only conversion, `.mcp.json` (which formerly pinned `@zereight/mcp-gitlab` and `mcp-atlassian`) was removed entirely, so there is no pinned external package to review for CVEs. GitHub access is via the `gh` CLI, whose installation and security posture are the user's responsibility outside this repo (see `domains/github-access.md`). The plugin's only runtime artifacts are markdown, JSON, and the two Node.js hook wrappers (see `domains/hooks.md`), which use Node built-ins only (ADR-005). If a future change reintroduces a pinned third-party dependency, restore a periodic CVE-review cadence for it here.
+
+## Related
+
+- See also: [github access](../domains/github-access.md) — the `gh`-CLI-only access model this standard's third-party-dependency posture describes
+- See also: [hooks](../domains/hooks.md) — the two Node.js hook wrappers that carry this standard's enforcement controls

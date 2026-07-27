@@ -49,6 +49,6 @@ Before drafting plan.md Decisions and the @coder dispatch on any non-trivial tas
 **Precedents**: ICON-0030 (named the no-`2>/dev/null` rule from a prior axis — first restate-likely-violated-rule instance), ICON-0033 (named the gate-checklist pattern from a prior task — first gate-adoption instance), ICON-0034 (named all of: ICON-0027 inverse-phrasing, ICON-0014 renumber-backref, ICON-0031 frontmatter-parse-test — three restated rules, zero violations), ICON-0035 (named ICON-0033 gate-checklist adoption + ICON-0034 parser-fallback chain + ICON-0030 project-rule restate — three distinct narrow sub-patterns in one task). Four instances on the broad axis, three distinct narrow sub-patterns named; 3+-task stability gate met.
 
 
----
+## Related
 
-See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.
+- Index: [skill-decomposition](../skill-decomposition.md)

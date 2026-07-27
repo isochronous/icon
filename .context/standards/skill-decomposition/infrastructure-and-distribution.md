@@ -111,6 +111,6 @@ What IS allowed in shipped surfaces:
 
 **Precedent (ICON-0027)**: A Pass-1 fix added "Historical note: prior versions of this section ran `git commit` here. The split was canonicalized in ICON-0027." to `skills/context-maintenance/SKILL.md` and a "**Resolved (ICON-0027)**: ..." block to `agent-vs-skill-invocation.md`. Both were removed in a follow-up commit on the same MR after user feedback. The CHANGELOG entry, retrospective entry (`.context/retrospectives.md`), and commit history already carried the change story.
 
----
+## Related
 
-See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.
+- Index: [skill-decomposition](../skill-decomposition.md)

@@ -83,3 +83,7 @@ This keeps the next `## [X.Y.Z]` heading out of the diff boundary entirely. Alte
 ## Pattern observed
 
 MKT-0078's first changelog draft was four sentences, included an internal mirror invariant, and had to be cleaned up in a follow-up commit. The cleanup edit is the diff to study: it kept the user-relevant claim ("fixes silent parse failures in github-issue / post-meeting / rfc") and discarded the QA reassurances and process detail.
+
+## Related
+
+- See also: [changelog workflow](../workflows/changelog.md) — release mechanics this standard's entry-writing rules apply within

@@ -79,6 +79,6 @@ The cost (a 10–20 line block at the end of the spec or dispatch) is fixed; the
 **Precedents**: ICON-0032 (single-skill + 12-file refactor, gates in @architect spec), ICON-0033 (single-config + extraction, gates in @architect spec), ICON-0035 (16-file bundled sweep, 13 gates G1–G13, gates in @architect spec), ICON-0037 (18-file bundled sweep, gates-at-dispatch-layer — first precedent for the no-@architect narrow sub-pattern), ICON-0038 (11-gate checklist in @coder dispatch, gates-at-dispatch-layer second precedent, single Opus reviewer pass returned one Minor + zero scope drift). Five instances on the broad axis with monotonic surface-count growth; 3+-task stability gate met; gates-at-dispatch-layer narrow sub-pattern confirmed across two independent tasks.
 
 
----
+## Related
 
-See [`../skill-decomposition.md`](../skill-decomposition.md) for the full skill-decomposition index.
+- Index: [skill-decomposition](../skill-decomposition.md)
