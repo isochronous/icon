@@ -17,8 +17,10 @@ to a Graphviz `dot` binary the environment must already provide.
 
 **This record describes where those scripts live; it does not inventory them.** The set changes
 whenever one is added, so any file-by-file list here goes stale on the next commit and misleads the
-next reader. A reader who needs the current set should derive it — `git ls-files '*.sh' '*.ps1'`
-covers the extension-bearing scripts, and the git hooks are extensionless.
+next reader. A reader who needs the current set should derive it: `git ls-files '*.sh' '*.ps1'`
+covers only the extension-bearing scripts, and some committed scripts carry no extension at all —
+git-hook-shaped files under `.githooks/` and their counterparts in the `workflows/` directories named
+above — so no single glob is the full set.
 
 Adding a *build* step — a generated artifact, a dependency-install step, or a framework that must be
 provisioned before the repo can be validated — would impose install and CI infrastructure on every
