@@ -30,8 +30,20 @@
 - [x] Survey references — 7 files mention the skill outside its own directory; 3 need edits, 4 are correctly left alone
 - [x] Deleted the skill (`git rm -r`, 2 files) and updated the 3 reference sites + CHANGELOG `### Removed` (sub-heading created; it did not exist)
 - [x] Verified: `context-graph --check` green (49 nodes), `check-rules-index` green, manifest parses at 2.0.0 unchanged. `grep -ril ecological` returns only historical records, each justified. No command or agent routed to the skill; `.claude-plugin/plugin.json` does not enumerate skills, so it needed no edit.
-- [ ] Rebase onto the corrected ICON-0091 once its review fixes land ← IN PROGRESS
-- [ ] @reviewer, retrospective, PR
+- [x] Rebased onto `main` after ICON-0091 merged (PR #12, `d09e26f`) — clean, single commit, no CHANGELOG collision (`### Added` and `### Removed` are separate sub-headings)
+- [x] @reviewer — **Approved**, no Critical or Moderate findings. Rebuilt the reference sweep independently (167 hits across 31 files) and classified every one; confirmed the registration gate's actual logic at `.githooks/pre-commit:704-735`; confirmed both Markdown tables remain well-formed with no adjacent row clipped.
+- [x] Retrospective — lesson promoted to `.claude/skills/icon-audit/SKILL.md` Quality Checklist (an audit-time recompute requirement), judged a distinct axis from the two adjacent lessons: this is *undetectability* (never checked once across four audits), not correction-resistance or unverified-mechanism.
+- [ ] PR ← IN PROGRESS
+
+## Close-Gate Evidence
+
+1. **@reviewer coverage** — Approved over the complete changed-file set (`3557ef8`). The retrospective commit that follows touches only `retrospectives.md`, `retrospectives-archive.md` (append-only records) and one maintainer-only skill, produced by @context-specialist under the reviewed maintenance path.
+2. **Lint** — N/A, pure-content repo (ADR-005). Substitute: `.githooks/pre-commit` ran and passed on every commit.
+3. **Tests** — N/A, no test runner (ADR-005). Behavioural verification instead: `context-graph --check` OK at 49 nodes; `check-rules-index` OK; manifest parses at 2.0.0 unchanged; `skills/ecological-impact/` confirmed absent; the only remaining live-file reference is the `context_template/` commit-message example deliberately retained as accurate history.
+4. **verification-checklist** — passed; every claim carries command output.
+5. **Commit conventions** — Pattern 1, lowercase imperative, no trailing period, single prefix, `Co-authored-by` trailer present.
+
+**CHANGELOG**: one `### Removed` entry under `[Unreleased]` (sub-heading newly created), stating the consumer-visible effect. The retrospective's promotion target is `.claude/skills/`, which is repo-internal per `changelog-entry` Rule 4 and owes no entry. No version bump, `[Unreleased]` not renamed, `## [2.0.0]` intact below.
 
 ## Open Questions / Blockers
 - **Consumer impact**: this removes a user-invocable skill. Anyone invoking `/ecological-impact` loses it at the next `latest` move. That is a user-facing removal and should be reflected in release-note tone whenever the next release is cut — **not** in this task (release guard).
