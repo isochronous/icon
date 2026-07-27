@@ -53,7 +53,7 @@ A `.context/*.md` file that meets **both** of these gates should be converted to
 
 If gate (1) passes but gate (2) fails (single continuous narrative), note the finding in the maintenance report but do not split.
 
-> **Exclude the `## Related` footer from gate (2).** A trailing `## Related` section (see `## Related Section (graph seam)` below) is a navigational footer, not a discrete topic — do **not** count it toward the "≥ 3 peer-level `## ` sections" tally.
+> **Exclude the `## Related` footer and an ADR's `## Amendments` section from gate (2).** A trailing `## Related` section (see `## Related Section (graph seam)` below) is a navigational footer, and an ADR's `## Amendments` section (see `#### The ## Amendments section` below) is a correction log appended to a live rule. Neither is a discrete topic — do **not** count either toward the "≥ 3 peer-level `## ` sections" tally. Both still count toward gate (1)'s bytes.
 
 ### Folder layout
 
@@ -164,13 +164,15 @@ universal ("only in X", "always Y") that one counter-example falsifies.
 
 #### The `## Amendments` section
 
-- **Placement is fixed: the LAST `## ` section of the ADR** — after `## Alternatives Considered`.
-  Entries accumulate in date order, newest last, so the section reads as a chronological log.
-- **Format: a bold dated, task-attributed lead-in, then bullets.** `**YYYY-MM-DD (TASK-ID).**`
-  followed by a sentence stating whether the Decision changed (for an amendment it has not), then
-  one bullet per correction naming the section, quoting what the text said, and stating what is
-  true. **Quote the original erroneous text verbatim** — the quoted text is often the only
-  explanation for how the same error spread to other documents.
+- **Placement is fixed: the LAST `## ` section of the ADR.** Entries accumulate in date order,
+  newest last, so the section reads as a chronological log.
+- **Format: a bold dated, task-attributed lead-in, then the corrections.** `**YYYY-MM-DD
+  (TASK-ID).**` followed by a sentence stating whether the Decision changed (for an amendment it has
+  not), then the corrections themselves — each naming the section, quoting what the text said, and
+  stating what is true. **An entry correcting two or more things uses one bullet per correction**,
+  so each stays separately readable and separately checkable; an entry correcting a single thing may
+  instead be a short prose paragraph. **Quote the original erroneous text verbatim** either way —
+  the quoted text is often the only explanation for how the same error spread to other documents.
 - **It is a record appended to a live rule, not a second topic** — like a `## Related` footer. It
   does **not** violate one-facet-per-file, and it is **excluded from the folder-split gate (2)**
   section count (see `## Folder Split Rule`). Its bytes still count toward gate (1); an ADR whose

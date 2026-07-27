@@ -50,10 +50,10 @@ This decision complements rather than supersedes the constraining ADRs: it opera
 previously read "adds a parser dependency (ADR-005 friction)" as one reason to reject a
 separate `handoff.json` carrier — inheriting ADR-005's own conflation of "a structured format"
 with "a third-party dependency." A flat, single-level JSON object (the same shape `plan.md`'s
-`## Phase State` bullets already hold — `Current`, `Next`, `Branch`, `Attempts`, `Completed`) is
-regex-extractable with `sed`/`grep` exactly as the markdown format is: see the `field()` helper
-in `references/launcher-templates.md`, which extracts each Phase State value with a one-line
-`sed` pattern and no third-party tool. A dependency-free JSON parser for that same flat shape is
+`## Phase State` bullets already hold — `Current`, `Next`, `Branch`, `Attempts (current phase)`,
+`Completed`) is regex-extractable with `sed`/`grep` exactly as the markdown format is: see the
+`field()` helper in `skills/generate-phase-launcher/references/launcher-templates.md`, which
+extracts each Phase State value with a one-line `sed` pattern and no third-party tool. A dependency-free JSON parser for that same flat shape is
 equally possible, so ADR-005 does not bar the alternative on parsing grounds. The reasons that
 still stand are the ones that do not depend on ADR-005: a separate JSON file splits the source of
 truth and breaks the "one file resumes cold" invariant.

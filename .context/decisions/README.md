@@ -43,9 +43,9 @@ What did we reject and why?
 
 `**Supersedes**` / `**Superseded-by**` are machine-readable — `context-graph` builds the ADR
 supersede edges from them, so a new ADR needs both fields present even when the value is `none`.
-An ADR does **not** get a `## Related` footer; that seam is for content docs. The full convention,
-including `## Amendments` placement and entry format, is
-`context-document-guidelines § Related Section (graph seam)`.
+An ADR does **not** get a `## Related` footer; that seam is for content docs. The full convention is
+`context-document-guidelines § Related Section (graph seam)`; `## Amendments` placement and entry
+format live in its `§ Correcting a stale ADR` sub-section, cited above.
 
 ## Decision Log
 

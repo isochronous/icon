@@ -7,7 +7,7 @@ This repository is the canonical source of the ICON plugin — a project-agnosti
 - **Markdown** for all agent definitions, skills, and commands.
 - **JSON** for the plugin manifest (`.claude-plugin/plugin.json`).
 - **Node.js** for the two cross-platform hook wrappers (`hooks/inject-manager-role.mjs`, `hooks/guardrail-pretooluse.mjs`).
-- **Bash** for the `.githooks/` gates (`pre-commit`, `post-commit` — both bash, no PowerShell counterpart) and the maintainer `release-plugin` script (`bump-versions.sh`).
+- **Bash** for the `.githooks/` gates (`pre-commit`, `post-commit` — both bash, no PowerShell counterpart) and for the maintainer-only scripts under `.claude/skills/*/scripts/` (e.g. `bump-versions.sh`, `structural-check.sh`).
 - **Bash and PowerShell** for the plugin-shipped helpers under `skills/*/scripts/`, where `context-graph` and `append-retrospective-entry` ship as `.sh`/`.ps1` parity pairs because they run in the consumer's environment (`.context/standards/shell-portability.md`).
 
 There is **no build step**, **no test runner**, and **no package manager** (ADR-005) — but committed

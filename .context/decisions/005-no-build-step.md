@@ -7,13 +7,18 @@
 
 ## Context
 
-ICON is pure content: markdown agent/skill/command definitions, JSON manifests, and a small number
-of committed scripts that run in place: two Node `.mjs` harness hooks under `hooks/`; two bash git
-hooks under `.githooks/`; bash and PowerShell helpers under `skills/*/scripts/`; bash-only
-maintainer helpers under `.claude/skills/*/scripts/`; `prune-context.sh` under `.context/workflows/`
-and its `context_template/` counterpart; and one Node helper,
-`skills/writing-skills/render-graphs.js` — which imports only Node's standard library, but shells
-out to a Graphviz `dot` binary the environment must already provide.
+ICON is pure content: markdown agent/skill/command definitions, JSON manifests, and a number of
+committed scripts that run in place. Those scripts live under `hooks/` (Node `.mjs` harness hooks),
+`.githooks/` (bash git hooks), `skills/*/scripts/` (bash and PowerShell helpers shipped with the
+plugin), `.claude/skills/*/scripts/` (bash maintainer helpers), and the `workflows/` directories of
+`.context/` and `context_template/`. One of them is worth calling out because it reaches outside the
+repo: `skills/writing-skills/render-graphs.js` imports only Node's standard library, but shells out
+to a Graphviz `dot` binary the environment must already provide.
+
+**This record describes where those scripts live; it does not inventory them.** The set changes
+whenever one is added, so any file-by-file list here goes stale on the next commit and misleads the
+next reader. A reader who needs the current set should derive it — `git ls-files '*.sh' '*.ps1'`
+covers the extension-bearing scripts, and the git hooks are extensionless.
 
 Adding a *build* step — a generated artifact, a dependency-install step, or a framework that must be
 provisioned before the repo can be validated — would impose install and CI infrastructure on every
@@ -33,19 +38,27 @@ it adds no manifest, no lockfile, and no third-party import — the rule `standa
 Rule 3 already states operationally.
 
 **Assumed runtimes.** Node is the assumed runtime for shipped scripts, and `hooks/*.mjs` is the
-rule for new harness hooks — `domains/hooks.md § Cross-Platform Hooks` sources that to Claude Code
-being itself a Node CLI. Treat it as a strong default, not a guarantee: that reasoning is recorded
+rule for new harness hooks — `domains/hooks.md § Cross-Platform Hooks: Single Node.js Wrapper`
+sources that to Claude Code being itself a Node CLI. Treat it as a strong default, not a guarantee:
+that reasoning is recorded
 for Claude Code only, and a bundled-runtime install need not expose `node` on PATH. A script that
 depends on `node` should verify it rather than presume it.
 
-Bash and PowerShell are both in use, and *not* only in maintainer tooling. Repo-local gates
-(`.githooks/pre-commit`, `.githooks/post-commit`) and maintainer scripts under
-`.claude/skills/*/scripts/` are bash-only. Scripts under `skills/*/scripts/` are shipped with the
-plugin and run in the **consumer's** environment, not the maintainer's — `standards/shell-portability.md`
-governs them. Because neither shell is universally present, a shipped script a consumer may need to
-run on either platform ships as a `.sh`/`.ps1` parity pair: `context-graph` and
-`append-retrospective-entry` do. Others do not — `check-rules-index.sh` and `prune-context.sh` are
-bash-only today. That is an outstanding portability gap, not a rule this record states.
+Bash and PowerShell are both in use, and *not* only in maintainer tooling. Repo-local gates under
+`.githooks/` and maintainer scripts under `.claude/skills/*/scripts/` are bash-only. Scripts under
+`skills/*/scripts/` are shipped with the plugin and run in the **consumer's** environment, not the
+maintainer's — `standards/shell-portability.md` governs them. Because neither shell is universally
+present, a shipped script a consumer may need to run on either platform needs cross-platform
+coverage; `context-graph` and `append-retrospective-entry` reach it today by shipping `.sh`/`.ps1`
+parity pairs. Coverage is partial: shipped and repo-local scripts that are bash-only remain, an
+outstanding portability gap rather than a rule this record states. Which ones they are is not
+enumerated here, for the reason the *Context* paragraph gives.
+
+**The gap closes by migration to Node, not by adding PowerShell twins** (user decision, 2026-07-26).
+ICON standardizes on Node as the scripting runtime, and scripts migrate to a single portable `.mjs`
+where practical — the same reasoning `domains/hooks.md § Cross-Platform Hooks: Single Node.js Wrapper` already applies to
+harness hooks, where one `.mjs` replaced a `.sh`/`.ps1` pair and structurally removed parity drift.
+The migration itself is separate work and is not scoped by this record.
 
 **`python3` is not an assumed runtime** and must not be relied on — on Windows it resolves to a
 non-executing Store stub.
@@ -121,18 +134,17 @@ a new false statement while correcting the old ones; review caught it and it is 
   present **(ADR-004)**." Every clause failed. Shell scripts under `skills/*/scripts/` ship with the
   plugin and run in the consumer's environment — the premise of `standards/shell-portability.md`,
   and what this record's own *Context* paragraph already said. Parity pairing is real but partial:
-  `context-graph` and `append-retrospective-entry` ship `.sh`/`.ps1` pairs, while
-  `check-rules-index.sh`, `prune-context.sh` (both copies), `.githooks/pre-commit`,
-  `.githooks/post-commit`, `structural-check.sh`, and `bump-versions.sh` are bash-only —
-  `check-rules-index.sh` being named as in-scope seven lines earlier in the same Decision. And
-  **ADR-004 says nothing about shell parity pairs**; that citation was invented. The paragraph is
-  now a description of what the repo does, with the gap named as a gap, sourced to
-  `standards/shell-portability.md`.
+  `context-graph` and `append-retrospective-entry` ship `.sh`/`.ps1` pairs, while other shipped and
+  repo-local scripts are bash-only — `check-rules-index.sh` among them, which this same Decision
+  names as in-scope. And **ADR-004 says nothing about shell parity pairs**; that citation was
+  invented. The paragraph is now a description of what the repo does, with the gap named as a gap
+  and no file-by-file list to go stale, sourced to `standards/shell-portability.md`.
 - *Decision* also said Node is assumed present because "**both** harnesses are Node CLIs, so `node`
   is on PATH wherever ICON runs (see `domains/hooks.md`)." `domains/hooks.md` makes that argument
   for Claude Code only, and "the harness is a Node CLI" does not entail "`node` is on PATH" — a
-  native-installer Claude Code install bundles its own runtime. Node remains the assumed runtime for
-  shipped scripts; the guarantee is downgraded to a default worth verifying.
+  native-installer install need not expose `node` on PATH even where the harness bundles a runtime.
+  Node remains the assumed runtime for shipped scripts; the guarantee is downgraded to a default
+  worth verifying.
 - *Context* enumerated the committed scripts as if complete, omitting both copies of
   `prune-context.sh` and `skills/writing-skills/render-graphs.js`.
 - The *Amendments* entry above attributed the `security` CI workflow to ICON-0075. ICON-0075 added
