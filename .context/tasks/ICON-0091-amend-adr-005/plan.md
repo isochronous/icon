@@ -36,7 +36,19 @@
 - [x] ADR-013's inherited over-broad ADR-005 reading amended (`7281072`) — first use of the new convention by a non-author; applied without ambiguity.
 - [x] **Review round 2 → changes requested (7 Moderate).** Replacement enumerations incomplete again; a same-commit self-contradiction; a rule violated by its own first use. Fixed in `9ea91e3` by removing the inventory claims rather than correcting them.
 - [x] **Review round 3 → approved with comments.** One Moderate: the caveat sentence written to stop undercounts contained one. Fixed in `de65ee2`.
-- [ ] Retrospective, then PR ← IN PROGRESS
+- [x] Retrospective (`297d40f`) — lesson promoted to `context-document-guidelines`, **not** to `verify-design-claims-against-artifacts.md`: that file measured 14,999 bytes against a 16,000-byte threshold, and the axis differs (its remedy is *verify before relying*; this one's is *remove the assertion*, because verification was attempted and still failed).
+- [x] Two further P0 `.context/` inaccuracies fixed in-task rather than filed: ADR-013's inherited ADR-005 reading (`7281072`) and the Topic Index's stale tallies (`e01c14e` — the sweep found **3** rows with the running-count shape, one of them still numerically correct but latent for the same failure).
+- [ ] Close-gate and PR ← IN PROGRESS
+
+## Close-Gate Evidence
+
+1. **@reviewer coverage** — three rounds over the full changed-file set. Round 1 → changes requested (1 Critical); round 2 → changes requested (7 Moderate); round 3 → approved with comments (1 Moderate, fixed in `de65ee2`). Post-review commits `297d40f` and `e01c14e` are the retrospective and a P0 `.context/` correction, both produced by @context-specialist under the reviewed maintenance path.
+2. **Lint** — N/A, pure-content repo (ADR-005). Substitute: `.githooks/pre-commit` ran and passed on all nine commits; `check-rules-index` and `context-graph` reported OK on every commit touching `.context/`.
+3. **Tests** — N/A, no test runner (ADR-005). Behavioural verification instead: `context-graph --check` green at 49 nodes throughout; `check-rules-index` green; the replacement validation command was **executed before being written down** (`node -e ... → OK ICON 2.0.0`, Node v24.17.0) — the specific failure that motivated this task was a documented command nobody had run.
+4. **verification-checklist** — passed; every claim carries command output.
+5. **Commit conventions** — `.context/workflows/commit-conventions.md` applied: Pattern 1, lowercase imperative, no trailing period, single prefix, `Co-authored-by` trailer on every commit.
+
+**CHANGELOG**: one `### Added` entry under `[Unreleased]` from `b82785d`, covering the `skills/` change. The later commits refine the same subject (the stale-ADR convention), so per the `changelog-entry` cumulative-effect rule they amend that entry's scope rather than earning a second bullet. No version bump, `[Unreleased]` not renamed, `context_template/` untouched — release guard respected.
 
 ## The Enumeration Failure (the task's main lesson)
 
