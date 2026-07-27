@@ -30,10 +30,21 @@
 
 ## Progress
 - [x] Read ADR-005 in full; catalogued the false assertions (below)
-- [ ] @architect: amend vs. supersede, and the correct scope of the standing decision ← IN PROGRESS
-- [ ] Implement the chosen form
-- [ ] Update `decisions/README.md` Decision Log; verify `check-rules-index.sh` and `context-graph.sh --check`
-- [ ] @reviewer, retrospective, CHANGELOG decision, PR
+- [x] @architect: **amend in place**, no new ADR. Rejected the audit's own ADR-016 proposal on four grounds, decisively that supersession *freezes* an ADR's content while ADR-005 carries a live rule cited in ~18 places. Also established the ADR-004 citation was never sound — a category error from authoring, not decay.
+- [x] Implemented across `.context/` (`0878547`) and `skills/` + `.claude/claude.md` + CHANGELOG (`b82785d`)
+- [x] **Review round 1 → changes requested (1 Critical).** The amendment introduced a *new* false assertion into ADR-005's Decision with a fabricated `(ADR-004)` citation — the exact defect class this task exists to remove. Fixed in `7df153a`, plus 4 Moderates and the minors.
+- [x] ADR-013's inherited over-broad ADR-005 reading amended (`7281072`) — first use of the new convention by a non-author; applied without ambiguity.
+- [x] **Review round 2 → changes requested (7 Moderate).** Replacement enumerations incomplete again; a same-commit self-contradiction; a rule violated by its own first use. Fixed in `9ea91e3` by removing the inventory claims rather than correcting them.
+- [x] **Review round 3 → approved with comments.** One Moderate: the caveat sentence written to stop undercounts contained one. Fixed in `de65ee2`.
+- [ ] Retrospective, then PR ← IN PROGRESS
+
+## The Enumeration Failure (the task's main lesson)
+
+The count of unpaired shell scripts was stated **four times and wrong four times** — 6 (manager brief), 7 (ADR text), 8 (fix commit message), against an independently rebuilt **9**. One file, `context_template/context/workflows/post-commit`, evaded **five** successive passes, three of which explicitly verified "against the repo," and appeared in one commit message's reasoning while being absent from every enumeration that commit wrote.
+
+The cause is not carelessness. **"The set of committed scripts" has no reliable representation**: extension misses the extensionless git hooks, a shebang grep matches `launcher-templates.md` (a doc containing fenced shebangs), and directory membership misses the `context_template/` copies. No single cheap command yields the true set.
+
+This is a boundary condition on the ICON-0089 audit's mechanization thesis, which held that *a class becomes mechanizable exactly when its invariant has a representation to compare against*. Here there is none — so neither a script nor a more careful reader would have fixed it. The working fix was to **stop making the claim**: the ADR now states where scripts live and explicitly disclaims inventorying them. Worth carrying into the audit's follow-up as a documented counterexample rather than a failure.
 
 ## The four false assertions (verified against the tree)
 

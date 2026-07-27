@@ -162,6 +162,21 @@ unsourced claims and introduced a sixth, attributing to a neighbouring ADR a rul
 stated. Prefer a description of what the repo does, with known gaps named as gaps, over a
 universal ("only in X", "always Y") that one counter-example falsifies.
 
+**When a claim resists repeated correction, remove it instead of correcting it again
+(ICON-0091).** Some facts have no reliable representation to verify against, and no amount of
+careful re-checking converges on one. The same ADR-005 correction stated a count of unpaired
+shell scripts four times and got it wrong four times (6, 7, 8, against an independently rebuilt
+9), and one file evaded five successive passes, three of which explicitly verified "against the
+repo" — because "the set of committed scripts" has no single cheap derivation: a file-extension
+glob misses the extensionless git hooks, a shebang grep matches a markdown file's fenced code
+block, and directory membership misses the copies distributed under `context_template/`. This
+generalizes beyond ADRs to any `.context/` content doc: when a fact keeps resisting correction
+across multiple independently-verified passes, suspect the claim is not representable rather
+than that the last reader was careless, and **remove the assertion rather than attempting
+another correction**. State where something lives — a directory, a derivation command with its
+known blind spots named — instead of inventorying what currently exists; see ADR-005's Context
+section for the worked example.
+
 #### The `## Amendments` section
 
 - **Placement is fixed: the LAST `## ` section of the ADR.** Entries accumulate in date order,
