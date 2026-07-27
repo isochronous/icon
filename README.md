@@ -159,7 +159,6 @@ Skills provide reusable processes that agents can invoke when needed.
 | `create-iconrc` | Use when `.context/iconrc.json` needs to be created or updated — whether initializing a repository for the first time or modifying an existing configuration. Called by all initialize-* skills; also invoke directly when a user requests `.iconrc` creation or reconfiguration. |
 | `dependency-management` | Library upgrades, new dependency evaluation, migration planning, version conflict resolution |
 | `design-first` | Pre-implementation exploration: propose alternatives, get approval before coding. Covers API design and security threat assessment. |
-| `ecological-impact` | Calculate and display the environmental footprint of a Copilot session in Trees Burned and water-usage equivalents, with annual projections |
 | `generate-phase-launcher` | Emit a harness-specific per-phase launcher script (`target-harness` ∈ claude-code / copilot-cli / generic) that runs each `plan.md` phase in a fresh, fail-closed session — for headless / cron / CI session-per-phase execution |
 | `icon-init` | Recommended first command — auto-detects repo type and dispatches to the correct `/initialize-*` skill, or to `/upgrade-repo` if `.context/` already exists |
 | `icon-status` | Display plugin state: active task, current branch, recent retrospectives, and context health |

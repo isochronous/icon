@@ -20,6 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `.context/` maintenance now carries a P0/P1/P2 urgency tier: inaccurate content is verified against source and corrected the moment it is identified rather than queued to task close, mechanical obligations such as an overdue file split land in the task that surfaced them instead of a follow-up, and a defect found with no active task becomes its own task. (ICON-0088)
 
+### Removed
+
+- Removed the `ecological-impact` skill, so `/ecological-impact` session-footprint estimates are no longer available. (ICON-0092)
+
 ## [2.0.0] - 2026-07-18
 
 ### Added
