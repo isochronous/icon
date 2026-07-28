@@ -174,7 +174,7 @@ looks as it does, even if the decision was later reversed.
 
 ### File Size Rule
 
-**Two classes of file are exempt** from this rule regardless of size: a historical record — an append-only chronological log or a point-in-time snapshot — and a distributed template — a fixed-shape scaffold whose template counterpart makes it, and only it, exempt (most template-seeded content is not). See `context-document-guidelines § Folder Split Rule → Split Exemptions` for the full test and current member list for both arms — do not re-enumerate members here. `.context/retrospectives.md` is mutated only via the `append-retrospective-entry` script (§ Tooling), never edited or split by hand — do not split it.
+A file that **records** rather than instructs — a log, a snapshot, an ADR, a `README.md` index, a fixed-shape scaffold, and so on — is exempt from this rule at any size. See `context-document-guidelines § Folder Split Rule → Split Exemptions` for the test; do not re-enumerate cases here. `.context/retrospectives.md` is mutated only via the `append-retrospective-entry` script (§ Tooling), never edited or split by hand — do not split it.
 
 After writing or updating any `.context/*.md` file, measure its size:
 
