@@ -28,7 +28,7 @@ Claude Code's plugin `hooks/hooks.json` has **no per-platform conditional**. The
 
 Listing multiple hook entries for the same event does NOT act as a fallback — they all run in parallel inside the matcher group. So a `hooks.json` listing both a `.sh` and a `.ps1` handler for SessionStart executes BOTH on any host where both interpreters exist (WSL, macOS with PowerShell, Git-Bash on Windows).
 
-**The supported pattern is a single Node.js wrapper.** Node.js is a safe assumption — Claude Code is itself a Node.js CLI, so `node` is always on PATH wherever Claude Code runs. The plugin's `hooks.json` invokes the wrapper in exec form:
+**The supported pattern is a single Node.js wrapper.** Node.js is the right default — Claude Code is itself a Node.js CLI, so a Node runtime is present wherever Claude Code runs. **That is a default, not a guarantee, and this file used to overstate it**: the original wording here was "`node` is always on PATH wherever Claude Code runs." A bundled-runtime install need not expose `node` on PATH at all, and "the harness is a Node CLI" does not entail that it does. ADR-005 § Assumed runtimes downgraded the claim to a default worth verifying; this sentence is corrected to match, and `skills/check-node-runtime/SKILL.md` is the verification (ICON-0096). The plugin's `hooks.json` invokes the wrapper in exec form:
 
 ```json
 {
@@ -41,6 +41,25 @@ Listing multiple hook entries for the same event does NOT act as a fallback — 
 This is also the [community-endorsed pattern](https://claudefa.st/blog/tools/hooks/cross-platform-hooks) Anthropic links from its plugins reference.
 
 **Rule for any new plugin-scoped hook:** start with a `.mjs` file. Do not add a parallel `.sh` or `.ps1` script. Beyond the dual-run trap above, prior retrospectives also warn about `.sh`/`.ps1` parity drift — a single Node.js wrapper structurally eliminates it.
+
+### A hook that cannot spawn cannot report its own absence (ICON-0096)
+
+If `node` is missing, `inject-manager-role.mjs` is never read, so **no code inside it can make its own non-execution louder.** That is unsatisfiable, not merely hard — which is why ICON-0096's detection lives in `skills/check-node-runtime/SKILL.md`, invoked from `icon-init` and `icon-status`, paths that execute regardless of whether the hook did. Do not re-open this as a hook change.
+
+What the *harness* surfaces, measured on Claude Code v2.1.220 with an exec-form `SessionStart` hook pointing at a nonexistent binary:
+
+| Surface | Signal |
+|---|---|
+| `--output-format stream-json` | `hook_response` carries a synthesized `Executable not found in $PATH: …` with `exit_code: 1` and `outcome: "error"`. Requires v2.1.204+, which added the `hook_started` / `hook_progress` / `hook_response` events. |
+| `--debug-file` | A distinct `[ERROR] Hook command failed to spawn (SessionStart:startup)` line. A control hook that spawned and exited 3 did **not** produce it, so the line identifies the could-not-execute case specifically. |
+
+Three limits that decided the design:
+
+- **Plain `-p` mode showed nothing** — for the spawn failure *or* for the spawn-then-exit-non-zero control. Absence of a message in headless output is not evidence the hook ran. Whether the interactive transcript notice differs was not settled.
+- **v2.1.199 is the gate** for `SessionStart` / `Setup` / `SubagentStart` exit-code-2 stderr reaching the transcript at all. On earlier clients it was debug-log only — silent by design.
+- **Exec form stays.** Shell form was attractive only because a shell emits "command not found" down the documented non-zero-exit path — but neither form surfaces anything in `-p`, so there is no visibility to buy, and the quoting / `.cmd`-shim problems that motivated exec form stay avoided. **`/doctor` is not a fallback either**: it lints hook configuration *shape*, so it never reports a hook that failed at runtime.
+
+**Corollary for stderr on an exit-0 path:** because `SessionStart` stderr surfaces only on a non-zero exit, a `process.stderr.write` followed by `process.exit(0)` is invisible to the user. Use the universal exit-0 JSON field `systemMessage` for anything the user needs to see. It is distinct from `hookSpecificOutput.additionalContext`: `additionalContext` injects into **Claude's** context as a system reminder, `systemMessage` displays a warning line **to the user**, and both may be emitted in the same envelope. Copilot CLI's hook semantics are unestablished — an unknown field is expected to be ignored there, so the stderr write is kept alongside as the fallback signal.
 
 ## Plugin Hook File Layout
 

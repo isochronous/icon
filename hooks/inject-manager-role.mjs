@@ -31,6 +31,34 @@ import { readFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
+// `SessionStart` surfaces a hook's stderr only on a NON-ZERO exit, and every
+// failure path below deliberately exits 0 (hooks must fail open). A bare
+// `process.stderr.write` on those paths therefore reaches the debug log and
+// nothing the user sees. `systemMessage` is the documented universal exit-0
+// JSON field that displays a warning line TO THE USER — distinct from
+// `hookSpecificOutput.additionalContext`, which injects into Claude's context
+// as a system reminder. Both may travel in the same envelope, so a warning
+// never costs the injection.
+//
+// The stderr writes are KEPT alongside: `systemMessage` is a Claude Code
+// field, and Copilot CLI's hook semantics are unestablished (ADR-004). An
+// unknown JSON field is expected to be ignored there, leaving stderr as the
+// fallback signal. Nothing here is claimed for Copilot CLI.
+//
+// This does NOT address a missing `node` — a hook that cannot spawn is never
+// read and cannot report its own absence. That detection lives in the
+// `check-node-runtime` skill, invoked from `icon-init` and `icon-status`.
+function emit(envelope) {
+  process.stdout.write(JSON.stringify(envelope) + "\n");
+}
+
+// Warn-and-stop: the role is NOT injected, but the user is told why.
+function warnAndExit(message) {
+  process.stderr.write(`ICON: inject-manager-role — ${message}\n`);
+  emit({ systemMessage: `ICON: manager role not injected — ${message}` });
+  process.exit(0);
+}
+
 // Only activate when the current project is ICON-initialized. Silent no-op is
 // correct here — the hook runs in every session and most sessions will be in
 // non-ICON projects.
@@ -43,6 +71,9 @@ if (!projectDir || !existsSync(join(projectDir, ".context"))) {
 // (inject). `managerDefault: false` ⇒ silent no-op. Parse error ⇒ stderr warn
 // and fail open (continue with defaults).
 const userSettingsPath = join(homedir(), ".claude", "icon-user-settings.json");
+// Carries a user-visible warning raised on a path that CONTINUES, so it can
+// ride along in the same envelope as the injection rather than replacing it.
+let pendingWarning = null;
 if (existsSync(userSettingsPath)) {
   try {
     const raw = readFileSync(userSettingsPath, "utf8");
@@ -54,6 +85,12 @@ if (existsSync(userSettingsPath)) {
     process.stderr.write(
       `ICON: inject-manager-role — could not parse ~/.claude/icon-user-settings.json (${err.message}) — proceeding with defaults.\n`,
     );
+    // Worth surfacing: a file that does not parse means any `managerDefault`
+    // opt-out in it is silently being ignored, which the user would otherwise
+    // only notice as ICON behaving contrary to a setting they wrote.
+    pendingWarning =
+      `ICON: ~/.claude/icon-user-settings.json could not be parsed (${err.message}) — ` +
+      `proceeding with defaults, so any setting in that file is being ignored.`;
   }
 }
 
@@ -62,18 +99,16 @@ if (existsSync(userSettingsPath)) {
 // silent no-op.
 const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
 if (!pluginRoot) {
-  process.stderr.write(
-    "ICON: inject-manager-role skipped — CLAUDE_PLUGIN_ROOT is not set. Reinstall the ICON plugin or report this as a bug.\n",
+  warnAndExit(
+    "CLAUDE_PLUGIN_ROOT is not set. Reinstall the ICON plugin or report this as a bug.",
   );
-  process.exit(0);
 }
 
 const managerPath = join(pluginRoot, "agents", "manager.agent.md");
 if (!existsSync(managerPath)) {
-  process.stderr.write(
-    `ICON: inject-manager-role skipped — manager agent file not found at ${managerPath}. The plugin install may be incomplete; try reinstalling ICON.\n`,
+  warnAndExit(
+    `manager agent file not found at ${managerPath}. The plugin install may be incomplete; try reinstalling ICON.`,
   );
-  process.exit(0);
 }
 
 // Small bootstrap (<2 KB). Front-loads the load-bearing manager discipline
@@ -96,4 +131,9 @@ const envelope = {
   },
 };
 
-process.stdout.write(JSON.stringify(envelope) + "\n");
+// The injection happened; a pending warning rides along rather than replacing it.
+if (pendingWarning) {
+  envelope.systemMessage = pendingWarning;
+}
+
+emit(envelope);
