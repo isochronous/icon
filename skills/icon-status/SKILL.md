@@ -110,6 +110,23 @@ if [ -f ".context/iconrc.json" ]; then
 fi
 ```
 
+### Node runtime
+
+ICON's session-start hook is a Node script, so a missing `node` silently costs the manager role.
+Probe for it here. The command is identical in every shell — run it as-is, in whatever shell the
+session uses:
+
+```
+node -v
+```
+
+Report the version string on the dashboard's `Node` line. **Read the output, not the exit status**
+— PowerShell leaves `$LASTEXITCODE` stale when a command is not found. If the output is a
+not-recognized / command-not-found message rather than a version, record `Node: not found`.
+
+Do not interpret further here — the Suggestions signal below routes to `check-node-runtime` when
+there is something to say.
+
 ### Suggestions
 
 Evaluate the following signals and collect any that apply into a suggestions list:
@@ -125,6 +142,19 @@ else
   fi
 fi
 ```
+
+**Signal 2: Node absent, or below ICON's supported floor.** Read from the `node -v` probe above. As
+of 2026-07-28 that floor is Node 22 — see `check-node-runtime` for how it's derived and how to
+recheck it against nodejs.org/en/about/previous-releases. If `node` was not found, or the major
+version is below 22, add:
+
+```
+- Node runtime <not found | vNN, below ICON's supported floor> — invoke `check-node-runtime` for the
+  install and version guidance.
+```
+
+Emit no suggestion when Node is present at or above the supported floor — the `Node` line already
+reports it.
 
 ```bash
 # Signal 3: task branch with a stale plan.md (not modified in 48h)
@@ -162,6 +192,9 @@ Context health:
   .context/standards/ — N files
   .context/iconrc.json — version X.Y
 
+Runtime:
+  Node — <version | not found>
+
 Suggestions:
   - <zero or more>
 ```
@@ -174,6 +207,7 @@ Suggestions:
 | Plan line | No `plan.md` found for the task ID |
 | Recent retrospectives | No task-ID headings (`### PROJ-123` style) found in `retrospectives.md` |
 | Context health | No `.context/` subdirectories found at all |
+| Node line | Never omitted — report the version or `not found`. A silent pass is indistinguishable from the probe not running. |
 | Suggestions | No signals triggered |
 
 ---

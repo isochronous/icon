@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Added `check-node-runtime`, which reports whether Node is available and guides installation when it is not, wired into `/icon-init` and `/icon-status`. (ICON-0096)
 - `writing-skills` now requires a hot path / cold path split: `SKILL.md` keeps only what every invocation runs, and conditional content moves to companion files loaded on demand. (ICON-0095)
 - `context-document-guidelines` now defines a "Correcting a stale ADR" convention that distinguishes amend-in-place from scope-supersede and full supersede. (ICON-0091)
 - A `.context/` file that records rather than instructs (a log, an ADR, a `README.md` index) is now exempt from the 16,000-byte folder-split threshold at any size. (ICON-0088, ICON-0095)
@@ -23,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- The manager-role session hook now warns the user when it skips injection, instead of writing to a stream nobody sees. (ICON-0096)
 - Shipped skills no longer use GNU-only shell constructs, so `/icon-init` .NET monorepo discovery, `/upgrade-repo` schema comparison, and the retrospective-append helper now work on macOS and BSD. (ICON-0093)
 - The `commit-conventions.md` scaffold shipped to consumer repos no longer carries a predecessor project's ticket prefix, ICON's own commit history, or a single-assistant co-author trailer. (ICON-0093)
 - The shipped `commit-conventions.md` task-ID generator no longer reads zero-padded IDs as octal, which collided or failed outright once a repo reached `0008`. (ICON-0093)
