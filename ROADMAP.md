@@ -18,6 +18,7 @@ Source: ICON-0089 audit (`.context/tasks/ICON-0089-icon-audit/audit-report.md`) 
 | ICON-0094 | #50 | `/upgrade-repo` broken steps (#15) — 7 defects + 10 steps that reported success for work they had not performed |
 | ICON-0095 | #52 | hot/cold skill separation (#51) — ADR-016, the `hot-cold-path` standard, an advisory size gate, nine size rules reduced to two |
 | ICON-0096 | #55 | node-detection skill (#22) — `check-node-runtime`, the hook's silent paths given a visible signal, `$LASTEXITCODE` fail-open documented |
+| ICON-0097 | #57 | `python3` → Node (#21) — 9 sites, 3 of them behaviour fixes; prune-first deleted from the split rule; `shell-portability` and `context-maintenance` split |
 
 Also landed inside those: `.context/domains` hook count + matcher literal, stale single-hook claims in 3 files, `## Related` graph seam across 20 docs, git hooks made executable (they were silently dead on fresh macOS/Linux clones), `skill-decomposition` index tallies removed. From ICON-0093 specifically: two latent bugs in the shipped task-ID generator (`$MAX` never assigned; zero-padded IDs parsed as octal), a fail-open `sed` guard in `/upgrade-repo`, and a gawk escape warning firing on every retrospective append.
 
@@ -90,11 +91,26 @@ Note for anyone touching `context_template/`: #17 took the template schema to **
 
 ```
 #22  node-detection-skill               ✅ DONE (#55) — the runtime is now verifiable
-#21  replace-python3-with-node          ← current
-#23  migrate-scripts-to-node            ← scope widened to fenced SKILL.md blocks
+#21  replace-python3-with-node          ✅ DONE (#57) — 9 sites; 6 more ticketed to #23 and #56
+#23  migrate-scripts-to-node            ← current, and widened again: fences, not just script files
+#56  create-iconrc-config-writer        ← spun out of #21; a contract change across 5 call sites
 ```
 
-**#22 is landed**, so the other two can assume a verified runtime. Three findings from it bind the work below:
+**#23 is widened again, and this is the load-bearing change to it.** Its original scope was the five `.sh`/`.ps1` script *files*. The real target is executable content **wherever it lives** — and most of it lives in fenced blocks inside `SKILL.md`, not in scripts. The rule to settle in an ADR first:
+
+| Content | Home |
+|---|---|
+| judgement, branching, "decide whether…" | prose in `SKILL.md` |
+| deterministic execution — parse, walk, rewrite, validate | a script taking `argv` |
+
+Three problems close together under that rule rather than one at a time, because a `.mjs` needs no PowerShell twin, **is** shellchecked, and does not count against a `SKILL.md` cap:
+- **#48** — the pre-commit shellcheck gate fires only on staged `*.sh`, so fenced bash is linted by nothing. That is where most consumer-executed shell lives.
+- **the twin convention** — #23's own body says it *"has drifted three times"*, and the only thing holding the pairs together is a byte-parity check that exists *because* they drifted.
+- **ADR-016 / #54** — `upgrade-repo` is 92,797 B and **1,253 of its 1,631 lines are inside code fences**. The size problem is largely a code-in-prose problem.
+
+ICON-0097 demonstrated the mechanism: it **collapsed three PowerShell twins rather than maintaining them**, verified under PowerShell 7, because a `node -e` invocation is shell-agnostic. A Node rewrite is the twin-removal tool, not something needing a twin of its own.
+
+**#22 and #21 are landed**, so the runtime is verifiable and the one-liner sites are done. Findings from both that bind the rest:
 
 - **Never guard on exit status to test whether a command exists.** PowerShell does not update `$LASTEXITCODE` on `CommandNotFoundException` — the exception fires before any process starts, so a missing binary leaves the previous value in place and the guard reports success. Measured on 7.6.3 and 5.1; bash returns 127, cmd returns 9009. The failure is **directional** — present-and-working updates correctly — so happy-path testing cannot find it. Read the command's **output**. `shell-portability/testing-pattern.md` carries it as the fourth shape of the PowerShell fail-open family.
 - **Two Node floors, stated separately.** Technical: the **12.20 / 14.13** line, imposed by the hooks' `node:`-prefixed imports. Supported: the lowest major still receiving security updates, with the value, its measurement date and its source — because a bare EOL-derived integer in shipped content goes wrong once a year in silence. `check-node-runtime` is the reference; do not introduce a third number.
