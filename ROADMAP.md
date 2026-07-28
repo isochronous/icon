@@ -17,6 +17,7 @@ Source: ICON-0089 audit (`.context/tasks/ICON-0089-icon-audit/audit-report.md`) 
 | ICON-0093 | #49 | shipped-content portability (#17) — 4 GNU-only construct classes cleared, `MKT` prefix removed, portability rules 7–8 added |
 | ICON-0094 | #50 | `/upgrade-repo` broken steps (#15) — 7 defects + 10 steps that reported success for work they had not performed |
 | ICON-0095 | #52 | hot/cold skill separation (#51) — ADR-016, the `hot-cold-path` standard, an advisory size gate, nine size rules reduced to two |
+| ICON-0096 | #55 | node-detection skill (#22) — `check-node-runtime`, the hook's silent paths given a visible signal, `$LASTEXITCODE` fail-open documented |
 
 Also landed inside those: `.context/domains` hook count + matcher literal, stale single-hook claims in 3 files, `## Related` graph seam across 20 docs, git hooks made executable (they were silently dead on fresh macOS/Linux clones), `skill-decomposition` index tallies removed. From ICON-0093 specifically: two latent bugs in the shipped task-ID generator (`$MAX` never assigned; zero-padded IDs parsed as octal), a fail-open `sed` guard in `/upgrade-repo`, and a gawk escape warning firing on every retrospective append.
 
@@ -88,12 +89,16 @@ Note for anyone touching `context_template/`: #17 took the template schema to **
 ## Milestone 3 — Standardize on Node   ← runs second, after M0
 
 ```
-#22  node-detection-skill               → both migrations below can then assume a verified runtime
-#21  replace-python3-with-node
+#22  node-detection-skill               ✅ DONE (#55) — the runtime is now verifiable
+#21  replace-python3-with-node          ← current
 #23  migrate-scripts-to-node            ← scope widened to fenced SKILL.md blocks
 ```
 
-**#22 first**, because the other two increase reliance on Node and the detector is what makes that safe. Note it cannot itself be a `.mjs` script.
+**#22 is landed**, so the other two can assume a verified runtime. Three findings from it bind the work below:
+
+- **Never guard on exit status to test whether a command exists.** PowerShell does not update `$LASTEXITCODE` on `CommandNotFoundException` — the exception fires before any process starts, so a missing binary leaves the previous value in place and the guard reports success. Measured on 7.6.3 and 5.1; bash returns 127, cmd returns 9009. The failure is **directional** — present-and-working updates correctly — so happy-path testing cannot find it. Read the command's **output**. `shell-portability.md § Testing Pattern` carries it as the fourth shape of the PowerShell fail-open family.
+- **Two Node floors, stated separately.** Technical: the **12.20 / 14.13** line, imposed by the hooks' `node:`-prefixed imports. Supported: the lowest major still receiving security updates, with the value, its measurement date and its source — because a bare EOL-derived integer in shipped content goes wrong once a year in silence. `check-node-runtime` is the reference; do not introduce a third number.
+- **`icon-init` Step 2b and `icon-status` still shell out to `python3`** — the two skills that now report whether Node is present. That is #21's most consequential pair, and the adjacency is the point: they use an unverified runtime to check for a runtime.
 
 **#23's scope now includes fenced bash/PowerShell pairs inside `skills/*/SKILL.md`**, not only `.sh`/`.ps1` files. Those pairs are linted by nothing — the pre-commit shellcheck gate fires only on staged `*.sh` (#48) — and ICON-0094 spent roughly half its six review passes on defects that exist solely because one behaviour is written twice in two languages: a guard that failed open on one side only, a missing `[regex]::Escape`, a `catch` that abandoned its own handler under `Set-StrictMode`, and PowerShell accepting regexes bash rejects. `skills/upgrade-repo/SKILL.md` is the dominant instance and is also M0's proving case, so take it after M0's split.
 
