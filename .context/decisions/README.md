@@ -45,7 +45,7 @@ What did we reject and why?
 supersede edges from them, so a new ADR needs both fields present even when the value is `none`.
 An ADR does **not** get a `## Related` footer; that seam is for content docs. The full convention is
 `context-document-guidelines § Related Section (graph seam)`; `## Amendments` placement and entry
-format live in its `§ Correcting a stale ADR` sub-section, cited above.
+format live in its `§ Correcting a stale ADR` section, cited above.
 
 ## Decision Log
 
@@ -66,3 +66,4 @@ format live in its `§ Correcting a stale ADR` sub-section, cited above.
 | [013](013-session-lifecycle-cold-resume.md) | Session lifecycle — phase-per-session cold resume via hardened plan.md | Accepted | 2026-07-17 |
 | [014](014-model-aware-delegation.md) | Model-aware delegation — required per-delegation tier | Accepted (inline carve-out superseded by ADR-015) | 2026-07-18 |
 | [015](015-all-specialists-isolated.md) | Sub-agent isolation — all specialists dispatched task→report | Accepted | 2026-07-18 |
+| [016](016-skill-hot-cold-path.md) | Skill hot path / cold path separation — per-file byte caps | Accepted | 2026-07-27 |

@@ -47,13 +47,18 @@ reviewer can re-verify without archaeology.
 
 ## Sub-File Layout for Heavy-Template Skills
 
-When a skill bundles heavy reference content — templates ≥ 100 lines total, reusable
-scripts, or per-domain dispatch briefs — use a **sub-file layout** under the skill
-directory rather than inlining everything in `SKILL.md`.
+> **The split trigger lives in `hot-cold-path.md` (§ The Two Gates).** A skill splits when
+> `SKILL.md` exceeds **16,000 bytes** AND contains ≥ 2 condition-guarded regions of ≥ 2,000 bytes
+> each. This section covers the *directory layout* a split produces; that file covers *when* to
+> split, *where* the cut goes, and how companions are pointed at and named.
+
+The trigger used to be a content **type** — "templates ≥ 100 lines, reusable scripts, or per-domain
+dispatch briefs". That is why the rule never caught `upgrade-repo`: it has no templates and no
+scripts, only procedure. The gate is now on bytes, so procedure counts.
 
 **Layout convention**:
 - `skills/<name>/SKILL.md` — the entry point: describes phases, dispatch logic, and
-  self-application. Keep to ~150 lines or fewer.
+  self-application.
 - `skills/<name>/<template-or-reference>.md` — heavy content referenced by relative
   path from `SKILL.md` (e.g., `synthesis-template.md`).
 - `skills/<name>/<subdir>/<file>.md` — per-domain or per-variant content loaded only
@@ -63,8 +68,7 @@ directory rather than inlining everything in `SKILL.md`.
 **Why**: Observed in MKT-0060. `icon-audit` (originally `plugin-audit`, renamed +
 moved to `.claude/skills/` in ICON-0042) bundles 6 per-domain dispatch briefs, a
 synthesis template, and a structural-check script. Inlining all of that in a single
-`SKILL.md` would produce a 500–700 line file, exceeding the size guidance in
-`writing-skills/SKILL.md:140-152`. The sub-file layout
+`SKILL.md` would put it well past the byte gate. The sub-file layout
 (`briefs/01-agents.md` … `briefs/06-cross-cutting.md`, `synthesis-template.md`,
 `scripts/structural-check.sh`) kept `SKILL.md` to 143 substantive lines while isolating
 per-domain content to files loaded only when dispatched.
@@ -76,10 +80,13 @@ per-domain content to files loaded only when dispatched.
   renamed + moved in ICON-0042) — extends this to a full template + briefs + scripts
   layout for a maintainer-only skill.
 
-**When NOT to use**: Skills under 200 lines that require no reusable scripts or
-templates should remain single-file. Sub-file layout adds navigation cost; only
-introduce it when inlining would make `SKILL.md` unwieldy.
+**When NOT to use**: a `SKILL.md` under 16,000 bytes stays single-file. So does one over
+16,000 bytes that fails gate 2 — a single unconditional narrative with no ≥ 2,000-byte
+condition-guarded regions gets the finding recorded and stays whole. And never create a companion
+below the **2,000-byte floor**: sub-file layout adds navigation cost, and below the floor the cost
+exceeds the saving.
 
 ## Related
 
 - Index: [skill-decomposition](../skill-decomposition.md)
+- See also: [hot-cold-path](hot-cold-path.md)

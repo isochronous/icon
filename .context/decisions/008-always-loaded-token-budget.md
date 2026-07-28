@@ -59,6 +59,7 @@
 - Baseline measurements: `.context/tasks/ICON-0088-context-integrity-urgency/word-count-snapshot.md` (current baseline; supersedes `.context/tasks/ICON-0033-token-economy-trims/word-count-snapshot.md`, retained as history).
 - [ADR-004](004-tool-agnostic-content.md): established the common-constraints inlining policy that puts 9 × 354 words into every session.
 - [ADR-005](005-no-build-step.md): no build step or dependency install. A committed, dependency-free script run in place is in scope, so a mechanical size check is permitted — none has been built.
+- [ADR-016](016-skill-hot-cold-path.md): peer, not amendment. This ADR caps the always-loaded session contribution in words; ADR-016 caps single-file compaction survivability in bytes for on-demand `skills/` files — the surface this ADR's Scope line deliberately excludes.
 - Issue #18 (O-T1 audit, O-T2 / O-T3 / O-T4 trims shipped under the same PR).
 
 ## Amendments
