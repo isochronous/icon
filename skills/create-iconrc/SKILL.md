@@ -54,13 +54,29 @@ If invoked directly by a user without `repo_type`, prompt for it before proceedi
 
 ## create-iconrc: Pre-requisite: ensure `$TEMPLATE_DIR` is set
 
-This skill reads the canonical version from the context template, located via `$TEMPLATE_DIR`. If it's not already set in your session (callers like `context-specialist-impl-leaf` and `context-specialist-impl-root` set it before invoking), invoke the `find-context-template` skill first:
+This skill reads the canonical version from the context template, located via `$TEMPLATE_DIR`. If it's not already set in your session (callers like `context-specialist-impl-leaf` and `context-specialist-impl-root` set it before invoking), invoke the `find-context-template` skill first — running both its Discovery Command **and** its mandatory `## Validate` block.
+
+This check is a guard: if it exits non-zero, halt: do not create or update `.context/iconrc.json`.
 
 ```bash
-[ -z "$TEMPLATE_DIR" ] && echo "Run find-context-template before continuing — \$TEMPLATE_DIR is not set" && exit 1
+if [ ! -d "${TEMPLATE_DIR-}/context" ]; then
+  echo "ERROR: \$TEMPLATE_DIR does not resolve to a context template: [${TEMPLATE_DIR-<unset>}]" >&2
+  echo "  Run find-context-template (Discovery Command + Validate) before continuing." >&2
+  exit 1
+fi
 ```
 
-(Or in a shell session: simply load `find-context-template/SKILL.md`, run its Discovery Command for the active tool, then return here.)
+```powershell
+$TemplateDirShown = if (Test-Path Variable:\TEMPLATE_DIR) { "[$TEMPLATE_DIR]" } else { '[<unset>]' }
+if (-not (Test-Path Variable:\TEMPLATE_DIR) -or [string]::IsNullOrWhiteSpace($TEMPLATE_DIR) -or -not (Test-Path -LiteralPath (Join-Path $TEMPLATE_DIR 'context') -PathType Container)) {
+    Write-Error "`$TEMPLATE_DIR does not resolve to a context template: $TemplateDirShown`n  Run find-context-template (Discovery Command + Validate) before continuing."
+    exit 1
+}
+```
+
+It tests the path `$TEMPLATE_DIR/context`, not the variable. An emptiness test such as `[ -z "$TEMPLATE_DIR" ]` is dead code whenever a caller ran `find-context-template`'s Discovery Command, because that always assigns a non-empty string — with `CLAUDE_PLUGIN_ROOT` unset it assigns the literal `/context_template`, which is non-empty and wrong. `${TEMPLATE_DIR-}` keeps the bash test safe under `set -u` for the genuinely-never-set case this guard also has to catch. The PowerShell form chains three checks with `-or`, and the order is load-bearing at every step because `-or` short-circuits left to right. `-not (Test-Path Variable:\TEMPLATE_DIR)` runs first because it is the only one of the three safe to evaluate when the variable was never assigned: under `Set-StrictMode -Version Latest`, merely *referencing* `$TEMPLATE_DIR` in the never-set case throws `InvalidOperation` ("cannot be retrieved because it has not been set"). That error is non-terminating in this position — it does not stop the script; it lets the `if` condition finish evaluating as if that clause were false, which would leave the guard body unentered and execution falls through with exit 0. Leading with the `Variable:\` existence test avoids ever dereferencing an unset `$TEMPLATE_DIR`, so the never-set case is caught by the first clause without tripping StrictMode at all. `[string]::IsNullOrWhiteSpace($TEMPLATE_DIR)` runs second, once the variable is known to exist, to catch the set-but-empty and set-to-whitespace cases. `Join-Path`/`Test-Path` run last, once the variable is known non-blank, to catch the set-but-wrong-path cases: `Join-Path` raises its own non-terminating error on a null or empty path, so calling it before the blank check reproduces the same fall-through-with-exit-0 hole. All three clauses must stay in this order — reordering or dropping any one of them reopens the fail-open bug `find-context-template`'s own Validate block had to fix.
+
+(Or in a shell session: simply load `find-context-template/SKILL.md`, run its Discovery Command for the active tool, run its `## Validate` block, then return here.)
 
 ---
 

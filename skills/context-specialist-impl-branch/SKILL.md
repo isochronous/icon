@@ -105,7 +105,7 @@ Branch context is **navigational and connective**, not comprehensive. It tells a
    - Its `.context/overview.md` first sentence (if it exists)
    - Otherwise: its build manifest and README first paragraph
 
-3. **Copy infrastructure files**: Invoke the `find-context-template` skill to locate `$TEMPLATE_DIR`, then copy `$TEMPLATE_DIR/context/META.md` and `$TEMPLATE_DIR/context/.gitignore` verbatim.
+3. **Copy infrastructure files**: Invoke the `find-context-template` skill to locate `$TEMPLATE_DIR`, then run its **mandatory `## Validate` block** for the active tool and **halt this skill immediately if it exits non-zero** — an unresolved path yields a half-populated `.context/`. Only once it passes, copy `$TEMPLATE_DIR/context/META.md` and `$TEMPLATE_DIR/context/.gitignore` verbatim.
 
 4. **Generate `projects.md`**: Build the table from discovered sub-projects.
 

@@ -110,7 +110,7 @@ Record your findings — they feed `workflows/commit-conventions.md` and
 
 ## context-specialist-impl-leaf: Step 2: Create Directory Structure and Copy Template Files
 
-Invoke the `find-context-template` skill to locate the template directory and establish `$TEMPLATE_DIR`.
+Invoke the `find-context-template` skill to locate the template directory and establish `$TEMPLATE_DIR`, then run its **mandatory `## Validate` block** for the active tool and **halt this skill immediately if it exits non-zero** — every `cp` below reads from `$TEMPLATE_DIR`, so an unresolved path yields a half-populated `.context/`.
 
 ```bash
 # Bash / zsh
