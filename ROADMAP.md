@@ -16,6 +16,7 @@ Source: ICON-0089 audit (`.context/tasks/ICON-0089-icon-audit/audit-report.md`) 
 | ICON-0092 | #13 | remove `ecological-impact` |
 | ICON-0093 | #49 | shipped-content portability (#17) — 4 GNU-only construct classes cleared, `MKT` prefix removed, portability rules 7–8 added |
 | ICON-0094 | #50 | `/upgrade-repo` broken steps (#15) — 7 defects + 10 steps that reported success for work they had not performed |
+| ICON-0095 | #52 | hot/cold skill separation (#51) — ADR-016, the `hot-cold-path` standard, an advisory size gate, nine size rules reduced to two |
 
 Also landed inside those: `.context/domains` hook count + matcher literal, stale single-hook claims in 3 files, `## Related` graph seam across 20 docs, git hooks made executable (they were silently dead on fresh macOS/Linux clones), `skill-decomposition` index tallies removed. From ICON-0093 specifically: two latent bugs in the shipped task-ID generator (`$MAX` never assigned; zero-padded IDs parsed as octal), a fail-open `sed` guard in `/upgrade-repo`, and a gawk escape warning firing on every retrospective append.
 
@@ -26,11 +27,17 @@ Also landed inside those: `.context/domains` hook count + matcher literal, stale
 Two maintainer decisions changed the running order. Milestones keep their original numbers so existing cross-references stay valid; **execution order is now M0 → M3 → M1 → M2 → M4 → M5 → M6.**
 
 ```
-M0  #51  hot-cold-skill-separation      ← NEW, do first
-M3  #22 → #21 → #23                     ← moved ahead of M1/M2
+M0  #51  hot-cold-skill-separation      ✅ DONE (#52)
+M3  #22 → #21 → #23                     ← current
 M1  #14, #16, #18                       (#17, #15 done)
 M2 … M6                                 unchanged
 ```
+
+**M0 is landed.** ADR-016 caps `SKILL.md` at 16,000 bytes and companions at 8,000, with a 2,000-byte floor; `skill-decomposition/hot-cold-path.md` carries the authoring rules. Three things follow for the work below:
+
+- **The cut follows the condition, not the topic** — one companion per if→then block, all siblings of `SKILL.md`, none referencing another. Nesting is not available: a file referenced *from* a referenced file may be `head`-previewed rather than read, silently.
+- **The advisory gate reports 11 findings across 8 skills today.** It becomes fail-closed once **#24** lands a CI backstop; two things must be settled first (it measures the working tree rather than the staged blob, and is line-ending sensitive), both recorded against ADR-016's promotion condition.
+- **`upgrade-repo` was deliberately not the proving case** — its platform axis cross-cuts every mode branch, so splitting before #23 writes companion pairs the Node migration then deletes. It follows #23.
 
 **Why M0 first.** A skill's whole `SKILL.md` loads on invocation, but a run executes only part of it — and ADR-008's scope explicitly excluded on-demand skills, so until ADR-016 nothing governed this at all. Hot/cold decides where *instructions* live; M3 decides where *code* lives. Designing the former first means the `.mjs` migration lands content in the right structure instead of moving it twice.
 
