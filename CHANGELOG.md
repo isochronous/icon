@@ -10,35 +10,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Skills now separate a hot path from a cold one: `SKILL.md` keeps only what every invocation executes, and conditional content moves into companion files an agent loads when — and only when — its condition holds. ADR-016 sets the caps in bytes (`SKILL.md` ≤ 16,000, companion ≤ 8,000, with a 2,000-byte floor below which extraction costs more than it saves) and `skill-decomposition/hot-cold-path.md` gives the authoring rules: one companion per condition, all siblings of `SKILL.md`, none referencing another. (ICON-0095)
-
-- The reason is correctness, not economy: Claude Code re-attaches a skill after conversation compaction keeping only its **first 5,000 tokens**, so a large `SKILL.md` is silently truncated mid-run with no error. `skills/upgrade-repo/SKILL.md` is roughly 4.6× past that limit today. A `.githooks/pre-commit` check now reports files over the caps — advisory for now, since the pre-commit stack has no CI backstop, and it becomes blocking when that lands. (ICON-0095)
-
-- `skills/context-document-guidelines/SKILL.md` shrank from 22,518 to 8,396 bytes, with its exemption test, `## Related` seam authoring, and stale-ADR correction procedure each moved to a companion loaded on its own condition. Every section name other files cite is preserved verbatim, so all existing `§` references still resolve. (ICON-0095)
-
-- Nine overlapping skill-size rules across four units — including a live 3.3× contradiction between two of them and a citation that had gone stale — are reduced to two: words for the always-loaded surface (ADR-008), bytes for on-demand skill files (ADR-016). (ICON-0095)
-
-- `context-document-guidelines` now defines a "Correcting a stale ADR" convention distinguishing amend-in-place from scope-supersede and full supersede, so a stale supporting fact gets corrected in place with a dated `## Amendments` entry instead of wrongly freezing a decision that still holds. (ICON-0091)
-
-- A `.context/` file that **records** rather than instructs is now exempt from the 16,000-byte folder-split threshold at any size — a log, a snapshot, an ADR, a `README.md` index, a fixed-shape scaffold — while instructional content under `domains/`, `standards/`, `testing/`, `architecture/`, and `styling/` remains splittable. The test is one question rather than a list of exempt classes, so a record does not have to be enumerated in advance to be covered; capping a record would force splitting a chronology, which destroys the thing that makes it useful. (ICON-0088, ICON-0095)
-
-- The task-plan completion phase now documents a `merge=union` coalescing hazard in retrospective logs — two branches that each prepend an entry can merge into a single paragraph record, silently undercounting the entry cap — along with the heading-count-vs-paragraph-count check that detects it, shipped in `context_template/` (schema 1.11→1.12) so `/upgrade-repo` applies it to existing repos. (ICON-0088)
+- `writing-skills` now requires a hot path / cold path split: `SKILL.md` keeps only what every invocation runs, and conditional content moves to companion files loaded on demand. (ICON-0095)
+- `context-document-guidelines` now defines a "Correcting a stale ADR" convention that distinguishes amend-in-place from scope-supersede and full supersede. (ICON-0091)
+- A `.context/` file that records rather than instructs (a log, an ADR, a `README.md` index) is now exempt from the 16,000-byte folder-split threshold at any size. (ICON-0088, ICON-0095)
+- The task-plan completion phase now detects retrospective entries coalesced by `merge=union`, applied to existing repos by `/upgrade-repo`. (ICON-0088)
 
 ### Changed
 
-- `.context/` maintenance now carries a P0/P1/P2 urgency tier: inaccurate content is verified against source and corrected the moment it is identified rather than queued to task close, mechanical obligations such as an overdue file split land in the task that surfaced them instead of a follow-up, and a defect found with no active task becomes its own task. (ICON-0088)
+- `writing-skills` now sets a single byte cap per file (`SKILL.md` ≤ 16,000, companion ≤ 8,000), replacing nine overlapping and partly contradictory skill-size rules. (ICON-0095)
+- Split `context-document-guidelines` into a lean `SKILL.md` plus three on-demand companions, preserving every section name other docs cite. (ICON-0095)
+- `.context/` maintenance now carries P0/P1/P2 urgency tiers, so inaccurate content is corrected on discovery instead of queued to task close. (ICON-0088)
 
 ### Fixed
 
-- Shipped skills no longer rely on GNU-only shell constructs — `grep -oP`, `sed -i` without a backup suffix, `mktemp -p` with a mid-template suffix, `realpath`, and an unguarded `cd` that searched `CDPATH` — so `/icon-init` .NET monorepo discovery (which previously found zero projects and set up nothing, with no error message), `/upgrade-repo` schema-version comparison, and the retrospective-append helper the task-close flow calls now work on macOS and BSD instead of failing silently or not at all. (ICON-0093)
-
-- `find-context-template` now validates that it actually resolved the plugin's template directory, exiting non-zero instead of reporting a path it never checked, and `/upgrade-repo` and the three `context-specialist-impl-*` paths halt on that failure rather than proceeding. Previously an uninjected `CLAUDE_PLUGIN_ROOT` left `$TEMPLATE_DIR` as the literal `/context_template`, which PowerShell resolves against the current drive — so the upgrade silently took wrong branches, including writing an empty `version` into the consumer's `.context/iconrc.json` and reporting success. (ICON-0094)
-
-- `/upgrade-repo` no longer overwrites a consumer's customized `INTEGRATION_BRANCHES`, tell an established project its own task-ID prefix collides with itself, create a root `claude.md` without asking, or skip the `## Related` graph seam and the `decisions/` directory. The pruning-script step now extracts the existing branch regex, copies the template's script logic, and restores the value byte-exactly — refusing loudly rather than guessing when it cannot read the existing test confidently. Repos initialized before 2.0.0 also get the graph seam emitted, which unblocks `context-maintenance`: without it every `domains/` file is an orphan, `context-graph --check` exits 1, and the Phase 1 audit aborts before reporting anything. (ICON-0094)
-
-- Ten steps across `/upgrade-repo` no longer print a success message for work they did not perform. `Restored:`, `Installed: … (6 files)`, `Ensured …` and `Renamed …` could each appear at exit 0 after the underlying copy, append or rename had failed — in PowerShell because an error inside a `catch` block abandons the handler before `exit 1` runs, and in both shells because several steps never checked their own outcome. Four of these predate the release. (ICON-0094)
-
-- The `commit-conventions.md` scaffold shipped to consumers no longer carries a predecessor project's ticket prefix, ICON's own commit history and scope vocabulary, or a single-assistant co-author trailer, and its task-ID generator no longer reads zero-padded IDs as octal — which silently produced a colliding ID or failed outright once a repo reached `0008`; ships in `context_template/` (schema 1.12→1.13) so `/upgrade-repo` applies it to existing repos. (ICON-0093)
+- Shipped skills no longer use GNU-only shell constructs, so `/icon-init` .NET monorepo discovery, `/upgrade-repo` schema comparison, and the retrospective-append helper now work on macOS and BSD. (ICON-0093)
+- The `commit-conventions.md` scaffold shipped to consumer repos no longer carries a predecessor project's ticket prefix, ICON's own commit history, or a single-assistant co-author trailer. (ICON-0093)
+- The shipped `commit-conventions.md` task-ID generator no longer reads zero-padded IDs as octal, which collided or failed outright once a repo reached `0008`. (ICON-0093)
+- `find-context-template` now fails when it cannot resolve the plugin's template directory, and `/upgrade-repo` and the three `context-specialist-impl-*` paths halt instead of proceeding. (ICON-0094)
+- `/upgrade-repo` no longer overwrites a consumer's customized `INTEGRATION_BRANCHES` value when it refreshes the pruning script. (ICON-0094)
+- `/upgrade-repo` no longer tells an established repo that its own task-ID prefix collides with itself. (ICON-0094)
+- `/upgrade-repo` now asks before creating a root `claude.md` redirect instead of writing one unprompted. (ICON-0094)
+- `/upgrade-repo` now emits the `## Related` graph seam in repos initialized before 2.0.0, unblocking `context-maintenance`'s Phase 1 audit. (ICON-0094)
+- `/upgrade-repo` now includes `decisions/` in its Phase 1 checklist, which `rules-index` generation depends on. (ICON-0094)
+- Ten `/upgrade-repo` steps no longer print a success message for work they did not perform. (ICON-0094)
 
 ### Removed
 
