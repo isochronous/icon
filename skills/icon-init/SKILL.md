@@ -15,6 +15,19 @@ Single entry point for initialization. Detects your repo shape and dispatches to
 
 ---
 
+## icon-init: Step 0: Node runtime pre-flight
+
+Before anything else, **invoke the `check-node-runtime` skill** and report its result.
+
+Initialization itself does not need Node — but ICON's session-start hook does, and that hook is
+what injects the manager role. If `node` is not on PATH the hook never executes and cannot report
+its own absence, so a fresh setup would otherwise complete looking healthy and only misbehave
+later. Surfacing it here puts the problem in front of the user before it causes one.
+
+**This is a report, not a gate.** Whatever `check-node-runtime` finds, continue to Step 1.
+
+---
+
 ## icon-init: Step 1: Check for existing `.context/`
 
 ```bash

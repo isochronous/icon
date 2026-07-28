@@ -155,6 +155,7 @@ Skills provide reusable processes that agents can invoke when needed.
 | Skill | Purpose |
 |-------|---------|
 | `agent-evaluation` | Evaluate agent system designs |
+| `check-node-runtime` | Verify `node` is on PATH, report the version visibly, and guide installation when Node is missing or past end-of-life — run at `/icon-init` and by `/icon-status`, because a missing Node silently costs the manager role |
 | `context-maintenance` | Keeping `.context/` current: update domains, promote lessons, prune artifacts |
 | `create-iconrc` | Use when `.context/iconrc.json` needs to be created or updated — whether initializing a repository for the first time or modifying an existing configuration. Called by all initialize-* skills; also invoke directly when a user requests `.iconrc` creation or reconfiguration. |
 | `dependency-management` | Library upgrades, new dependency evaluation, migration planning, version conflict resolution |
