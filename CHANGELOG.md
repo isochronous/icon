@@ -10,9 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- Skills now separate a hot path from a cold one: `SKILL.md` keeps only what every invocation executes, and conditional content moves into companion files an agent loads when — and only when — its condition holds. ADR-016 sets the caps in bytes (`SKILL.md` ≤ 16,000, companion ≤ 8,000, with a 2,000-byte floor below which extraction costs more than it saves) and `skill-decomposition/hot-cold-path.md` gives the authoring rules: one companion per condition, all siblings of `SKILL.md`, none referencing another. (ICON-0095)
+
+- The reason is correctness, not economy: Claude Code re-attaches a skill after conversation compaction keeping only its **first 5,000 tokens**, so a large `SKILL.md` is silently truncated mid-run with no error. `skills/upgrade-repo/SKILL.md` is roughly 4.6× past that limit today. A `.githooks/pre-commit` check now reports files over the caps — advisory for now, since the pre-commit stack has no CI backstop, and it becomes blocking when that lands. (ICON-0095)
+
+- `skills/context-document-guidelines/SKILL.md` shrank from 22,518 to 8,396 bytes, with its exemption test, `## Related` seam authoring, and stale-ADR correction procedure each moved to a companion loaded on its own condition. Every section name other files cite is preserved verbatim, so all existing `§` references still resolve. (ICON-0095)
+
+- Nine overlapping skill-size rules across four units — including a live 3.3× contradiction between two of them and a citation that had gone stale — are reduced to two: words for the always-loaded surface (ADR-008), bytes for on-demand skill files (ADR-016). (ICON-0095)
+
 - `context-document-guidelines` now defines a "Correcting a stale ADR" convention distinguishing amend-in-place from scope-supersede and full supersede, so a stale supporting fact gets corrected in place with a dated `## Amendments` entry instead of wrongly freezing a decision that still holds. (ICON-0091)
 
-- Two classes of `.context/` file are now exempt from the 16,000-byte folder-split threshold — historical records (append-only chronological logs and point-in-time snapshots such as `retrospectives.md` and its archive) and the plugin's fixed-shape template scaffolds (`overview.md`, `META.md`, `rules-index.md`, and the task-plan templates, whose section headings agents parse) — while template-seeded content under `domains/`, `standards/`, `testing/`, `architecture/`, and `styling/` remains splittable. (ICON-0088)
+- A `.context/` file that **records** rather than instructs is now exempt from the 16,000-byte folder-split threshold at any size — a log, a snapshot, an ADR, a `README.md` index, a fixed-shape scaffold — while instructional content under `domains/`, `standards/`, `testing/`, `architecture/`, and `styling/` remains splittable. The test is one question rather than a list of exempt classes, so a record does not have to be enumerated in advance to be covered; capping a record would force splitting a chronology, which destroys the thing that makes it useful. (ICON-0088, ICON-0095)
 
 - The task-plan completion phase now documents a `merge=union` coalescing hazard in retrospective logs — two branches that each prepend an entry can merge into a single paragraph record, silently undercounting the entry cap — along with the heading-count-vs-paragraph-count check that detects it, shipped in `context_template/` (schema 1.11→1.12) so `/upgrade-repo` applies it to existing repos. (ICON-0088)
 
