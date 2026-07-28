@@ -15,8 +15,26 @@ Source: ICON-0089 audit (`.context/tasks/ICON-0089-icon-audit/audit-report.md`) 
 | ICON-0091 | #12 | amend ADR-005 in place; corrected ADR-008, ADR-013 and 4 inheriting sites |
 | ICON-0092 | #13 | remove `ecological-impact` |
 | ICON-0093 | #49 | shipped-content portability (#17) — 4 GNU-only construct classes cleared, `MKT` prefix removed, portability rules 7–8 added |
+| ICON-0094 | #50 | `/upgrade-repo` broken steps (#15) — 7 defects + 10 steps that reported success for work they had not performed |
 
 Also landed inside those: `.context/domains` hook count + matcher literal, stale single-hook claims in 3 files, `## Related` graph seam across 20 docs, git hooks made executable (they were silently dead on fresh macOS/Linux clones), `skill-decomposition` index tallies removed. From ICON-0093 specifically: two latent bugs in the shipped task-ID generator (`$MAX` never assigned; zero-padded IDs parsed as octal), a fail-open `sed` guard in `/upgrade-repo`, and a gawk escape warning firing on every retrospective append.
+
+---
+
+## Reordered — 2026-07-27
+
+Two maintainer decisions changed the running order. Milestones keep their original numbers so existing cross-references stay valid; **execution order is now M0 → M3 → M1 → M2 → M4 → M5 → M6.**
+
+```
+M0  #51  hot-cold-skill-separation      ← NEW, do first
+M3  #22 → #21 → #23                     ← moved ahead of M1/M2
+M1  #14, #16, #18                       (#17, #15 done)
+M2 … M6                                 unchanged
+```
+
+**Why M0 first.** `skills/upgrade-repo/SKILL.md` is **12,796 words — larger than the entire always-loaded manager session budget (8,500)** that ADR-008 defends. A skill's whole `SKILL.md` loads on invocation, but a run executes maybe a fifth of it, and ADR-008's scope explicitly excludes on-demand skills, so nothing governs this. Hot/cold decides where *instructions* live; M3 decides where *code* lives. Designing the former first means the `.mjs` migration lands content in the right structure instead of moving it twice.
+
+**Why M3 before M1/M2.** ICON-0094 needed six review passes, and after the first round nearly every Critical was PowerShell-specific or a bash/PowerShell divergence — the exact asymmetry #23 exists to remove. Every further fix inside a `SKILL.md` pays that doubled cost. Standing policy until #23 lands: **no new PowerShell twins.** #23's scope is widened to fenced `SKILL.md` blocks, not just `.sh`/`.ps1` files ([comment](https://github.com/isochronous/icon/issues/23#issuecomment-5099114137)).
 
 ---
 
@@ -24,11 +42,13 @@ Also landed inside those: `.context/domains` hook count + matcher literal, stale
 
 ```
 #17  shipped-content-portability        ✅ DONE (#49) — macOS/BSD verification now possible
-#15  upgrade-repo-broken-steps
+#15  upgrade-repo-broken-steps          ✅ DONE (#50)
 #14  upgrade-repo-customized-vs-stale   → adds the new schema field; feeds #31
 #16  root-init-parity
 #18  research-cache-lifetime
 ```
+
+**#15 is landed.** Beyond its seven defects it cleared a class the ticket did not name: ten steps that printed a success message for work they had not performed. Four of those predate the release. Note for #14, which works the same file: `upgrade-repo` is the M0 refactor's proving case, so #14 should follow M0 rather than race it.
 
 **#17 is landed**, so the blocker it described is gone: monorepo discovery no longer returns zero projects silently on macOS/BSD, and the `iconrc` sync no longer no-ops forever. A fix to #15 can now actually be verified on those platforms instead of looking correct because it fails quietly either way.
 
@@ -54,15 +74,17 @@ Note for anyone touching `context_template/`: #17 took the template schema to **
 
 ---
 
-## Milestone 3 — Standardize on Node
+## Milestone 3 — Standardize on Node   ← runs second, after M0
 
 ```
 #22  node-detection-skill               → both migrations below can then assume a verified runtime
 #21  replace-python3-with-node
-#23  migrate-scripts-to-node
+#23  migrate-scripts-to-node            ← scope widened to fenced SKILL.md blocks
 ```
 
 **#22 first**, because the other two increase reliance on Node and the detector is what makes that safe. Note it cannot itself be a `.mjs` script.
+
+**#23's scope now includes fenced bash/PowerShell pairs inside `skills/*/SKILL.md`**, not only `.sh`/`.ps1` files. Those pairs are linted by nothing — the pre-commit shellcheck gate fires only on staged `*.sh` (#48) — and ICON-0094 spent roughly half its six review passes on defects that exist solely because one behaviour is written twice in two languages: a guard that failed open on one side only, a missing `[regex]::Escape`, a `catch` that abandoned its own handler under `Set-StrictMode`, and PowerShell accepting regexes bash rejects. `skills/upgrade-repo/SKILL.md` is the dominant instance and is also M0's proving case, so take it after M0's split.
 
 ---
 
@@ -121,6 +143,8 @@ Note for anyone touching `context_template/`: #17 took the template schema to **
 ## Cross-milestone dependencies, in one place
 
 ```
+M0 #51  →  M3 #23                       (split instructions before migrating code)
+M0 #51  →  M1 #14                       (same file; don't race the refactor)
 M1 #17  →  M4 #26                       ✅ satisfied (#49)
 M1 #14  →  M4 #31
 M1 all  →  M6 #42
