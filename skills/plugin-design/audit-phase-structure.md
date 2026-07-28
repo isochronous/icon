@@ -20,19 +20,18 @@ For each check, report a pass/fail line with a path if applicable.
 
 ### plugin.json
 
-```bash
-python3 -c "import json; data = json.load(open('.claude-plugin/plugin.json')); \
-  assert 'name' in data and 'version' in data and 'description' in data, \
-  f'missing required: {sorted(set([\"name\",\"version\",\"description\"]) - data.keys())}'"
+Identical in every shell — run it as-is, in whatever shell the session uses. Silence
+and exit 0 mean all three fields are declared; anything else goes to stderr and exits 1.
+
 ```
-
-PowerShell:
-
-```powershell
-$d = Get-Content .claude-plugin/plugin.json -Raw | ConvertFrom-Json
-foreach ($k in 'name','version','description') {
-  if (-not $d.PSObject.Properties[$k]) { "MISSING: $k" }
+node -e '
+const d = JSON.parse(require("fs").readFileSync(".claude-plugin/plugin.json", "utf8"));
+const missing = ["name", "version", "description"].filter((k) => !(k in d));
+if (missing.length) {
+  console.error("missing required: " + missing.join(", "));
+  process.exit(1);
 }
+'
 ```
 
 ### Frontmatter parse (Python, no yq dependency)

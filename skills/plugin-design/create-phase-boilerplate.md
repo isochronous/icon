@@ -131,13 +131,13 @@ foreach ($d in 'agents','commands','hooks','shared','skills') {
 
 ## Validation
 
-Confirm the manifest parses as valid JSON:
+Confirm the manifest parses as valid JSON. Identical in every shell — run it as-is:
 
-```bash
-python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
+```
+node -e 'JSON.parse(require("fs").readFileSync(".claude-plugin/plugin.json", "utf8"))'
 ```
 
-Exit code 0 with no output means the file is valid. Any exception means re-check the heredoc was written correctly.
+Exit code 0 with no output means the file is valid. Any output means re-check the heredoc was written correctly.
 
 ## Cross-references
 

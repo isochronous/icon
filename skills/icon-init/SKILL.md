@@ -78,27 +78,36 @@ fi
 
 # package.json with a non-empty "workspaces" array
 if [ -z "$DETECTED_TYPE" ] && [ -f package.json ]; then
-  # Check workspaces field exists and is a non-empty array
-  WS_CHECK=$(python3 -c "
-import json, sys
-try:
-    d = json.load(open('package.json'))
-    ws = d.get('workspaces')
-    print('yes' if ws and isinstance(ws, list) and len(ws) > 0 else 'no')
-except Exception:
-    print('no')
-" 2>&1 | grep -v "^Traceback")
+  # Three-valued on purpose: "yes", "no", or "" when the probe itself failed.
+  # stderr is NOT merged into the capture — a parse error must stay a parse error
+  # and must not read back as "no".
+  WS_CHECK=$(node -e '
+const fs = require("fs");
+const ws = JSON.parse(fs.readFileSync("package.json", "utf8")).workspaces;
+process.stdout.write(Array.isArray(ws) && ws.length > 0 ? "yes" : "no");
+')
   if [ "$WS_CHECK" = "yes" ]; then
     DETECTED_TYPE="monorepo"
+  elif [ "$WS_CHECK" != "no" ]; then
+    # Fail closed. package.json exists but could not be read, which is exactly the
+    # precondition of Step 2c's first manifest — falling through would report a
+    # confident "project" for a repo whose shape is unknown.
+    echo "ERROR: package.json is present but could not be probed (diagnostic above, on stderr)." >&2
+    DETECTED_TYPE="undetermined"
   fi
 fi
 
 # pom.xml with <modules> and no src/ sibling (project-as-parent pattern)
 if [ -z "$DETECTED_TYPE" ] && [ -f pom.xml ]; then
-  HAS_MODULES=$(grep -c '<modules>' pom.xml 2>&1 | grep -v "^grep:")
+  # stderr is NOT merged into the capture, for the same reason as the probe above:
+  # a read error must not read back as a count. An empty capture means the probe failed.
+  HAS_MODULES=$(grep -c '<modules>' pom.xml)
   HAS_SRC=0
   [ -d src ] && HAS_SRC=1
-  if [ "$HAS_MODULES" -ge 1 ] && [ "$HAS_SRC" -eq 0 ]; then
+  if [ -z "$HAS_MODULES" ]; then
+    echo "ERROR: pom.xml is present but could not be probed (diagnostic above, on stderr)." >&2
+    DETECTED_TYPE="undetermined"
+  elif [ "$HAS_MODULES" -ge 1 ] && [ "$HAS_SRC" -eq 0 ]; then
     DETECTED_TYPE="monorepo"
   fi
 fi
@@ -167,8 +176,12 @@ fi
 ### icon-init: Step 2e: Fallback
 
 ```bash
-# fallback: no signals matched — default to project with a warning
-if [ -z "$DETECTED_TYPE" ]; then
+# fallback: no signals matched, or a probe failed — never guess silently
+if [ "$DETECTED_TYPE" = "undetermined" ]; then
+  echo "WARNING: Repo type could not be determined — a detection probe failed."
+  echo "Not defaulting to a type: the failed probe covers the same file the default would key on."
+  echo "Step 3 must present the override list and wait for an explicit choice."
+elif [ -z "$DETECTED_TYPE" ]; then
   DETECTED_TYPE="project"
   echo "WARNING: Repo type could not be determined from manifest signals. Defaulting to 'project'."
   echo "Review the result after initialization and re-run with a different type if needed."
@@ -187,6 +200,10 @@ Skill to invoke: /initialize-[workspace | monorepo | multimodule | repo]
 
 Proceed? (yes / override / cancel)
 ```
+
+**If `DETECTED_TYPE` is `undetermined`**, a detection probe failed and there is no detected type to
+report. Do not print a "Skill to invoke" line and do not offer `yes` — say which probe failed and go
+straight to the **override** list below. An explicit user choice is the only way forward.
 
 **STOP HERE. Do not dispatch until the user responds.**
 
@@ -243,4 +260,4 @@ Initialization complete. Run /icon-status to see where things stand.
 | Counting a single subdirectory with a manifest as multimodule | Multimodule requires **2 or more** sibling subdirectories, each with a build manifest. One is not enough. |
 | Treating `package.json` with an empty `"workspaces": []` as a monorepo | The `workspaces` field must be a non-empty array. An empty array is not a monorepo signal. |
 | Dispatching before user confirms | Step 3 requires an explicit "yes" or "override". Never dispatch speculatively. |
-| Using `>/dev/null` for stderr suppression in bash blocks | Use `2>&1 | grep -v "^pattern"` instead. Output suppression is banned by the "Shell command self-check" rule in `shared/common-constraints.md`. |
+| Using `>/dev/null` for stderr suppression in bash blocks | Use `2>&1 | grep -v "^pattern"` instead. Output suppression is banned by the "Shell command self-check" rule in `shared/common-constraints.md`. **Never apply it to a `$(…)` capture whose value is branched on** — folding a diagnostic into a value channel is what made Step 2b's `workspaces` probe fail open. Leave stderr on stderr and treat an empty capture as "probe failed". |
