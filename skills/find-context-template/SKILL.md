@@ -9,7 +9,7 @@ user-invocable: false
 
 Locate the `context_template/` directory within the current tool's plugin install path and set `$TEMPLATE_DIR` for subsequent copy commands.
 
-This skill is also a **callable primitive** for plugin-asset discovery. Other ICON skills needing the resolved plugin install path should invoke it rather than re-implementing `${CLAUDE_PLUGIN_ROOT}` / Copilot-install-path resolution inline. Calling skills follow the standard Read-and-Use pattern: read this `SKILL.md`, run the Discovery Command block for the active tool, then use `$TEMPLATE_DIR` (or its parent for non-template assets) in their own commands. Invocation shape: `$TEMPLATE_DIR`-out, no arguments in.
+This skill is also a **callable primitive** for plugin-asset discovery. Other ICON skills needing the resolved plugin install path should invoke it rather than re-implementing `${CLAUDE_PLUGIN_ROOT}` / Copilot-install-path resolution inline. Calling skills follow the standard Read-and-Use pattern: read this `SKILL.md`, run the Discovery Command block for the active tool, then run the **mandatory `## Validate` block** for that same tool and **halt if it exits non-zero** — only after it passes may they use `$TEMPLATE_DIR` (or its parent for non-template assets) in their own commands. The Validate block is a required step of this skill, not optional troubleshooting; a caller that skips it proceeds on an unresolved path. Invocation shape: `$TEMPLATE_DIR`-out, no arguments in.
 
 ## Marketplace Name
 
@@ -56,51 +56,66 @@ TEMPLATE_DIR="${CLAUDE_PLUGIN_ROOT}/context_template"
 $TEMPLATE_DIR = "$env:CLAUDE_PLUGIN_ROOT/context_template"
 ```
 
-## If the Result Is Empty or the Path Does Not Exist
+## Validate (mandatory)
 
-### Copilot CLI
+Run the Validate block for the active tool **immediately after its Discovery Command and before any use of `$TEMPLATE_DIR`**. This is a guard, not troubleshooting advice: it exits non-zero when the template did not resolve, and a calling skill MUST halt when it does.
 
-`$TEMPLATE_DIR` is always assigned a string — checking for an empty variable isn't meaningful. Instead verify the path exists on disk:
+**Test the path `$TEMPLATE_DIR/context`, never the variable `$TEMPLATE_DIR`.** Every Discovery Command above always assigns a non-empty string, so an emptiness test can never fire. With `CLAUDE_PLUGIN_ROOT` unset, `$TEMPLATE_DIR` becomes the non-empty literal `/context_template`, which PowerShell on Windows resolves against the *current drive* (`C:\context_template`) — only a path test catches that. Testing the `context/` subdirectory rather than the root additionally distinguishes "wrong root" from "root exists but is not a template"; `context/` is the subdirectory every caller actually reads from.
 
-**Bash / zsh:**
+### Copilot CLI (Bash / zsh)
+
 ```bash
-[ ! -d "$TEMPLATE_DIR" ] && echo "Template not found at: $TEMPLATE_DIR"
+if [ ! -d "${TEMPLATE_DIR-}/context" ]; then
+  echo "ERROR: context template not found at: ${TEMPLATE_DIR-<unset>}" >&2
+  echo "  COPILOT_HOME=[${COPILOT_HOME-<unset>}] MARKETPLACE_NAME=[${MARKETPLACE_NAME-<unset>}]" >&2
+  echo "  Verify the plugin install: copilot plugin list" >&2
+  exit 1
+fi
 ```
 
-**PowerShell:**
+### Copilot CLI (PowerShell)
+
 ```powershell
-if (-not (Test-Path $TEMPLATE_DIR)) { Write-Host "Template not found at: $TEMPLATE_DIR" }
+$CopilotHomeShown = if (Test-Path 'Env:\COPILOT_HOME') { "[$env:COPILOT_HOME]" } else { '[<unset>]' }
+$MarketplaceShown = if (Test-Path 'Env:\MARKETPLACE_NAME') { "[$env:MARKETPLACE_NAME]" } else { '[<unset>]' }
+$TemplateDirShown = if (Test-Path Variable:\TEMPLATE_DIR) { "[$TEMPLATE_DIR]" } else { '[<unset>]' }
+if (-not (Test-Path Variable:\TEMPLATE_DIR) -or [string]::IsNullOrWhiteSpace($TEMPLATE_DIR) -or -not (Test-Path -LiteralPath (Join-Path $TEMPLATE_DIR 'context') -PathType Container)) {
+    Write-Error "context template not found at: $TemplateDirShown`n  COPILOT_HOME=$CopilotHomeShown MARKETPLACE_NAME=$MarketplaceShown`n  Verify the plugin install: copilot plugin list"
+    exit 1
+}
 ```
 
-If the path doesn't exist, the plugin may not be installed or may be at a non-standard location. Ask the user to verify:
+### Claude Code (Bash / zsh)
 
 ```bash
-copilot plugin list
+if [ ! -d "${TEMPLATE_DIR-}/context" ]; then
+  echo "ERROR: context template not found at: ${TEMPLATE_DIR-<unset>}" >&2
+  echo "  CLAUDE_PLUGIN_ROOT=[${CLAUDE_PLUGIN_ROOT-<unset>}]" >&2
+  echo "  Verify the plugin install: claude plugin list" >&2
+  exit 1
+fi
 ```
 
-### Claude Code
+### Claude Code (PowerShell)
 
-`$CLAUDE_PLUGIN_ROOT` may be unset if the plugin runtime didn't inject it, making `$TEMPLATE_DIR` empty or null. Check before using it:
-
-**Bash / zsh:**
-```bash
-[ -z "$TEMPLATE_DIR" ] && echo "CLAUDE_PLUGIN_ROOT is not set — plugin runtime may not have injected it"
-```
-
-**PowerShell:**
 ```powershell
-if (-not $env:CLAUDE_PLUGIN_ROOT) { Write-Host "CLAUDE_PLUGIN_ROOT is not set — plugin runtime may not have injected it" }
+$PluginRootShown = if (Test-Path 'Env:\CLAUDE_PLUGIN_ROOT') { "[$env:CLAUDE_PLUGIN_ROOT]" } else { '[<unset>]' }
+$TemplateDirShown = if (Test-Path Variable:\TEMPLATE_DIR) { "[$TEMPLATE_DIR]" } else { '[<unset>]' }
+if (-not (Test-Path Variable:\TEMPLATE_DIR) -or [string]::IsNullOrWhiteSpace($TEMPLATE_DIR) -or -not (Test-Path -LiteralPath (Join-Path $TEMPLATE_DIR 'context') -PathType Container)) {
+    Write-Error "context template not found at: $TemplateDirShown`n  CLAUDE_PLUGIN_ROOT=$PluginRootShown`n  Verify the plugin install: claude plugin list"
+    exit 1
+}
 ```
 
-If the variable is unset, ask the user to verify:
+**Never write the bash guard as `[ ! -d "$TEMPLATE_DIR/context" ] && echo …`.** That form exits **1 when the directory exists**: the `[` fails, `&&` short-circuits, and the list's status is the `[`'s status — so a caller running under `set -euo pipefail` aborts on the *success* path. Appending `&& exit 1` does not repair it. Only the `if … then … exit 1; fi` form above is safe.
 
-```bash
-claude plugin list
-```
+### If validation fails
+
+The plugin is not installed where the runtime says it is, or the runtime did not inject its plugin-root variable. The diagnostic distinguishes the two: `<unset>` means the variable was never injected (POSIX presence form `${VAR-<unset>}`; `Test-Path Env:\VAR` in PowerShell — `${VAR:-…}` and a bare `if ($env:VAR)` cannot tell unset from set-but-empty), while a printed value means it was injected but points somewhere wrong. Report the diagnostic to the user, ask them to confirm the install with `claude plugin list` / `copilot plugin list`, and stop — never fall back to a guessed path.
 
 ## After Discovery
 
-Use `$TEMPLATE_DIR` as the source in all subsequent copy commands. Example:
+Once — and only once — the Validate block above has exited 0, use `$TEMPLATE_DIR` as the source in all subsequent copy commands. Example:
 
 ```bash
 cp "$TEMPLATE_DIR/context/META.md" .context/

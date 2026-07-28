@@ -216,7 +216,7 @@ Follow `context-document-guidelines § Related Section (graph seam)` for the exa
 
 ## context-specialist-impl-root: Step 12: Copy Infrastructure Files
 
-Invoke the `find-context-template` skill to locate `$TEMPLATE_DIR`, then:
+Invoke the `find-context-template` skill to locate `$TEMPLATE_DIR`, then run its **mandatory `## Validate` block** for the active tool and **halt this skill immediately if it exits non-zero** — every `cp` below reads from `$TEMPLATE_DIR`, so an unresolved path yields a half-populated `.context/`. Only once it passes:
 
 ```bash
 cp "$TEMPLATE_DIR/context/META.md"           .context/
