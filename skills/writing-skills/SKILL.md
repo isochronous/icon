@@ -205,7 +205,13 @@ What goes wrong and how to fix it.
 Table of excuses agents make and why they're wrong.
 ```
 
-Not every skill needs every section. Scale to complexity — a simple technique skill might be 40 lines, a discipline skill 150. Keep SKILL.md under 500 lines; split into supporting files beyond that.
+Not every skill needs every section. Scale to complexity — a simple technique skill might be 40 lines, a discipline skill 150.
+
+**Hot path / cold path**: `SKILL.md` carries only what **every** invocation executes; conditional
+content (modes, platform branches, rare procedures) moves to companion files read on demand, one
+file per condition. The split gate, where the cut goes, the required `## Companion Files` manifest,
+and the pointer syntax are specified in the **skill-decomposition** standard (`hot-cold-path`
+sub-file) — read it before splitting; don't improvise the shape.
 
 ### Step and Phase Heading Format
 
@@ -265,9 +271,10 @@ Future agents find your skill through the `using-skills` catalogue and descripti
 
 Skills load on demand, but every word in a loaded skill costs tokens competing with conversation history.
 
-**Targets:**
-- Frequently-loaded skills: < 200 words.
-- Standard skills: < 500 words.
+**Targets, not gates** — missing one is a prompt to hunt redundancy, not a failure. The only
+enforced size rule is the byte cap under *Verification* below.
+
+- Frequently-loaded skills: aim under 200 words.
 - Complex discipline skills: can go longer, but earn every line.
 
 **Techniques:**
@@ -297,8 +304,14 @@ Compress examples — show the pattern, not the novel. Cut redundancy.
 **Verification:**
 
 ```bash
-wc -w skills/path/SKILL.md
+wc -c skills/path/SKILL.md
 ```
+
+`SKILL.md` ≤ **16,000 bytes**; any companion `.md` ≤ **8,000 bytes**. The `SKILL.md` cap comes from
+the harness's compaction-retention behaviour — past it the tail is silently dropped when the
+conversation is summarized, so an oversized skill is a correctness bug, not just an expensive one.
+A second, non-mechanical gate applies before you split — see the **skill-decomposition** standard
+(`hot-cold-path` sub-file).
 
 ## Cross-Referencing Other Skills
 

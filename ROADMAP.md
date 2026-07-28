@@ -32,7 +32,11 @@ M1  #14, #16, #18                       (#17, #15 done)
 M2 … M6                                 unchanged
 ```
 
-**Why M0 first.** `skills/upgrade-repo/SKILL.md` is **12,796 words — larger than the entire always-loaded manager session budget (8,500)** that ADR-008 defends. A skill's whole `SKILL.md` loads on invocation, but a run executes maybe a fifth of it, and ADR-008's scope explicitly excludes on-demand skills, so nothing governs this. Hot/cold decides where *instructions* live; M3 decides where *code* lives. Designing the former first means the `.mjs` migration lands content in the right structure instead of moving it twice.
+**Why M0 first.** A skill's whole `SKILL.md` loads on invocation, but a run executes only part of it — and ADR-008's scope explicitly excluded on-demand skills, so until ADR-016 nothing governed this at all. Hot/cold decides where *instructions* live; M3 decides where *code* lives. Designing the former first means the `.mjs` migration lands content in the right structure instead of moving it twice.
+
+The load-bearing number is not size but **survivability**: Claude Code re-attaches each skill after compaction keeping only the **first 5,000 tokens**. `skills/upgrade-repo/SKILL.md` at **92,797 B ≈ 23,000 tokens is ~4.6× past that**, so roughly 78% of it is silently dropped on every compaction today — no error, no warning. ADR-016 sets the caps in **bytes** (`SKILL.md` ≤ 16,000, companion ≤ 8,000, floor 2,000); measure with `wc -c`.
+
+*(Two figures previously stated here were wrong and are corrected above: the "a fifth" estimate inherited from #51 measures at ~36%, and the word count has been restated in the governing unit so the roadmap does not circulate a fifth measure.)*
 
 **Why M3 before M1/M2.** ICON-0094 needed six review passes, and after the first round nearly every Critical was PowerShell-specific or a bash/PowerShell divergence — the exact asymmetry #23 exists to remove. Every further fix inside a `SKILL.md` pays that doubled cost. Standing policy until #23 lands: **no new PowerShell twins.** #23's scope is widened to fenced `SKILL.md` blocks, not just `.sh`/`.ps1` files ([comment](https://github.com/isochronous/icon/issues/23#issuecomment-5099114137)).
 
@@ -173,5 +177,5 @@ Everything not listed above is independent and can be picked up in any order.
 
 Recorded in #32 so they don't return as findings next cycle.
 
-- **Skill size gate** — its entire violation population is one file. A gate whose finding set is a single known file is a bug report with CI attached.
+- **Skill size gate** — ~~its entire violation population is one file. A gate whose finding set is a single known file is a bug report with CI attached.~~ **Overturned by measurement (ICON-0095, 2026-07-27).** The one-file claim rested on a word-count measure of `SKILL.md` alone. Measured in bytes across `SKILL.md` *and* companions, the population is **11 findings across 8 distinct skills** — seven `SKILL.md` over 16,000 B and four companions over 8,000 B. The gate now ships advisory under ADR-016 and becomes blocking once #24 lands a CI backstop. Issue #32, which records these decisions, carries the same stale claim and needs the same correction.
 - **Broad ordered-list resolver** — trains authors to renumber until green without checking the referent. The narrow form (require a section name beside `Step N`) is kept.

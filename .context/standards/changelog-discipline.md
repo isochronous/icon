@@ -84,6 +84,8 @@ This keeps the next `## [X.Y.Z]` heading out of the diff boundary entirely. Alte
 
 MKT-0078's first changelog draft was four sentences, included an internal mirror invariant, and had to be cleaned up in a follow-up commit. The cleanup edit is the diff to study: it kept the user-relevant claim ("fixes silent parse failures in github-issue / post-meeting / rfc") and discarded the QA reassurances and process detail.
 
+**Recurrence (ICON-0093, ICON-0094, ICON-0095).** Rule 1 was explicit and was broken on three consecutive tasks, producing 60–120-word `[Unreleased]` entries that bundled several fix-classes each. One mechanism drove it: the `changelog-entry` skill's instruction to describe "how it affects the reader" read as licence to explain the mechanism, so the effect clause grew into a paragraph. Calibration compounded it — the author matched the adjacent bullets rather than the ✓ example, and the § Scope grandfather clause above guarantees non-compliant neighbours are always present. The Four Rules were not at fault; the skill was hardened instead (one-sentence limit stated in the skill, a ~30-word ceiling, a pre-write self-check, and an anti-rationalization table).
+
 ## Related
 
 - See also: [changelog workflow](../workflows/changelog.md) — release mechanics this standard's entry-writing rules apply within

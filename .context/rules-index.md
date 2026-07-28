@@ -44,3 +44,4 @@ On-demand router for this repo's governing rules across `standards/`, `workflows
 | 013 | running a task as per-phase sessions, hardening plan.md for cold resume, or generating a phase launcher | [decisions/013-session-lifecycle-cold-resume.md](decisions/013-session-lifecycle-cold-resume.md) |
 | 014 | choosing the model for a delegation, or specifying the model tier in a delegation prompt | [decisions/014-model-aware-delegation.md](decisions/014-model-aware-delegation.md) |
 | 015 | dispatching a specialist sub-agent (all are isolated task→report), or the sub-agent context-isolation model | [decisions/015-all-specialists-isolated.md](decisions/015-all-specialists-isolated.md) |
+| 016 | writing or splitting a skill — the `SKILL.md` / companion byte caps, hot path vs cold path, and why the gate ships advisory | [decisions/016-skill-hot-cold-path.md](decisions/016-skill-hot-cold-path.md) |

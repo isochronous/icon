@@ -481,6 +481,7 @@ ref_check_files=()
 script_parity_needed=0
 placeholder_check_files=()
 cap_check_files=()
+skill_size_check_files=()    # ADR-016: advisory skill/companion .md byte-size gate
 skill_registration_check_needed=0
 rules_index_check_needed=0
 shellcheck_needed=0          # ICON-0075: armed when a staged file is a shell script or git hook
@@ -540,6 +541,14 @@ for f in "${staged[@]}"; do
   case "$f" in
     skills/*|README.md)
       skill_registration_check_needed=1 ;;
+  esac
+
+  # ADR-016: skill-file size advisory scope — any staged .md path under
+  # skills/ or .claude/skills/ (recursive; case globs match `/`, same
+  # property the dead-ref resolver's skills/*.md scan relies on).
+  case "$f" in
+    skills/*.md|.claude/skills/*.md)
+      skill_size_check_files+=("$f") ;;
   esac
 
   # rules-index freshness check fires when ANY staged file under
@@ -731,6 +740,55 @@ if (( skill_registration_check_needed == 1 )); then
     done
     echo "  fix: add a \`| \`<name>\` | <purpose> |\` row to the appropriate README table." >&2
     exit 1
+  fi
+fi
+
+# -----------------------------------------------------------------------------
+# ADR-016: skill-file size advisory (accumulate-then-report, non-blocking)
+# -----------------------------------------------------------------------------
+# Advisory only, per the ADR-016 promotion condition (issue #24: pre-commit
+# has no CI backstop yet, so a new gate ships advisory until one lands and
+# this can fail closed). Measures every staged skills/*.md and
+# .claude/skills/*.md file (recursive; case globs match `/`) with `wc -c`
+# on the working-tree copy: skills/*/SKILL.md and .claude/skills/*/SKILL.md
+# cap at 16,000 bytes, every other companion .md caps at 8,000 bytes.
+#
+# This is Gate 1 only (mechanical). Gate 2 — whether the file actually
+# bundles 2+ invocation-scoped conditions of >=2,000 bytes each — is
+# deliberately NOT mechanically checkable; the message below exists to make
+# the author answer it, not to answer it for them (context-document-
+# guidelines takes the same posture for .context/ docs).
+#
+# Findings accumulate across all in-scope files and print once to stderr.
+# This block never calls exit, so it cannot block the commit.
+if (( ${#skill_size_check_files[@]} > 0 )); then
+  skill_size_findings=()
+
+  for file in "${skill_size_check_files[@]}"; do
+    abs_path="$repo_root/$file"
+    if [[ ! -f "$abs_path" ]]; then
+      continue
+    fi
+    case "$file" in
+      */SKILL.md) cap=16000 ;;
+      *) cap=8000 ;;
+    esac
+    size=$(wc -c < "$abs_path")
+    if (( size > cap )); then
+      skill_size_findings+=("  $file — $size bytes (cap $cap)")
+    fi
+  done
+
+  if (( ${#skill_size_findings[@]} > 0 )); then
+    echo "[pre-commit] advisory: skill file over the ADR-016 size gate:" >&2
+    for hit in "${skill_size_findings[@]}"; do
+      echo "$hit" >&2
+    done
+    echo "  Gate 1 fired. Now answer gate 2: does this file contain 2+ invocation-scoped" >&2
+    echo "  conditional blocks of >=2000 bytes each?" >&2
+    echo "    yes -> extract one companion per condition (skill-decomposition/hot-cold-path.md)" >&2
+    echo "    no  -> record the finding; do not split." >&2
+    echo "  This is advisory and does not block the commit." >&2
   fi
 fi
 

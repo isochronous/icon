@@ -7,6 +7,15 @@ field, README skills-table registration) are documented in SKILL.md alongside.
 
 Mintlify-specific markup (image tags, MDX components, theme attributes) stripped for
 clean rendering in plain markdown viewers and agent contexts.
+
+ICON supersedes the upstream 500-line SKILL.md cap with ADR-016's 16,000-byte cap
+(`wc -c`). Disregard EVERY 500-line statement below, in all three places it appears:
+the bullet under "Progressive disclosure patterns", the paragraph under "Token
+budgets", and the checklist item under "Core quality".
+
+This is a precedence note, not a fix. The body is a verbatim vendored copy and the
+upstream sentences stay as written, so the superseded rule is still readable three
+times in this file — read it as Anthropic's guidance, overridden here.
 -->
 
 # Skill authoring best practices
