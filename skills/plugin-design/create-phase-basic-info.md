@@ -19,9 +19,18 @@ Ask for each field in order, validating as you go.
 
 If a field fails validation, surface the rule and prompt again rather than proceeding with bad input.
 
-## Update plugin.json (Bash)
+## Update plugin.json
 
-Use `jq` to update fields in place. If `jq` is not installed, use the Python fallback below.
+Two forms. The `jq` form is **bash only** — its `--arg` flags and backslash line
+continuations are parse errors in PowerShell. Use it in bash when `jq` is installed;
+otherwise — and in PowerShell always, whether or not `jq` is installed — use the Node
+fallback, which is identical in every shell.
+
+Both forms pass the collected values as **arguments**, never interpolated into the
+program: an apostrophe in a description or an author name (`O'Brien`) would otherwise
+close the shell quote and abort the write. A double-quoted argument carries `'` through
+unchanged in bash and PowerShell; a literal `"` inside a value still needs that shell's
+own escape (`\"` in bash, `` `" `` in PowerShell).
 
 ```bash
 jq --arg n "<name>" \
@@ -38,81 +47,51 @@ jq --arg n "<name>" \
    && mv .claude-plugin/plugin.json.tmp .claude-plugin/plugin.json
 ```
 
-Python fallback (no `jq` required):
+Node fallback (no `jq` required). Two-space indent and a trailing newline, matching the
+`jq` output above — other tooling matches the serialized `"version": "…"` literally, so
+do not change the indent or reorder keys.
 
-```bash
-python3 - <<'PY'
-import json
-p = ".claude-plugin/plugin.json"
-data = json.load(open(p))
-data["name"] = "<name>"
-data["version"] = "<version>"
-data["description"] = "<description>"
-data["author"] = {"name": "<author-name>"}
-lic = "<license-or-null>"
-data["license"] = None if lic == "null" else lic
-json.dump(data, open(p, "w"), indent=2)
-open(p, "a").write("\n")
-PY
 ```
-
-## Update plugin.json (PowerShell)
-
-```powershell
-$p = '.claude-plugin/plugin.json'
-$data = Get-Content $p -Raw | ConvertFrom-Json
-$data.name = '<name>'
-$data.version = '<version>'
-$data.description = '<description>'
-$data | Add-Member -NotePropertyName author -NotePropertyValue @{ name = '<author-name>' } -Force
-$lic = '<license-or-null>'
-if ($lic -eq 'null') {
-  $data | Add-Member -NotePropertyName license -NotePropertyValue $null -Force
-} else {
-  $data | Add-Member -NotePropertyName license -NotePropertyValue $lic -Force
-}
-$data | ConvertTo-Json -Depth 10 | Set-Content -Path $p -Encoding UTF8
+node -e '
+const fs = require("fs");
+const [name, version, description, author, lic] = process.argv.slice(1);
+const p = ".claude-plugin/plugin.json";
+const data = JSON.parse(fs.readFileSync(p, "utf8"));
+data.name = name;
+data.version = version;
+data.description = description;
+data.author = { name: author };
+data.license = lic === "null" ? null : lic;
+fs.writeFileSync(p, JSON.stringify(data, null, 2) + "\n");
+' "<name>" "<version>" "<description>" "<author-name>" "<license-or-null>"
 ```
 
 ## Update README.md
 
-Replace the placeholder title and description line with the real values.
+Replace the placeholder title and description line with the real values. Written back
+LF-terminated with no BOM regardless of platform — using the host's line ending here
+would rewrite every line of the file.
 
-Bash:
-
-```bash
-python3 - <<'PY'
-import pathlib
-p = pathlib.Path("README.md")
-lines = p.read_text().splitlines()
-lines[0] = f"# <name>"
-# Find first non-blank non-heading line and replace
-for i in range(1, len(lines)):
-    if lines[i].strip() and not lines[i].startswith("#"):
-        lines[i] = "<description>"
-        break
-p.write_text("\n".join(lines) + "\n")
-PY
 ```
-
-PowerShell:
-
-```powershell
-$lines = Get-Content README.md
-$lines[0] = "# <name>"
-for ($i = 1; $i -lt $lines.Count; $i++) {
-  if ($lines[$i].Trim() -and -not $lines[$i].StartsWith('#')) {
-    $lines[$i] = '<description>'
-    break
-  }
+node -e '
+const fs = require("fs");
+const [name, description] = process.argv.slice(1);
+const lines = fs.readFileSync("README.md", "utf8").split(/\r?\n/);
+if (lines[lines.length - 1] === "") lines.pop();
+lines[0] = "# " + name;
+for (let i = 1; i < lines.length; i++) {
+  if (lines[i].trim() && !lines[i].startsWith("#")) { lines[i] = description; break; }
 }
-Set-Content -Path README.md -Value $lines -Encoding UTF8
+fs.writeFileSync("README.md", lines.join("\n") + "\n");
+' "<name>" "<description>"
 ```
 
 ## Validation
 
-Re-parse `plugin.json` after every edit to catch malformed writes:
+Re-parse `plugin.json` after every edit to catch malformed writes. Identical in every shell:
 
-```bash
-python3 -c "import json; json.load(open('.claude-plugin/plugin.json'))"
 ```
+node -e 'JSON.parse(require("fs").readFileSync(".claude-plugin/plugin.json", "utf8"))'
+```
+
+Exit code 0 with no output means the file is valid. Any output is the parse error.

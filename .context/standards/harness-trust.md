@@ -25,7 +25,7 @@ clean.
 2. **`set -e` exempts non-final commands in an `&&` list.** A guard's inverted condition can look
    like it never fires when tested as a standalone snippet, and only reproduces when re-run the way
    a real caller actually invokes it — as its own script, or sourced (ICON-0094; the same class as
-   `shell-portability.md` Rule 4's `if grep` masking).
+   `shell-portability/rules.md` Rule 4's `if grep` masking).
 3. **A required interpreter absent from the test tool's `PATH` fails silently, not loudly.**
    `bash` was not on `PATH` in the PowerShell tool used for this task, so a fixture-rebuild script
    invoked from PowerShell silently never ran — a whole PowerShell review round tested stale

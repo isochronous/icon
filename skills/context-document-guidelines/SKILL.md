@@ -57,7 +57,9 @@ When both the bytesize threshold and the logical-split test pass, apply the fold
 
 ## Folder Split Rule
 
-A `.context/*.md` file that meets **both** of these gates should be converted to a folder:
+A `.context/*.md` file that meets **both** of these gates is converted to a folder. When both fire,
+the split is the response, not one option among several — pruning the file back under gate (1) is
+not an alternative to it (`context-maintenance § File Size Rule`):
 
 1. **Bytesize**: the file exceeds **16,000 bytes** (~200 lines × 80 chars). Bytesize rather than line count because long lines (tables, prose) make line count under-represent reading burden.
 2. **Logical splittability**: the file contains **≥ 3 peer-level `## ` sections** each representing a discrete topic (not just sub-headings of one narrative).
@@ -86,7 +88,7 @@ After splitting, update `.context/` cross-references that pointed at the origina
 
 If the original file had a row in `.context/rules-index.md`, repoint that row's link at the new `<name>/` folder (or `<name>/README.md`) in the same change — don't leave it pointing at the deleted file.
 
-> For the maintenance-cycle action that triggers this rule — and which task owns the split — see `context-maintenance § File Size Rule`.
+> For the maintenance-cycle action that triggers this rule, which task owns the split, and why cost is never grounds to defer one — see `context-maintenance § File Size Rule`.
 
 ### Split Exemptions
 

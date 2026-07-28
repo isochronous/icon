@@ -38,31 +38,48 @@ WORKSPACE_DIR="$(dirname "$WORKSPACE_FILE")"
 ```
 
 Parse the `folders` array. Each entry has a `path` key, relative (to the workspace
-file's directory) or absolute:
+file's directory) or absolute. Output is **tab-separated** — `#`, resolved path, raw
+entry, on-disk state — because paths contain spaces; do not re-split it on whitespace.
+Both paths are passed as **arguments**, never interpolated into the program: a folder
+path containing a quote or a backslash would otherwise corrupt it.
 
 ```bash
-python3 -c "
-import json, os, sys
-ws = json.load(open('$WORKSPACE_FILE'))
-ws_dir = '$WORKSPACE_DIR'
-for i, f in enumerate(ws.get('folders', [])):
-    raw = f['path']
-    resolved = os.path.realpath(os.path.join(ws_dir, raw))
-    print(f'{i+1}\t{resolved}\t{raw}')
-"
+node -e '
+const fs = require("fs"), path = require("path");
+const [wsFile, wsDir] = process.argv.slice(1);
+const folders = JSON.parse(fs.readFileSync(wsFile, "utf8")).folders || [];
+folders.forEach((f, i) => {
+  if (typeof f.path !== "string") {
+    process.stderr.write("ERROR: folders[" + i + "] has no string path key\n");
+    process.exit(1);
+  }
+});
+folders.forEach((f, i) => {
+  let p = path.resolve(wsDir, f.path), state = "on disk";
+  try { p = fs.realpathSync(p); } catch (e) { state = "NOT ON DISK"; }
+  process.stdout.write((i + 1) + "\t" + p + "\t" + f.path + "\t" + state + "\n");
+});
+' "$WORKSPACE_FILE" "$WORKSPACE_DIR"
 ```
+
+A malformed `.code-workspace` — bad JSON, or a `folders` entry with no string `path`
+(a `uri`-only virtual/remote entry) — fails on stderr before any row is written. Halt
+rather than proceeding with a partial folder list.
 
 The **first folder** is the workspace root — it receives workspace-level context
 in Step 6 regardless of classification.
 
 Produce a resolution table before proceeding:
 
-| # | Folder Path | Raw Entry |
-|---|-------------|-----------|
-| 1 | `/dev/<workspace>` | `.` (workspace root) |
-| 2 | `/dev/<service-a>` | `../<service-a>` |
-| 3 | `/dev/<service-b>` | `../<service-b>` |
-| 4 | `/dev/<resource-folder>` | `../<resource-folder>` |
+| # | Folder Path | Raw Entry | On Disk |
+|---|-------------|-----------|---------|
+| 1 | `/dev/<workspace>` | `.` (workspace root) | on disk |
+| 2 | `/dev/<service-a>` | `../<service-a>` | on disk |
+| 3 | `/dev/<service-b>` | `../<service-b>` | **NOT ON DISK** |
+| 4 | `/dev/<resource-folder>` | `../<resource-folder>` | on disk |
+
+A folder marked **NOT ON DISK** is listed but absent — do not classify it in Step 2 and
+do not dispatch it; report it in Step 8 as a missing folder, never as a skipped resource.
 
 ---
 
@@ -343,6 +360,7 @@ Summarize:
 
 - Projects initialized: list with `initialize-repo` or `upgrade-repo` label
 - Resources skipped: list with reason
+- Folders listed in the workspace but not on disk: list — never as skipped resources
 - Verification: pass/fail per project
 - PR URLs (one per git repo)
 - Any failures requiring manual follow-up
@@ -359,5 +377,5 @@ Summarize:
 | Running `git log` from `PROJECT_PATH` instead of `GIT_ROOT` | The project folder may not be the repo root; use `GIT_ROOT` for full history |
 | Starting Step 6 before all projects pass Step 5 | Workspace session reads each project's `overview.md` — missing files cause gaps |
 | Opening one PR for the whole workspace | One PR per git repo, targeting that repo's integration branch |
-| Resolving relative `.code-workspace` paths against CWD | They're relative to the `.code-workspace` file's own directory — use `os.path.realpath` |
+| Resolving relative `.code-workspace` paths against CWD | They're relative to the `.code-workspace` file's own directory — resolve against it, then `fs.realpathSync` |
 | Merging PRs without human review | Always surface PR URLs and stop — do not self-merge |

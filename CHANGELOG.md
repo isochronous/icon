@@ -24,6 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- `/icon-init` no longer misdetects a JavaScript workspace monorepo as a single project when its manifest cannot be read. (ICON-0097)
+- `/icon-status` no longer shows a blank version when `.context/iconrc.json` is missing, malformed, or unreadable. (ICON-0097)
+- `/initialize-workspace` no longer breaks on a workspace folder path containing an apostrophe, a backslash, or a space. (ICON-0097)
+- Nine `python3` invocations in shipped skills are now Node, which does run on a stock Windows box. (ICON-0097)
 - The manager-role session hook now warns the user when it skips injection, instead of writing to a stream nobody sees. (ICON-0096)
 - Shipped skills no longer use GNU-only shell constructs, so `/icon-init` .NET monorepo discovery, `/upgrade-repo` schema comparison, and the retrospective-append helper now work on macOS and BSD. (ICON-0093)
 - The `commit-conventions.md` scaffold shipped to consumer repos no longer carries a predecessor project's ticket prefix, ICON's own commit history, or a single-assistant co-author trailer. (ICON-0093)

@@ -1,7 +1,7 @@
 ---
 name: context-maintenance
 description: >
-  Use when a task is complete and .context/ may need updating, when documentation contradicts the codebase, when retrospective entries need promotion, when task artifacts need pruning, or when a proactive drift scan is requested before editing (invoked via @context-specialist mode=audit).
+  Use when a task is complete and .context/ may need updating, when documentation contradicts the codebase, when retrospective entries need promotion, when task artifacts need pruning, when a `.context/` file has grown past the split threshold, or when a proactive drift scan is requested before editing (invoked via @context-specialist mode=audit).
 user-invocable: true
 ---
 
@@ -22,6 +22,16 @@ Audit, Explore, Edit — producing a structured report of every change.
 - Task artifacts need pruning
 - A dependency, tool, or architectural pattern changed
 - A `.context/` defect was identified during other work — that work owns the fix (see § Ownership and Urgency)
+
+---
+
+## Companion Files
+
+| File | Load when |
+|---|---|
+| `phase-3-edit.md` | Phase 3 runs — mode `maintenance` or absent, so Phase 0 did not stop the run. |
+| `context-graph.md` | A Phase 1 dangling-reference or orphan-node audit needs the graph tool. |
+| `append-retrospective-entry.md` | A run must mutate `.context/retrospectives.md`. |
 
 ---
 
@@ -136,78 +146,10 @@ because they look plausible without checking the code.
 
 ## context-maintenance: Phase 3: Edit (~⅓ of effort)
 
-**Goal**: Apply all verified findings from the audit report, other than any P0 already
-marked **done** in Phase 1 or in Phase 2 step 5 — those are already corrected and are not
-re-applied.
-
-Work through each remaining verified finding:
-
-### Updates
-
-Rewrite, remove, or correct content as needed.
-
-### Promotions
-
-For unpromoted retrospective entries, pick the target file from this table and
-write the promoted content there:
-
-| Lesson Type | Promote To |
-|------------|-----------|
-| Domain-specific gotcha | `domains/<domain>.md` |
-| Coding convention | `standards/<area>.md` |
-| Test pattern | `testing/<area>.md` |
-| Architecture decision | `architecture/` or `decisions/` |
-| Process improvement | `workflows/<process>.md` |
-
-After promoting, add a "Promoted to:" note on the retrospective entry.
-
-**Don't promote everything.** Task-specific entries that don't generalize stay in the
-retrospective as history.
-
-### Pruning
-
-Remove orphaned or outdated entries, and completed task folders older than the
-current cycle.
-
-**Never delete history from `decisions/`** — those records explain WHY the codebase
-looks as it does, even if the decision was later reversed.
-
-### File Size Rule
-
-A file that **records** rather than instructs — a log, a snapshot, an ADR, a `README.md` index, a fixed-shape scaffold, and so on — is exempt from this rule at any size. See `context-document-guidelines § Folder Split Rule → Split Exemptions` for the test; do not re-enumerate cases here. `.context/retrospectives.md` is mutated only via the `append-retrospective-entry` script (§ Tooling), never edited or split by hand — do not split it.
-
-After writing or updating any `.context/*.md` file, measure its size:
-
-```bash
-wc -c <file>   # bytes
-```
-
-```powershell
-(Get-Item <file>).Length   # bytes
-```
-
-If the file exceeds **16,000 bytes** AND has **≥ 3 peer-level `## ` sections** each a discrete topic, convert it to a folder in the same pass:
-
-1. Create `<name>/README.md` with the original intro/preamble and a table or list linking to the per-topic files.
-2. Write one `<name>/<slug>.md` per topic section. Use `NNN-kebab-slug.md` for numbered units (e.g. ADRs); `kebab-slug.md` otherwise.
-3. Update `.context/` cross-references that pointed at the original file.
-4. If the original file had a row in `.context/rules-index.md`, repoint that row's link at the new `<name>/` folder (or `<name>/README.md`) — don't leave it pointing at the deleted file.
-5. Delete (`git rm`) the original flat `.md` file.
-
-If oversized but lacking ≥ 3 discrete peer `## ` sections (single continuous narrative), note it in the Output Report — do not split.
-
-**Prune first, split second.** If pruning brings the file under 16,000 bytes, prune only — no split.
-
-**The split is owned by the task that surfaced it** — normally the task whose edit pushed the file
-over the threshold. It is P1: done before that task closes, never handed to a later one. A previous
-task having deferred the same split raises urgency rather than licensing another deferral
-(§ Ownership and Urgency).
-
-See `context-document-guidelines § Folder Split Rule` for the canonical rule and slug-naming conventions.
-
-### Stage (commit ownership depends on caller mode)
-
-After all edits, **stage the writes with `git add`**. The commit is owned by the dispatching manager, which folds these staged changes into its Task Completion Step 4 commit. Do not run `git commit` from this skill — it would sweep pre-staged manager work (source changes, `plan.md` updates) into a commit owned by the wrong author and break the manager's commit-discipline pass.
+**This phase runs only when the Phase 0 scope gate did not stop the run — mode `maintenance` or
+absent. When it runs, read `phase-3-edit.md` and apply it**: updates, promotions, pruning, the
+§ File Size Rule split gate, and the staging step. In `mode: audit` Phase 3 does not run and the
+companion is not read.
 
 ---
 
@@ -245,7 +187,8 @@ If nothing needed changing, report: "No changes required — all `.context/` fil
 |---------|-----|
 | Skipping Phase 2 (explore) | Audit findings can be wrong. Verify against source before editing. |
 | Promoting everything from retrospectives | Only promote generalizable lessons. |
-| Splitting files before pruning | Prune first. Split only if the file stays oversized. |
+| Pruning a file to keep it under the split gate | Pruning never discharges a split. Prune redundancy because it is redundant; split because both gates fired. |
+| Not writing content so the file stays under the gate | Worse than deferring the split — it hides the obligation instead of leaving it visible. Write the content, then split. |
 | Documenting the past instead of the present | Architecture/domain docs describe CURRENT state. Use `decisions/` for history. |
 | Deleting history from `decisions/` | Those records explain WHY the codebase looks as it does. Keep them. |
 | Editing files without the audit report | Edits without a prior audit miss stale content elsewhere. Always audit first. |
@@ -255,7 +198,7 @@ If nothing needed changing, report: "No changes required — all `.context/` fil
 
 ## Tooling: append-retrospective-entry
 
-Sibling reference [`append-retrospective-entry.md`](append-retrospective-entry.md) documents the Bash and PowerShell scripts in `./scripts/` that mutate `.context/retrospectives.md` (deterministic insert + rolling-log trim). **This is the only approved way to mutate `retrospectives.md` — do not edit it directly.**
+`append-retrospective-entry.md` documents the Bash and PowerShell scripts in `./scripts/` that mutate `.context/retrospectives.md` (deterministic insert + rolling-log trim). **This is the only approved way to mutate `retrospectives.md` — do not edit it directly.**
 
 ## Tooling: check-rules-index
 
@@ -295,7 +238,7 @@ the index first — `context-specialist-impl-leaf` Step 4.5).
 
 The **Dangling reference** and **Orphan / unreachable node** audits (Phase 1)
 are script-backed — run `context-graph --check` rather than hand-scanning
-`.context/`. Sibling reference [`context-graph.md`](context-graph.md) documents
+`.context/`. `context-graph.md` documents
 both the `.sh` and `.ps1` variants in `./scripts/`, the node/edge model, the
 escape-hatch markers, and the fail-closed exit contract (`0` clean / `1`
 violations / `2` parser or environment error — any non-zero must block; invoke

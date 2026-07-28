@@ -105,8 +105,25 @@ done
 
 ```bash
 if [ -f ".context/iconrc.json" ]; then
-  ICONRC_VERSION=$(python3 -c 'import json,sys; print(json.load(open(".context/iconrc.json")).get("version","?"))')
-  echo "  .context/iconrc.json — version $ICONRC_VERSION"
+  ICONRC_VERSION=$(node -e '
+const fs = require("fs");
+const v = JSON.parse(fs.readFileSync(".context/iconrc.json", "utf8")).version;
+if (typeof v === "string" && v !== "") process.stdout.write(v);
+else process.stderr.write("iconrc.json parsed, but \"version\" is missing or not a string\n");
+')
+  # Guard the empty result *after* the read — same shape as upgrade-repo on this
+  # same field of this same file. An empty capture must never reach the dashboard
+  # as a value: "version " with nothing after it reads as a healthy line.
+  if [ -z "$ICONRC_VERSION" ]; then
+    echo "ERROR: no usable \"version\" in .context/iconrc.json (reason above, on stderr)." >&2
+    echo "  .context/iconrc.json — version (unreadable)"
+    ICONRC_STATE="unreadable"
+  else
+    echo "  .context/iconrc.json — version $ICONRC_VERSION"
+  fi
+else
+  echo "  .context/iconrc.json — not found"
+  ICONRC_STATE="missing"
 fi
 ```
 
@@ -157,7 +174,16 @@ Emit no suggestion when Node is present at or above the supported floor — the 
 reports it.
 
 ```bash
-# Signal 3: task branch with a stale plan.md (not modified in 48h)
+# Signal 3: .context/iconrc.json missing or unreadable (set by the iconrc.json block above)
+if [ "$ICONRC_STATE" = "missing" ]; then
+  echo "- .context/iconrc.json not found — run /upgrade-repo to restore it."
+elif [ "$ICONRC_STATE" = "unreadable" ]; then
+  echo "- .context/iconrc.json has no usable \"version\" — see the error above, or run /upgrade-repo to regenerate it."
+fi
+```
+
+```bash
+# Signal 4: task branch with a stale plan.md (not modified in 48h)
 if [ -n "$TASK_ID" ] && [ -n "$PLAN_FILE" ] && [ "$PLAN_FILE" != "(none)" ]; then
   MTIME=$(find "$PLAN_FILE" -maxdepth 0 -mmin +2880 2>&1 | grep -v "^find:")
   if [ -n "$MTIME" ]; then
@@ -207,6 +233,7 @@ Suggestions:
 | Plan line | No `plan.md` found for the task ID |
 | Recent retrospectives | No task-ID headings (`### PROJ-123` style) found in `retrospectives.md` |
 | Context health | No `.context/` subdirectories found at all |
+| `iconrc.json` line | Never omitted — report the version, `not found`, or `(unreadable)`. A blank after "version" is indistinguishable from a healthy read. |
 | Node line | Never omitted — report the version or `not found`. A silent pass is indistinguishable from the probe not running. |
 | Suggestions | No signals triggered |
 

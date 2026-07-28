@@ -247,6 +247,17 @@ proving-case split — this is the population that motivated the rule, not a liv
   oversized companions. Named here so it is not read as an oversight; fixing it is a follow-up.
 - Gate 2 is a judgement call every author must make; the hook can prompt for it but cannot check
   it.
+- **Gate 2 mispredicted on the second application of the rule, and the split was made anyway.**
+  Splitting `context-maintenance/SKILL.md` (21,831 B) surfaced exactly *one* qualifying region —
+  `Phase 3: Edit`, 6,670 B, invocation-scoped on the Phase 0 mode gate. The other large candidate,
+  `File Size Rule`, sits under a *"after writing or updating **any** `.context/*.md` file"* step,
+  so it is item-scoped and the scope test forbids extracting it. Read literally the conjunction
+  says "record the finding and leave the file whole" — a false negative. The "≥ 2 regions" clause
+  exists to stop an arbitrary carve-up of a file with no discrete topic, and to stop a split that
+  leaves the parent still oversized; neither risk was present here, and removing the one region
+  landed the parent at 15,862 B, compliant. **A single qualifying region whose extraction brings
+  the parent under the cap is sufficient.** Recorded as an exception only: the gate, both caps, and
+  the Decision above are unchanged.
 
 ## Alternatives Considered
 

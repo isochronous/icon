@@ -14,30 +14,20 @@ This phase **does not submit** anything. Marketplaces use their own PR workflow 
 
 Confirm the manifest parses and declares the fields a marketplace typically requires (`name`, `version`, `description`, `author`, plus optional `repository`, `keywords`, `license`):
 
-```bash
-python3 - <<'PY'
-import json, sys
-data = json.load(open(".claude-plugin/plugin.json"))
-required = ["name", "version", "description", "author"]
-missing = [k for k in required if k not in data or data[k] in (None, "", {})]
-if missing:
-    print(f"missing required fields: {missing}")
-    sys.exit(1)
-print("plugin.json OK; declared fields:", sorted(data.keys()))
-PY
+Identical in every shell — run it as-is, in whatever shell the session uses. Both field
+lists print as plain comma-separated names, not as a language-specific list literal.
+
 ```
-
-PowerShell:
-
-```powershell
-$data = Get-Content .claude-plugin/plugin.json -Raw | ConvertFrom-Json
-$required = 'name','version','description','author'
-$missing = $required | Where-Object { -not $data.PSObject.Properties[$_] -or -not $data.$_ }
-if ($missing) {
-  "missing required fields: $missing"
-  exit 1
+node -e '
+const data = JSON.parse(require("fs").readFileSync(".claude-plugin/plugin.json", "utf8"));
+const empty = (v) => !v || (typeof v === "object" && Object.keys(v).length === 0);
+const missing = ["name", "version", "description", "author"].filter((k) => empty(data[k]));
+if (missing.length) {
+  console.error("missing required fields: " + missing.join(", "));
+  process.exit(1);
 }
-"plugin.json OK; declared fields: $(($data.PSObject.Properties.Name | Sort-Object) -join ', ')"
+console.log("plugin.json OK; declared fields: " + Object.keys(data).sort().join(", "));
+'
 ```
 
 If any required field is missing or empty, return to Phase 2 and fill it in first.

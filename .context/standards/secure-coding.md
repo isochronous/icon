@@ -32,7 +32,7 @@ Changes to ICON's hooks or scripts should be checked with the `security-review` 
 
 ## Related
 
-- See also: [shell portability](shell-portability.md) § Rule 4 — `grep` dash-argument guidance this standard's Rule 6 cross-references
+- See also: [shell portability rules](shell-portability/rules.md) § Rule 4 — `grep` dash-argument guidance this standard's Rule 6 cross-references
 - Governed by: [ADR-005: no build step](../decisions/005-no-build-step.md)
 - Governed by: [ADR-006: MCP credentials placeholders](../decisions/006-mcp-credentials-placeholders.md) (Superseded — retained for the never-commit-credentials principle)
 - Governed by: [ADR-007: devnull ban scope](../decisions/007-devnull-ban-scope.md)
