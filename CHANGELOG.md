@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- `/icon-init` now detects repo shape with a committed Node script instead of inline shell, so one implementation runs on every platform. (ICON-0098)
+- `plugin-design` repo-setup steps dropped their duplicate PowerShell blocks; the surviving commands run unchanged in both shells. (ICON-0098)
 - `writing-skills` now sets a single byte cap per file (`SKILL.md` ≤ 16,000, companion ≤ 8,000), replacing nine overlapping and partly contradictory skill-size rules. (ICON-0095)
 - Split `context-document-guidelines` into a lean `SKILL.md` plus three on-demand companions, preserving every section name other docs cite. (ICON-0095)
 - `.context/` maintenance now carries P0/P1/P2 urgency tiers, so inaccurate content is corrected on discovery instead of queued to task close. (ICON-0088)

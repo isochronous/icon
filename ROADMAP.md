@@ -103,8 +103,8 @@ Note for anyone touching `context_template/`: #17 took the template schema to **
 | judgement, branching, "decide whether…" | prose in `SKILL.md` |
 | deterministic execution — parse, walk, rewrite, validate | a script taking `argv` |
 
-Three problems close together under that rule rather than one at a time, because a `.mjs` needs no PowerShell twin, **is** shellchecked, and does not count against a `SKILL.md` cap:
-- **#48** — the pre-commit shellcheck gate fires only on staged `*.sh`, so fenced bash is linted by nothing. That is where most consumer-executed shell lives.
+Three problems move under that rule rather than one at a time, because a `.mjs` needs no PowerShell twin and does not count against a `SKILL.md` cap. **ICON-0098 disproved the third leg of this claim**: a `.mjs` is *not* shellchecked — no JavaScript correctness linter exists anywhere in this repo, and `semgrep --config p/ci` is a security ruleset, not a lint. Migration shrinks #48's surface; it does not close it.
+- **#48** — the pre-commit shellcheck gate fires only on staged `*.sh`, so fenced bash is linted by nothing. That is where most consumer-executed shell lives. Migrated blocks leave that surface; the residual bash preamble stays in it, unlinted.
 - **the twin convention** — #23's own body says it *"has drifted three times"*, and the only thing holding the pairs together is a byte-parity check that exists *because* they drifted.
 - **ADR-016 / #54** — `upgrade-repo` is 92,797 B and **1,253 of its 1,631 lines are inside code fences**. The size problem is largely a code-in-prose problem.
 
@@ -114,7 +114,7 @@ ICON-0097 demonstrated the mechanism: it **collapsed three PowerShell twins rath
 
 - **Never guard on exit status to test whether a command exists.** PowerShell does not update `$LASTEXITCODE` on `CommandNotFoundException` — the exception fires before any process starts, so a missing binary leaves the previous value in place and the guard reports success. Measured on 7.6.3 and 5.1; bash returns 127, cmd returns 9009. The failure is **directional** — present-and-working updates correctly — so happy-path testing cannot find it. Read the command's **output**. `shell-portability/testing-pattern.md` carries it as the fourth shape of the PowerShell fail-open family.
 - **Two Node floors, stated separately.** Technical: the **12.20 / 14.13** line, imposed by the hooks' `node:`-prefixed imports. Supported: the lowest major still receiving security updates, with the value, its measurement date and its source — because a bare EOL-derived integer in shipped content goes wrong once a year in silence. `check-node-runtime` is the reference; do not introduce a third number.
-- **`icon-init` Step 2b and `icon-status` still shell out to `python3`** — the two skills that now report whether Node is present. That is #21's most consequential pair, and the adjacency is the point: they use an unverified runtime to check for a runtime.
+- **The `python3` adjacency is closed.** ICON-0097 removed the last `python3` invocation from `icon-init` and `icon-status`, so the two skills that report whether Node is present no longer use an unverified runtime to check for a runtime. Recorded because the pairing was #21's most consequential finding, not because work remains.
 
 **#23's scope now includes fenced bash/PowerShell pairs inside `skills/*/SKILL.md`**, not only `.sh`/`.ps1` files. Those pairs are linted by nothing — the pre-commit shellcheck gate fires only on staged `*.sh` (#48) — and ICON-0094 spent roughly half its six review passes on defects that exist solely because one behaviour is written twice in two languages: a guard that failed open on one side only, a missing `[regex]::Escape`, a `catch` that abandoned its own handler under `Set-StrictMode`, and PowerShell accepting regexes bash rejects. `skills/upgrade-repo/SKILL.md` is the dominant instance and is also M0's proving case, so take it after M0's split.
 
