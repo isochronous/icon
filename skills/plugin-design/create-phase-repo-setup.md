@@ -8,29 +8,15 @@ For a plugin directory not yet under git, this phase initializes a repo, optiona
 
 Run this first. If the command succeeds, the directory is already inside a git working tree — skip the rest of this phase.
 
-```bash
-git rev-parse --is-inside-work-tree
 ```
-
-PowerShell variant:
-
-```powershell
 git rev-parse --is-inside-work-tree
 ```
 
 ## Initialize
 
-If not already a git repo:
+If not already a git repo, run:
 
-```bash
-git init
-git add .
-git commit -m "Initial plugin scaffold"
 ```
-
-PowerShell:
-
-```powershell
 git init
 git add .
 git commit -m "Initial plugin scaffold"

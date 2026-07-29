@@ -32,7 +32,7 @@ The user-facing rule text in `shared/common-constraints.md` retains its current 
 - The agent-facing rule stays terse and load-bearing — agents do not have to parse a scope carveout in the moment.
 
 **Negative:**
-- Reviewers must apply the scope check manually; there is no automated lint that distinguishes "agent-invoked" from "autonomous" scripts. The plugin-lint `>/dev/null` check referenced in `skills/icon-init/SKILL.md:245` operates on the agent surface only.
+- Reviewers must apply the scope check manually; there is no automated lint that distinguishes "agent-invoked" from "autonomous" scripts. The `>/dev/null` row in `skills/icon-init/SKILL.md § Common Mistakes` operates on the agent surface only. (Cited by section rather than by line: it was `:245` when this ADR was written and has since moved twice as that file changed length.)
 - The diagnostic-signal framing in `common-constraints.md` is technically a partial fiction (or at least, a secondary effect dressed up as the primary one). Future maintainers who read both the rule and this ADR will see the gap. The framing is preserved deliberately; this ADR is the place that gap gets reconciled.
 
 ## Alternatives Considered

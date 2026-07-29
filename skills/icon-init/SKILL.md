@@ -26,6 +26,10 @@ later. Surfacing it here puts the problem in front of the user before it causes 
 
 **This is a report, not a gate.** Whatever `check-node-runtime` finds, continue to Step 1.
 
+**Keep the finding.** Step 2's detector is Node-backed, and its precondition reuses this result
+rather than running `node -v` a second time — so this step is a report here and a precondition
+there.
+
 ---
 
 ## icon-init: Step 1: Check for existing `.context/`
@@ -46,147 +50,78 @@ fi
 
 > Detection logic is **derived from** `skills/context-specialist-detect-tree-position/SKILL.md`, extended to distinguish `workspace` from `monorepo` and `project` from `multimodule` for per-skill dispatch. If that skill's signals change, update this step to match.
 
-Run the following checks **in order**. Stop at the first match.
+Detection is **script-backed** — run the detector described in **Tooling: detect-repo-type**
+below rather than hand-probing the repo. It prints one token on stdout; carry that token into
+Step 3. Everything the detector decides, and what each answer means, is stated here so the
+procedure is legible without opening the script.
 
-### icon-init: Step 2a: Workspace check
+### icon-init: Step 2 signals: what each type keys on
 
-```bash
-# workspace: a *.code-workspace file exists at CWD
-WS_FILE=$(find . -maxdepth 1 -name '*.code-workspace' -type f | head -1)
-if [ -n "$WS_FILE" ]; then
-  DETECTED_TYPE="workspace"
-fi
+The detector applies these checks **in order and stops at the first match**. Precedence is
+load-bearing: a repo can satisfy several rows at once (a workspace file next to a `package.json`,
+a `pom.xml` beside subdirectories that each carry a manifest), and the first row that matches wins.
+
+| Order | Type | Signals at the repo root |
+|---|---|---|
+| 1 | `workspace` | Any `*.code-workspace` file. |
+| 2 | `monorepo` | `nx.json`, `turbo.json`, or `go.work`; **or** any `*.sln`; **or** a `package.json` whose `workspaces` field is a **non-empty array**; **or** a `pom.xml` that declares `<modules>` **and** has no `src/` sibling (the project-as-parent pattern). |
+| 3 | `project` | Any of `package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `requirements.txt`, `Gemfile`, `build.gradle`; **or** any `*.csproj`; **or** a `pom.xml` **with** a `src/` sibling (a leaf pom, as distinct from the parent pom in the row above). |
+| 4 | `multimodule` | No root manifest, but **2 or more** immediate subdirectories each contain a build manifest (the row-3 list plus `pom.xml`) or a `*.csproj`. One is not enough. |
+| 5 | `project` (fallback) | Nothing above matched. Reported as a default, not as a detection. |
+
+**`undetermined` is not a fifth shape — it is the refusal to guess.** It means a probe *failed*, and
+the detector reports it from four places: the repo root could not be listed at all; a `package.json`
+is present but could not be read or parsed; a `pom.xml` is present but could not be read; or any
+other unanticipated error aborted detection. stderr names which. In every case the detector fails
+closed rather than falling through — where a manifest failed, that file is the same one the next
+check would key on, and where the failure is broader, no downstream check is trustworthy either.
+Falling through would report a confident `project` for a repo whose shape is unknown.
+
+---
+
+## Tooling: detect-repo-type
+
+`detect-repo-type.mjs` in `./scripts/` performs Step 2's detection. It takes no arguments and
+probes the current working directory, so run it from the repo being initialized.
+
+**Precondition — confirm Node is present before invoking.** Step 0 already established this;
+**reuse `check-node-runtime`'s finding rather than probing a second time.** Only if that result is
+not to hand, run `node -v` and **read its output, not its exit status** (`check-node-runtime`
+Step 1 explains why the exit status lies in PowerShell). Either way, if Node is absent **do not run
+the detector**: go to Step 3 and take the `undetermined` branch, which is also the Node-absent
+degradation path. Do not attempt to hand-probe the repo as a substitute.
+
+### Claude Code
+
+```
+node "${CLAUDE_SKILL_DIR}/scripts/detect-repo-type.mjs"
 ```
 
-### icon-init: Step 2b: Monorepo check
+### Copilot CLI (Bash)
 
 ```bash
-# monorepo: explicit multi-project orchestration signals at CWD
-if [ -z "$DETECTED_TYPE" ]; then
-
-if [ -f nx.json ] || [ -f turbo.json ] || [ -f go.work ]; then
-  DETECTED_TYPE="monorepo"
-fi
-
-# .sln file at CWD
-if [ -z "$DETECTED_TYPE" ]; then
-  SLN_FILE=$(find . -maxdepth 1 -name '*.sln' -type f | head -1)
-  if [ -n "$SLN_FILE" ]; then
-    DETECTED_TYPE="monorepo"
-  fi
-fi
-
-# package.json with a non-empty "workspaces" array
-if [ -z "$DETECTED_TYPE" ] && [ -f package.json ]; then
-  # Three-valued on purpose: "yes", "no", or "" when the probe itself failed.
-  # stderr is NOT merged into the capture — a parse error must stay a parse error
-  # and must not read back as "no".
-  WS_CHECK=$(node -e '
-const fs = require("fs");
-const ws = JSON.parse(fs.readFileSync("package.json", "utf8")).workspaces;
-process.stdout.write(Array.isArray(ws) && ws.length > 0 ? "yes" : "no");
-')
-  if [ "$WS_CHECK" = "yes" ]; then
-    DETECTED_TYPE="monorepo"
-  elif [ "$WS_CHECK" != "no" ]; then
-    # Fail closed. package.json exists but could not be read, which is exactly the
-    # precondition of Step 2c's first manifest — falling through would report a
-    # confident "project" for a repo whose shape is unknown.
-    echo "ERROR: package.json is present but could not be probed (diagnostic above, on stderr)." >&2
-    DETECTED_TYPE="undetermined"
-  fi
-fi
-
-# pom.xml with <modules> and no src/ sibling (project-as-parent pattern)
-if [ -z "$DETECTED_TYPE" ] && [ -f pom.xml ]; then
-  # stderr is NOT merged into the capture, for the same reason as the probe above:
-  # a read error must not read back as a count. An empty capture means the probe failed.
-  HAS_MODULES=$(grep -c '<modules>' pom.xml)
-  HAS_SRC=0
-  [ -d src ] && HAS_SRC=1
-  if [ -z "$HAS_MODULES" ]; then
-    echo "ERROR: pom.xml is present but could not be probed (diagnostic above, on stderr)." >&2
-    DETECTED_TYPE="undetermined"
-  elif [ "$HAS_MODULES" -ge 1 ] && [ "$HAS_SRC" -eq 0 ]; then
-    DETECTED_TYPE="monorepo"
-  fi
-fi
-
-fi
+# Override via MARKETPLACE_NAME=<your-marketplace-slug>, or edit this line in forks.
+[ -n "${MARKETPLACE_NAME+x}" ] || MARKETPLACE_NAME="icon-marketplace"
+SKILL_DIR="${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/${MARKETPLACE_NAME}/ICON/skills/icon-init"
+node "$SKILL_DIR/scripts/detect-repo-type.mjs"
 ```
 
-### icon-init: Step 2c: Project (leaf) check
+### Outcomes
 
-```bash
-# project: a build manifest exists at CWD (single-project signals)
-if [ -z "$DETECTED_TYPE" ]; then
-  for MANIFEST in package.json go.mod Cargo.toml pyproject.toml requirements.txt Gemfile build.gradle; do
-    if [ -f "$MANIFEST" ]; then
-      DETECTED_TYPE="project"
-      break
-    fi
-  done
-fi
+**stdout carries exactly one token and nothing else. stderr carries warnings and probe-failure
+reasons. Never merge the two** — folding a diagnostic into the value channel is what made the
+previous inline `workspaces` probe fail open.
 
-# Also check for *.csproj and pom.xml with src/ (leaf pom)
-if [ -z "$DETECTED_TYPE" ]; then
-  CSPROJ=$(find . -maxdepth 1 -name '*.csproj' -type f | head -1)
-  if [ -n "$CSPROJ" ]; then
-    DETECTED_TYPE="project"
-  fi
-fi
+| stdout token | Exit | Meaning |
+|---|---|---|
+| `workspace` | 0 | Row 1 matched. |
+| `monorepo` | 0 | Row 2 matched. |
+| `project` | 0 | Row 3 matched, **or** row 5 — the fallback. stderr says which. |
+| `multimodule` | 0 | Row 4 matched. |
+| `undetermined` | 2 | A probe failed. No type was detected; stderr names the probe and the reason. |
 
-if [ -z "$DETECTED_TYPE" ] && [ -f pom.xml ] && [ -d src ]; then
-  DETECTED_TYPE="project"
-fi
-```
-
-### icon-init: Step 2d: Multimodule check
-
-```bash
-# multimodule: no root manifest, but 2+ immediate subdirs contain build manifests
-if [ -z "$DETECTED_TYPE" ]; then
-  MANIFEST_DIR_COUNT=0
-  for SUBDIR in */; do
-    [ -d "$SUBDIR" ] || continue
-    FOUND=false
-    for MANIFEST in package.json go.mod Cargo.toml pyproject.toml requirements.txt Gemfile build.gradle pom.xml; do
-      if [ -f "${SUBDIR}${MANIFEST}" ]; then
-        FOUND=true
-        break
-      fi
-    done
-    # Only check *.csproj if no standard manifest was found in this subdir
-    if [ "$FOUND" = "false" ]; then
-      CSPROJ_IN_SUB=$(find "${SUBDIR}" -maxdepth 1 -name '*.csproj' -type f | head -1)
-      if [ -n "$CSPROJ_IN_SUB" ]; then
-        FOUND=true
-      fi
-    fi
-    if [ "$FOUND" = "true" ]; then
-      MANIFEST_DIR_COUNT=$((MANIFEST_DIR_COUNT + 1))
-    fi
-  done
-  if [ "$MANIFEST_DIR_COUNT" -ge 2 ]; then
-    DETECTED_TYPE="multimodule"
-  fi
-fi
-```
-
-### icon-init: Step 2e: Fallback
-
-```bash
-# fallback: no signals matched, or a probe failed — never guess silently
-if [ "$DETECTED_TYPE" = "undetermined" ]; then
-  echo "WARNING: Repo type could not be determined — a detection probe failed."
-  echo "Not defaulting to a type: the failed probe covers the same file the default would key on."
-  echo "Step 3 must present the override list and wait for an explicit choice."
-elif [ -z "$DETECTED_TYPE" ]; then
-  DETECTED_TYPE="project"
-  echo "WARNING: Repo type could not be determined from manifest signals. Defaulting to 'project'."
-  echo "Review the result after initialization and re-run with a different type if needed."
-fi
-```
+The token and the exit code agree by design. If they ever disagree, or the token is anything other
+than the five above, treat the run as `undetermined`.
 
 ---
 
@@ -201,9 +136,15 @@ Skill to invoke: /initialize-[workspace | monorepo | multimodule | repo]
 Proceed? (yes / override / cancel)
 ```
 
-**If `DETECTED_TYPE` is `undetermined`**, a detection probe failed and there is no detected type to
-report. Do not print a "Skill to invoke" line and do not offer `yes` — say which probe failed and go
-straight to the **override** list below. An explicit user choice is the only way forward.
+**If the detected type is `undetermined`**, there is no detected type to report. Do not print a
+"Skill to invoke" line and do not offer `yes` — say why detection could not conclude and go straight
+to the **override** list below. An explicit user choice is the only way forward.
+
+**This branch is also the Node-absent degradation path.** If Step 2's precondition found no `node`
+on PATH, the detector never ran, so there is no token at all — take this same branch, say that Node
+is missing (and that `check-node-runtime` Step 5 guides installing it) rather than that a probe
+failed, and present the override list. Initialization still completes on a user's explicit choice;
+only automatic detection is lost.
 
 **STOP HERE. Do not dispatch until the user responds.**
 
@@ -219,7 +160,7 @@ straight to the **override** list below. An explicit user choice is the only way
 
   Which type should be used?
   ```
-  Wait for the user's selection. Set `DETECTED_TYPE` to the chosen value and proceed to Step 4.
+  Wait for the user's selection. The chosen value replaces the detected type; proceed to Step 4.
 
 ---
 
@@ -260,4 +201,4 @@ Initialization complete. Run /icon-status to see where things stand.
 | Counting a single subdirectory with a manifest as multimodule | Multimodule requires **2 or more** sibling subdirectories, each with a build manifest. One is not enough. |
 | Treating `package.json` with an empty `"workspaces": []` as a monorepo | The `workspaces` field must be a non-empty array. An empty array is not a monorepo signal. |
 | Dispatching before user confirms | Step 3 requires an explicit "yes" or "override". Never dispatch speculatively. |
-| Using `>/dev/null` for stderr suppression in bash blocks | Use `2>&1 | grep -v "^pattern"` instead. Output suppression is banned by the "Shell command self-check" rule in `shared/common-constraints.md`. **Never apply it to a `$(…)` capture whose value is branched on** — folding a diagnostic into a value channel is what made Step 2b's `workspaces` probe fail open. Leave stderr on stderr and treat an empty capture as "probe failed". |
+| Using `>/dev/null` for stderr suppression in bash blocks | Use `2>&1 | grep -v "^pattern"` instead. Output suppression is banned by the "Shell command self-check" rule in `shared/common-constraints.md`. **Never apply it to a `$(…)` capture whose value is branched on** — folding a diagnostic into a value channel is what made the `workspaces` probe that Step 2 once inlined fail open. Leave stderr on stderr and treat an empty capture as "probe failed". |
