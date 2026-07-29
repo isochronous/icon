@@ -140,6 +140,13 @@ legible sibling name the model can glob and find. Under ADR-004, with the second
 semantics unestablished, graceful degradation decides it. Adoption cost is zero: every existing
 precedent in this repo already uses bare filenames.
 
+**This rejection scopes to prose pointers only. It does not reach script invocation**, which is
+governed by [ADR-017](../../decisions/017-executable-content-home.md) and does use
+`${CLAUDE_SKILL_DIR}`. Two things differ there: an invocation has no variable-free option — a
+relative `scripts/x.mjs` resolves against the consumer's cwd, not the skill directory — and its
+failure is **loud** (`Cannot find module`, non-zero exit) where a mis-resolved prose pointer is
+silent.
+
 ## State the Condition Twice
 
 Every companion's load condition appears **twice**: once in the `## Companion Files` manifest's
