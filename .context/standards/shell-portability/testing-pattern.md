@@ -1,6 +1,6 @@
 # Testing Pattern for Shipped Shell
 
-How to establish that a shipped shell block — or a correction to one — actually works. Rule 3 in [`rules.md`](rules.md) creates the obligation; this file is the procedure and the lessons about where it still falls short.
+How to establish that a shipped shell block — or a correction to one — actually works. [Rule 3](rules/003-live-test-file-mutating-blocks.md) creates the obligation; this file is the procedure and the lessons about where it still falls short.
 
 ## The Procedure
 
@@ -43,4 +43,4 @@ Fixing only the loud half (swap in `-p` and stop) moves every consumer on a curr
 ## Related
 
 - Index: [shell portability](../shell-portability.md)
-- See also: [rules](rules.md) § Rule 3 — the obligation this procedure discharges
+- See also: [rules](rules/README.md) § Rule 3 — the obligation this procedure discharges
