@@ -30,7 +30,8 @@ Two maintainer decisions changed the running order. Milestones keep their origin
 
 ```
 M0  #51  hot-cold-skill-separation      ✅ DONE (#52)
-M3  #22 → #21 → #23                     ← current
+M3  #22 → #21 → #23                     ✅ DONE (#55, #57, #58) — ADR-017 settled
+M3  #59, #60, #61, #56                  ← current; migration waves + the iconrc writer
 M1  #14, #16, #18                       (#17, #15 done)
 M2 … M6                                 unchanged
 ```
@@ -39,7 +40,7 @@ M2 … M6                                 unchanged
 
 - **The cut follows the condition, not the topic** — one companion per if→then block, all siblings of `SKILL.md`, none referencing another. Nesting is not available: a file referenced *from* a referenced file may be `head`-previewed rather than read, silently.
 - **The advisory gate reports 11 findings across 8 skills today.** It becomes fail-closed once **#24** lands a CI backstop; two things must be settled first (it measures the working tree rather than the staged blob, and is line-ending sensitive), both recorded against ADR-016's promotion condition.
-- **`upgrade-repo` was deliberately not the proving case** — its platform axis cross-cuts every mode branch, so splitting before #23 writes companion pairs the Node migration then deletes. It follows #23.
+- **`upgrade-repo` was deliberately not the proving case** for either M0 or M3 — its platform axis cross-cuts every mode branch, so splitting before the migration writes companion pairs the migration then deletes. Split (#42) first, migrate (#61) second.
 
 **Why M0 first.** A skill's whole `SKILL.md` loads on invocation, but a run executes only part of it — and ADR-008's scope explicitly excluded on-demand skills, so until ADR-016 nothing governed this at all. Hot/cold decides where *instructions* live; M3 decides where *code* lives. Designing the former first means the `.mjs` migration lands content in the right structure instead of moving it twice.
 
@@ -47,7 +48,7 @@ The load-bearing number is not size but **survivability**: Claude Code re-attach
 
 *(Two figures previously stated here were wrong and are corrected above: the "a fifth" estimate inherited from #51 measures at ~36%, and the word count has been restated in the governing unit so the roadmap does not circulate a fifth measure.)*
 
-**Why M3 before M1/M2.** ICON-0094 needed six review passes, and after the first round nearly every Critical was PowerShell-specific or a bash/PowerShell divergence — the exact asymmetry #23 exists to remove. Every further fix inside a `SKILL.md` pays that doubled cost. Standing policy until #23 lands: **no new PowerShell twins.** #23's scope is widened to fenced `SKILL.md` blocks, not just `.sh`/`.ps1` files ([comment](https://github.com/isochronous/icon/issues/23#issuecomment-5099114137)).
+**Why M3 before M1/M2.** ICON-0094 needed six review passes, and after the first round nearly every Critical was PowerShell-specific or a bash/PowerShell divergence — the exact asymmetry #23 exists to remove. Every further fix inside a `SKILL.md` pays that doubled cost. **Standing policy, now permanent and codified in ADR-017: no new PowerShell twins.** The existing ones come out over #59, #60 and #61.
 
 ---
 
@@ -92,21 +93,28 @@ Note for anyone touching `context_template/`: #17 took the template schema to **
 ```
 #22  node-detection-skill               ✅ DONE (#55) — the runtime is now verifiable
 #21  replace-python3-with-node          ✅ DONE (#57) — 9 sites; 6 more ticketed to #23 and #56
-#23  migrate-scripts-to-node            ← current, and widened again: fences, not just script files
+#23  migrate-scripts-to-node            ✅ DONE (#58) — ADR-017 settled; proved on icon-init
+#59  migrate-fenced-blocks-waves-1-2    ← next; wave 1 leads with a Windows bug (4 python3 heredocs)
+#60  migrate-sh-ps1-script-files        ← #23's original scope; sequence after #48
+#61  migrate-upgrade-repo-fences        ← 67.6% of the target; blocked on #42's split
 #56  create-iconrc-config-writer        ← spun out of #21; a contract change across 5 call sites
 ```
 
-**#23 is widened again, and this is the load-bearing change to it.** Its original scope was the five `.sh`/`.ps1` script *files*. The real target is executable content **wherever it lives** — and most of it lives in fenced blocks inside `SKILL.md`, not in scripts. The rule to settle in an ADR first:
+**#23 is done, and it was widened twice before it landed.** Its original scope was the five `.sh`/`.ps1` script *files*. The real target is executable content **wherever it lives** — and most of it lives in fenced blocks inside `SKILL.md`, not in scripts. Measured: **164 blocks, 126,041 B, of which 78 are deterministic (99,137 B, 78.7%)**. The rule was settled as **ADR-017** and proved on `icon-init`; the remaining waves are #59, #60 and #61. The rule ADR-017 settled:
 
 | Content | Home |
 |---|---|
 | judgement, branching, "decide whether…" | prose in `SKILL.md` |
-| deterministic execution — parse, walk, rewrite, validate | a script taking `argv` |
+| trivial — fixed-argument tool calls, no control flow | fenced, as-is |
+| illustrative — output to recognise, not run | fenced, as-is |
+| deterministic execution — parse, walk, rewrite, validate | inline `node -e`, or a committed `.mjs` on one of four triggers |
+
+**Size is explicitly disqualified as an extraction trigger.** A `.mjs` is invisible to the ADR-016 gate, so if being over cap could justify extraction the two rules would fight and migration would become cap-evasion. `icon-init` grew slightly; that is the expected outcome, not a failure.
 
 Three problems move under that rule rather than one at a time, because a `.mjs` needs no PowerShell twin and does not count against a `SKILL.md` cap. **ICON-0098 disproved the third leg of this claim**: a `.mjs` is *not* shellchecked — no JavaScript correctness linter exists anywhere in this repo, and `semgrep --config p/ci` is a security ruleset, not a lint. Migration shrinks #48's surface; it does not close it.
 - **#48** — the pre-commit shellcheck gate fires only on staged `*.sh`, so fenced bash is linted by nothing. That is where most consumer-executed shell lives. Migrated blocks leave that surface; the residual bash preamble stays in it, unlinted.
-- **the twin convention** — #23's own body says it *"has drifted three times"*, and the only thing holding the pairs together is a byte-parity check that exists *because* they drifted.
-- **ADR-016 / #54** — `upgrade-repo` is 92,797 B and **1,253 of its 1,631 lines are inside code fences**. The size problem is largely a code-in-prose problem.
+- **the twin convention** — #23's own body says it *"has drifted three times"*, and the only thing holding the pairs together is a byte-parity check that exists *because* they drifted. **That check does not retire**: it polices cross-skill *copies*, not bash/PowerShell twins, and migration refills its population rather than emptying it. #23's retirement task is closed won't-do; the group list belongs in #30's data file.
+- **ADR-016** — `upgrade-repo` is 92,797 B and **1,253 of its 1,631 lines are inside code fences**. The size problem is largely a code-in-prose problem — but per ADR-017 that is #42's job, not the migration's.
 
 ICON-0097 demonstrated the mechanism: it **collapsed three PowerShell twins rather than maintaining them**, verified under PowerShell 7, because a `node -e` invocation is shell-agnostic. A Node rewrite is the twin-removal tool, not something needing a twin of its own.
 
@@ -114,9 +122,9 @@ ICON-0097 demonstrated the mechanism: it **collapsed three PowerShell twins rath
 
 - **Never guard on exit status to test whether a command exists.** PowerShell does not update `$LASTEXITCODE` on `CommandNotFoundException` — the exception fires before any process starts, so a missing binary leaves the previous value in place and the guard reports success. Measured on 7.6.3 and 5.1; bash returns 127, cmd returns 9009. The failure is **directional** — present-and-working updates correctly — so happy-path testing cannot find it. Read the command's **output**. `shell-portability/testing-pattern.md` carries it as the fourth shape of the PowerShell fail-open family.
 - **Two Node floors, stated separately.** Technical: the **12.20 / 14.13** line, imposed by the hooks' `node:`-prefixed imports. Supported: the lowest major still receiving security updates, with the value, its measurement date and its source — because a bare EOL-derived integer in shipped content goes wrong once a year in silence. `check-node-runtime` is the reference; do not introduce a third number.
-- **The `python3` adjacency is closed.** ICON-0097 removed the last `python3` invocation from `icon-init` and `icon-status`, so the two skills that report whether Node is present no longer use an unverified runtime to check for a runtime. Recorded because the pairing was #21's most consequential finding, not because work remains.
+- **The `python3` adjacency is closed, but `python3` is not gone.** ICON-0097 removed it from `icon-init` and `icon-status`, so the two skills that report whether Node is present no longer use an unverified runtime to check for a runtime. **Four heredocs remain** in `skills/plugin-design/audit-phase-structure.md` and `audit-phase-consistency.md`, which means those audit phases do not run on a stock Windows box. #59 wave 1 leads with them.
 
-**#23's scope now includes fenced bash/PowerShell pairs inside `skills/*/SKILL.md`**, not only `.sh`/`.ps1` files. Those pairs are linted by nothing — the pre-commit shellcheck gate fires only on staged `*.sh` (#48) — and ICON-0094 spent roughly half its six review passes on defects that exist solely because one behaviour is written twice in two languages: a guard that failed open on one side only, a missing `[regex]::Escape`, a `catch` that abandoned its own handler under `Set-StrictMode`, and PowerShell accepting regexes bash rejects. `skills/upgrade-repo/SKILL.md` is the dominant instance and is also M0's proving case, so take it after M0's split.
+**The twin problem is what the remaining waves buy.** ICON-0094 spent roughly half its six review passes on defects that exist solely because one behaviour is written twice in two languages: a guard that failed open on one side only, a missing `[regex]::Escape`, a `catch` that abandoned its own handler under `Set-StrictMode`, and PowerShell accepting regexes bash rejects. ADR-017 removes the twin at the source — a Claude Code invocation fence is **untagged** because `${CLAUDE_SKILL_DIR}` is substituted before the model reads it, making the line byte-identical in every shell. Copilot CLI has no path variable, so ~4 lines of bash preamble survive per migrated skill; that is the whole residue.
 
 ---
 
@@ -175,7 +183,7 @@ ICON-0097 demonstrated the mechanism: it **collapsed three PowerShell twins rath
 ## Cross-milestone dependencies, in one place
 
 ```
-M0 #51  →  M3 #23                       (split instructions before migrating code)
+M0 #51  →  M3 #23                       ✅ satisfied (#52 → #58)
 M0 #51  →  M1 #14                       (same file; don't race the refactor)
 M1 #17  →  M4 #26                       ✅ satisfied (#49)
 M1 #14  →  M4 #31
@@ -184,7 +192,10 @@ M4 #24  →  everything else in M4
 M5 #35  →  M6 #43
 M5 #33  →  M6 #39
 M2 #20  →  M2 #19
-M3 #22  →  M3 #21, #23
+M3 #22  →  M3 #21, #23                  ✅ satisfied
+M3 #23  →  M3 #59, #60, #61             ✅ satisfied (ADR-017 governs all three)
+M6 #42  →  M3 #61                       (split upgrade-repo before migrating its fences)
+M4 #48  →  M3 #60                       (the .sh files lose their only gate until #48 lands)
 M4 #48  ↔  M4 #26                       (shared fence extractor, not an ordering)
 ```
 
