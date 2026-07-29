@@ -490,7 +490,12 @@ context_graph_template_ctx_needed=0 # ICON-0081: armed when a staged file is und
 
 for f in "${staged[@]}"; do
   # Dead-ref check scope: staged files under agents/, skills/, shared/,
-  # commands/ with extension .md, .sh, .ps1, or .js.
+  # commands/ with extension .md, .sh, .ps1, .js, or .mjs.
+  #
+  # ADR-017: `*.js` does NOT glob-match `.mjs`, so the .mjs row is required,
+  # not redundant. Executable content migrated out of a fenced block in a
+  # `.md` was inside this gate while it was prose; without this row the
+  # migration would silently remove it from the gate's scope.
   case "$f" in
     agents/*.md|skills/*.md|shared/*.md|commands/*.md)
       ref_check_files+=("$f") ;;
@@ -499,6 +504,8 @@ for f in "${staged[@]}"; do
     agents/*.ps1|skills/*.ps1|shared/*.ps1|commands/*.ps1)
       ref_check_files+=("$f") ;;
     agents/*.js|skills/*.js|shared/*.js|commands/*.js)
+      ref_check_files+=("$f") ;;
+    agents/*.mjs|skills/*.mjs|shared/*.mjs|commands/*.mjs)
       ref_check_files+=("$f") ;;
   esac
 
@@ -522,17 +529,23 @@ for f in "${staged[@]}"; do
 
   # O-M1b: cap-literal consistency check — all staged text files that could
   # carry cap-narrating prose (same scope as dead-ref: .md, .sh, .ps1, .js,
-  # plus context_template/ and .context/ text files, excluding .context/tasks/
-  # which archives historical cap values as audit evidence).
+  # .mjs, plus context_template/ and .context/ text files, excluding
+  # .context/tasks/ which archives historical cap values as audit evidence).
+  #
+  # ADR-017: the .mjs rows mirror the .js rows because `*.js` does not
+  # glob-match `.mjs`; migrated executable content must stay in this gate's
+  # scope, not fall out of it.
   case "$f" in
     agents/*.md|skills/*.md|shared/*.md|commands/*.md|\
     agents/*.sh|skills/*.sh|shared/*.sh|commands/*.sh|\
     agents/*.ps1|skills/*.ps1|shared/*.ps1|commands/*.ps1|\
-    agents/*.js|skills/*.js|shared/*.js|commands/*.js)
+    agents/*.js|skills/*.js|shared/*.js|commands/*.js|\
+    agents/*.mjs|skills/*.mjs|shared/*.mjs|commands/*.mjs)
       cap_check_files+=("$f") ;;
-    context_template/*.md|context_template/*.sh|context_template/*.ps1|context_template/*.js)
+    context_template/*.md|context_template/*.sh|context_template/*.ps1|context_template/*.js|\
+    context_template/*.mjs)
       cap_check_files+=("$f") ;;
-    .context/*.md|.context/*.sh|.context/*.ps1|.context/*.js)
+    .context/*.md|.context/*.sh|.context/*.ps1|.context/*.js|.context/*.mjs)
       case "$f" in .context/tasks/*) ;; *) cap_check_files+=("$f") ;; esac ;;
   esac
 
