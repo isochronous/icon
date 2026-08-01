@@ -24,10 +24,18 @@ directly for that.
 
 ## icon-status: Step 1: Fresh-repo guard
 
-Check whether `.context/` exists in the current working directory.
+Check whether `.context/` exists in the current working directory. **Run this** — it is
+identical in every shell, so run it as-is in whatever shell the session uses. It prints
+`NOT_INITIALIZED` when `.context/` is absent or is not a directory, and prints **nothing at
+all** when the repo is initialized. Silence is the pass.
 
-```bash
-[ -d ".context" ] || echo "NOT_INITIALIZED"
+```
+node -e '
+const fs = require("fs");
+let isDir = false;
+try { isDir = fs.statSync(".context").isDirectory(); } catch (e) { isDir = false; }
+if (!isDir) process.stdout.write("NOT_INITIALIZED\n");
+'
 ```
 
 If `.context/` does not exist, emit the following message and **halt — do not
@@ -44,47 +52,100 @@ This repo is not yet ICON-initialized. Run `/icon-init` to set up — it detects
 Run each block below. Every block handles missing data gracefully — if a file or
 directory is absent, emit a "not found" note rather than empty output.
 
+Each block is a single `node -e` command, untagged because it is byte-identical in bash and
+PowerShell — run it as-is, in whatever shell the session uses. **Every block is independently
+runnable**: none reads a value another block set, so run them in any order. A block's result is
+its stdout; **diagnostics go to stderr** and are never part of the result.
+
 ### Repo name
 
-```bash
-REPO_NAME=$(git remote get-url origin 2>&1 | grep -v "^fatal" | sed 's|.*[/:]||' | sed 's|\.git$||')
-[ -z "$REPO_NAME" ] && REPO_NAME=$(basename "$(git rev-parse --show-toplevel 2>&1 | grep -v "^fatal")")
-[ -z "$REPO_NAME" ] && REPO_NAME="(unknown)"
-echo "$REPO_NAME"
+Run this. It prints one line — the repo name. Three sources are tried in order, stopping at the
+first that yields a value: the `origin` remote URL (last path segment, `.git` stripped), the
+basename of the git top-level directory, then `(unknown)`. A git failure at any rung is a
+diagnostic: it goes to stderr and the chain falls through, so an error message can never reach
+the dashboard as the repo's name.
+
+```
+node -e '
+const path = require("path");
+const { execFileSync } = require("child_process");
+function git(args) {
+  try { return execFileSync("git", args, { encoding: "utf8" }).trim(); } catch (e) { return ""; }
+}
+let name = git(["remote", "get-url", "origin"]).replace(/^.*[/:]/, "").replace(/\.git$/, "");
+if (!name) name = path.basename(git(["rev-parse", "--show-toplevel"]));
+if (!name) name = "(unknown)";
+process.stdout.write(name + "\n");
+'
 ```
 
 ### Current branch and active task
 
-```bash
-BRANCH=$(git rev-parse --abbrev-ref HEAD 2>&1 | grep -v "^fatal")
-TASK_ID=$(printf '%s' "$BRANCH" | grep -oE '[A-Z]+-[0-9]+' | head -1)
-echo "BRANCH=$BRANCH"
-echo "TASK_ID=$TASK_ID"
+Run this. Branch, task ID and plan file are one block because each is derived from the one
+before: the task ID comes from the branch name, the plan file from the task ID. It prints two
+or three `KEY=value` lines:
+
+| Line | Meaning |
+|---------|---------|
+| `BRANCH=<name>` | Checked-out branch. Empty outside a git repo (git's own error goes to stderr). |
+| `TASK_ID=<id>` | First `PROJ-123`-style ID in the branch name; empty when there is none. |
+| `PLAN_FILE=<path>` / `PLAN_FILE=(none)` | The task's `plan.md`. **Omitted entirely when `TASK_ID` is empty** — there is nothing to look up. |
+
+The lookup scans `.context/tasks/` one and two levels deep for an entry named `plan.md` whose
+path contains the task ID. When more than one matches, the paths are **sorted** and the first is
+taken — the original took whichever the filesystem happened to return first, which is not
+reproducible.
+
+```
+node -e '
+const fs = require("fs");
+const { execFileSync } = require("child_process");
+let branch = "";
+try { branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim(); } catch (e) { branch = ""; }
+const m = branch.match(/[A-Z]+-[0-9]+/);
+const taskId = m ? m[0] : "";
+process.stdout.write("BRANCH=" + branch + "\n");
+process.stdout.write("TASK_ID=" + taskId + "\n");
+if (!taskId) process.exit(0);
+const hits = [];
+// Depth budget, not a glob: entries one and two levels below .context/tasks.
+(function scan(dir, depth) {
+  let entries = [];
+  try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+  for (const e of entries) {
+    const p = dir + "/" + e.name;
+    if (e.name === "plan.md" && p.includes(taskId)) hits.push(p);
+    if (depth < 2 && e.isDirectory()) scan(p, depth + 1);
+  }
+})(".context/tasks", 1);
+hits.sort();
+process.stdout.write("PLAN_FILE=" + (hits.length ? hits[0] : "(none)") + "\n");
+'
 ```
 
 - If `$BRANCH` is `main`, `dev`, or `master`: active task section reads
   "No active task branch."
-- Otherwise: report `$TASK_ID` (if matched) and check whether a `plan.md` exists:
-
-```bash
-if [ -n "$TASK_ID" ]; then
-  PLAN_FILE=$(find .context/tasks -maxdepth 2 -name "plan.md" -path "*${TASK_ID}*" 2>&1 | grep -v "^find:" | head -1)
-  if [ -n "$PLAN_FILE" ]; then
-    echo "PLAN_FILE=$PLAN_FILE"
-  else
-    echo "PLAN_FILE=(none)"
-  fi
-fi
-```
+- Otherwise: report `$TASK_ID` (if matched) and use `$PLAN_FILE` for the dashboard's
+  `Plan` line — `(none)`, or no `PLAN_FILE` line at all, means omit that line.
 
 ### Recent retrospectives (last 3 entries)
 
-```bash
-if [ -f ".context/retrospectives.md" ]; then
-  grep -E '^### [A-Z]+-[0-9]+' .context/retrospectives.md | head -3
-else
-  echo "(no retrospectives.md)"
-fi
+Run this. It prints up to three `### TASK-ID` heading lines from `.context/retrospectives.md`
+**in file order** — that file is newest-first, so the first three *are* the most recent three.
+Do not sort them and do not take the last three. If the file is absent it prints
+`(no retrospectives.md)` instead.
+
+```
+node -e '
+const fs = require("fs");
+const p = ".context/retrospectives.md";
+let isFile = false;
+try { isFile = fs.statSync(p).isFile(); } catch (e) { isFile = false; }
+if (!isFile) { process.stdout.write("(no retrospectives.md)\n"); process.exit(0); }
+const hits = fs.readFileSync(p, "utf8").split(/\r?\n/)
+  .filter((l) => /^### [A-Z]+-[0-9]+/.test(l)).slice(0, 3);
+for (const l of hits) process.stdout.write(l + "\n");
+'
 ```
 
 If no lines match, skip the "Recent retrospectives" section in the dashboard
@@ -92,39 +153,63 @@ output entirely.
 
 ### Context health
 
-```bash
-for d in domains standards workflows architecture testing styling; do
-  if [ -d ".context/$d" ]; then
-    COUNT=$(find ".context/$d" -maxdepth 1 -name '*.md' -type f | wc -l)
-    echo "  .context/$d/ — $COUNT files"
-  fi
-done
+Run this. For each of six known `.context/` subdirectories it prints one indented line carrying
+the count of `.md` files directly inside — and prints **no line at all** for a subdirectory that
+is absent, which is how the dashboard omits it. Dot-prefixed names such as `.hidden.md` **are**
+counted; a symlink pointing at a `.md` file is **not**, because it is a link and not a file. A
+subdirectory that is itself a symlink is followed and the files behind it are counted.
+
+```
+node -e '
+const fs = require("fs");
+for (const d of ["domains", "standards", "workflows", "architecture", "testing", "styling"]) {
+  const p = ".context/" + d;
+  // Directory test follows symlinks (statSync); entry test does not (Dirent).
+  let isDir = false;
+  try { isDir = fs.statSync(p).isDirectory(); } catch (e) { isDir = false; }
+  if (!isDir) continue;
+  let count = 0;
+  try {
+    count = fs.readdirSync(p, { withFileTypes: true })
+      .filter((e) => e.isFile() && e.name.endsWith(".md")).length;
+  } catch (e) { count = 0; }
+  process.stdout.write("  .context/" + d + "/ — " + count + " files\n");
+}
+'
 ```
 
 ### iconrc.json
 
-```bash
-if [ -f ".context/iconrc.json" ]; then
-  ICONRC_VERSION=$(node -e '
+Run this. It prints exactly **one** line, always — `version <X.Y>`, `not found`, or
+`version (unreadable)`. There is no fourth outcome and no silent one.
+
+The empty-result guard is the point of the block, not a detail of it: **an empty read must never
+reach the dashboard as a value**, because `version ` with nothing after it reads as a healthy
+line. An absent, non-string or empty `version`, and a file that will not parse, all resolve to
+the one visible token `(unreadable)` — with the reason on stderr, never on stdout.
+
+```
+node -e '
 const fs = require("fs");
-const v = JSON.parse(fs.readFileSync(".context/iconrc.json", "utf8")).version;
-if (typeof v === "string" && v !== "") process.stdout.write(v);
-else process.stderr.write("iconrc.json parsed, but \"version\" is missing or not a string\n");
-')
-  # Guard the empty result *after* the read — same shape as upgrade-repo on this
-  # same field of this same file. An empty capture must never reach the dashboard
-  # as a value: "version " with nothing after it reads as a healthy line.
-  if [ -z "$ICONRC_VERSION" ]; then
-    echo "ERROR: no usable \"version\" in .context/iconrc.json (reason above, on stderr)." >&2
-    echo "  .context/iconrc.json — version (unreadable)"
-    ICONRC_STATE="unreadable"
-  else
-    echo "  .context/iconrc.json — version $ICONRC_VERSION"
-  fi
-else
-  echo "  .context/iconrc.json — not found"
-  ICONRC_STATE="missing"
-fi
+const p = ".context/iconrc.json";
+let isFile = false;
+try { isFile = fs.statSync(p).isFile(); } catch (e) { isFile = false; }
+if (!isFile) { process.stdout.write("  .context/iconrc.json — not found\n"); process.exit(0); }
+let version;
+try {
+  const v = JSON.parse(fs.readFileSync(p, "utf8")).version;
+  if (typeof v === "string" && v !== "") version = v;
+  else process.stderr.write("iconrc.json parsed, but \"version\" is missing or not a string\n");
+} catch (e) {
+  process.stderr.write("iconrc.json could not be read or parsed: " + e.message + "\n");
+}
+if (version === undefined) {
+  process.stderr.write("ERROR: no usable \"version\" in .context/iconrc.json (reason above, on stderr).\n");
+  process.stdout.write("  .context/iconrc.json — version (unreadable)\n");
+} else {
+  process.stdout.write("  .context/iconrc.json — version " + version + "\n");
+}
+'
 ```
 
 ### Node runtime
@@ -146,18 +231,32 @@ there is something to say.
 
 ### Suggestions
 
-Evaluate the following signals and collect any that apply into a suggestions list:
+Evaluate the following signals and collect any that apply into a suggestions list. Each signal
+block prints its suggestion line when it fires and prints nothing when it does not.
 
-```bash
-# Signal 1: .context/domains/ missing or empty
-if [ ! -d ".context/domains" ]; then
-  echo "- No .context/domains/ directory — run /upgrade-repo to bring context current."
-else
-  DOMAIN_COUNT=$(find ".context/domains" -maxdepth 1 -name '*.md' -type f | wc -l)
-  if [ "$DOMAIN_COUNT" -eq 0 ]; then
-    echo "- .context/domains/ has no files — run /upgrade-repo to bring context current."
-  fi
-fi
+**Signal 1: `.context/domains/` missing or empty.** Run this. It prints one of two suggestion
+lines, or nothing when `.context/domains/` exists and holds at least one `.md` file. It counts
+files exactly as the Context health block does.
+
+```
+node -e '
+const fs = require("fs");
+const p = ".context/domains";
+let isDir = false;
+try { isDir = fs.statSync(p).isDirectory(); } catch (e) { isDir = false; }
+if (!isDir) {
+  process.stdout.write("- No .context/domains/ directory — run /upgrade-repo to bring context current.\n");
+  process.exit(0);
+}
+let count = 0;
+try {
+  count = fs.readdirSync(p, { withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith(".md")).length;
+} catch (e) { count = 0; }
+if (count === 0) {
+  process.stdout.write("- .context/domains/ has no files — run /upgrade-repo to bring context current.\n");
+}
+'
 ```
 
 **Signal 2: Node absent, or below ICON's supported floor.** Read from the `node -v` probe above. As
@@ -173,23 +272,64 @@ version is below 22, add:
 Emit no suggestion when Node is present at or above the supported floor — the `Node` line already
 reports it.
 
-```bash
-# Signal 3: .context/iconrc.json missing or unreadable (set by the iconrc.json block above)
-if [ "$ICONRC_STATE" = "missing" ]; then
-  echo "- .context/iconrc.json not found — run /upgrade-repo to restore it."
-elif [ "$ICONRC_STATE" = "unreadable" ]; then
-  echo "- .context/iconrc.json has no usable \"version\" — see the error above, or run /upgrade-repo to regenerate it."
-fi
+**Signal 3: `.context/iconrc.json` missing or unreadable.** Run this. It **re-reads
+`.context/iconrc.json` for itself** rather than inheriting the iconrc.json block's outcome:
+separate shell invocations carry no variables between them, so a signal waiting on an inherited
+value could never fire. It prints one suggestion line, or nothing when the file holds a usable
+`version`; the iconrc.json block already wrote the reason to stderr, so this block does not.
+
+```
+node -e '
+const fs = require("fs");
+const p = ".context/iconrc.json";
+let isFile = false;
+try { isFile = fs.statSync(p).isFile(); } catch (e) { isFile = false; }
+if (!isFile) {
+  process.stdout.write("- .context/iconrc.json not found — run /upgrade-repo to restore it.\n");
+  process.exit(0);
+}
+let v;
+try { v = JSON.parse(fs.readFileSync(p, "utf8")).version; } catch (e) { v = undefined; }
+if (typeof v !== "string" || v === "") {
+  process.stdout.write("- .context/iconrc.json has no usable \"version\" — see the error above, or run /upgrade-repo to regenerate it.\n");
+}
+'
 ```
 
-```bash
-# Signal 4: task branch with a stale plan.md (not modified in 48h)
-if [ -n "$TASK_ID" ] && [ -n "$PLAN_FILE" ] && [ "$PLAN_FILE" != "(none)" ]; then
-  MTIME=$(find "$PLAN_FILE" -maxdepth 0 -mmin +2880 2>&1 | grep -v "^find:")
-  if [ -n "$MTIME" ]; then
-    echo "- plan.md stale — not modified in 48h. Still working on this?"
-  fi
-fi
+**Signal 4: task branch with a stale `plan.md` (not modified in 48h).** Run this. It
+**re-derives the task ID from the branch and re-runs the `plan.md` lookup**, for the same reason
+Signal 3 re-reads the JSON. It prints the staleness line only when a matching `plan.md` was last
+modified more than 48 hours ago; a branch with no task ID, a task with no `plan.md`, and a plan
+touched inside 48 hours all print nothing.
+
+```
+node -e '
+const fs = require("fs");
+const { execFileSync } = require("child_process");
+let branch = "";
+try { branch = execFileSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { encoding: "utf8" }).trim(); } catch (e) { branch = ""; }
+const m = branch.match(/[A-Z]+-[0-9]+/);
+if (!m) process.exit(0);
+const taskId = m[0];
+const hits = [];
+(function scan(dir, depth) {
+  let entries = [];
+  try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+  for (const e of entries) {
+    const p = dir + "/" + e.name;
+    if (e.name === "plan.md" && p.includes(taskId)) hits.push(p);
+    if (depth < 2 && e.isDirectory()) scan(p, depth + 1);
+  }
+})(".context/tasks", 1);
+hits.sort();
+if (!hits.length) process.exit(0);
+let st;
+try { st = fs.lstatSync(hits[0]); } catch (e) { process.exit(0); }
+// 48h = 2880 minutes, exclusive — matches find -mmin +2880 (measured, GNU findutils 4.10).
+if ((Date.now() - st.mtimeMs) / 60000 > 2880) {
+  process.stdout.write("- plan.md stale — not modified in 48h. Still working on this?\n");
+}
+'
 ```
 
 If no suggestions apply, omit the Suggestions section from the dashboard output.
@@ -245,3 +385,4 @@ Suggestions:
 |---------|-------------|-----------------|
 | Running on a repo with no `.context/` | Skill halts at Step 1 with the `/icon-init` suggestion | Correct — Step 1 is a hard stop |
 | Branch is `dev` or `main` | "No active task branch" appears | Correct — not an error |
+| Treating a block's stderr as part of its result | A git error or a parse reason lands on the dashboard | Read stdout for the value; stderr is diagnostics only |
