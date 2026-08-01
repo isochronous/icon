@@ -25,7 +25,8 @@ the program.
 **Say which shells the block runs in, in the prose next to it.** Windows PowerShell 5.1 does not
 escape a `"` embedded in a native command's argument, so an inline `node -e` program whose body
 contains a double quote reaches Node with those quotes deleted and dies on a `SyntaxError` —
-measured on 5.1.26100, and true of all 22 such sites shipped today. PowerShell 7 and bash are
+measured on 5.1.26100, and true of 21 such sites shipped today, plus 1 more in maintainer-only
+`.claude/` (22 in total). PowerShell 7 and bash are
 unaffected, and so is the `.mjs` invocation form below, which has no quote inside an argument
 value. `shell-portability` Rule 11 carries the measurement, the pairing with a silent-pass contract
 that turns the failure into a false pass, and why outer-double/inner-single is not a general fix.

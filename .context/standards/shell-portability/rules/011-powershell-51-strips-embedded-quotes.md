@@ -18,8 +18,9 @@ Measured on 5.1.26100.8875 with Node v24.18.0, from the identical source line
 
 **This is the hazard attached to ADR-017's default disposition.** ADR-017 makes an inline `node -e`
 program the default home for a deterministic block, and a JavaScript program of any substance
-contains a `"` — `require("fs")`, a string literal, a JSON key. As of ICON-0099 there are **22**
-single-quoted `node -e` invocations in ICON's shipped content and **all 22** contain a double quote.
+contains a `"` — `require("fs")`, a string literal, a JSON key. As of ICON-0099 there are **21**
+single-quoted `node -e` invocations in ICON's shipped content, plus **1** more in maintainer-only
+`.claude/` (**22** in total), and **all 22** contain a double quote.
 The `.mjs` half of ADR-017 is unaffected: `node "<absolute path>"` has no quote *inside* an argument
 value, and it was measured running correctly on 5.1.
 
@@ -53,8 +54,9 @@ Silence. `skills/icon-status/SKILL.md` Step 1 is the live worked example.
    no `\"`/`\\`/`\$` — verify that before using it, per file.
 
 (ICON-0099: measured by the @tester through two independent invocation paths while re-verifying a
-migration that took the site count from 8 to 22. Widening the count is what made the pre-existing
-gap worth a rule; the remedy across all 22 sites is a design call, ticketed rather than taken.)
+migration that took the shipped site count from 8 to 21 (22 in total counting the maintainer-only
+`.claude/` site). Widening the count is what made the pre-existing gap worth a rule; the remedy
+across all 22 sites is a design call, ticketed rather than taken.)
 
 ## Related
 

@@ -31,8 +31,9 @@ Three outcomes, all acceptable, one required:
 
 ## Two Shapes This Takes
 
-**Scope inflation — the measurement is narrower than the sentence.** ICON-0099 produced five in one
-task, each falsified by a reviewer in under a minute:
+**Scope inflation — the measurement is narrower than the sentence.** ICON-0099 produced four of
+this shape in one task (five counting the tense-drift instance below), each falsified by a
+reviewer in under a minute:
 
 | Measured, correctly | Written, falsely |
 |---|---|

@@ -36,8 +36,8 @@ universal ("only in X", "always Y") that one counter-example falsifies.
 
 **That preference is not self-executing — run the procedure (ICON-0099).** Stated as a preference,
 this paragraph was violated five times in one task, including by the round that was citing it. The
-executable form is the **claim-scope** standard: before writing any sentence containing *every /
-never / only / all* or an unqualified present-tense claim about repo state, attempt to construct a
+executable form is a procedure: before writing any sentence containing *every / never / only /
+all* or an unqualified present-tense claim about repo state, attempt to construct a
 counter-example and **record what you tried**. It applies to any authored artifact, not only an
 ADR — the five ICON-0099 instances were spread across ADR prose, skill prose, and a code comment.
 The tense trap is specific to this file's subject and worth naming here: a correction written
