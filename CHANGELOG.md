@@ -20,7 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `/icon-init` now detects repo shape with a committed Node script instead of inline shell, so one implementation runs on every platform. (ICON-0098)
 - `plugin-design` repo-setup steps dropped their duplicate PowerShell blocks in favour of single shell-agnostic commands. (ICON-0098)
-- Inline `node -e` blocks in shipped skills require bash or PowerShell 7; Windows PowerShell 5.1 fails them at parse time. (ICON-0099)
+- Deterministic checks in shipped skills now run from committed `.mjs` scripts, so `/icon-status`, `plugin-design` and `/initialize-workspace` work on Windows PowerShell 5.1. (ICON-0099)
+- Three remaining inline `node -e` blocks still fail on Windows PowerShell 5.1, which strips their embedded quotes. (ICON-0099)
 - `plugin-design`'s Phase 1 check no longer validates YAML; a clean run now means the `name` and `description` keys are present, not that the file parses. (ICON-0099)
 - `writing-skills` now sets a single byte cap per file (`SKILL.md` ≤ 16,000, companion ≤ 8,000), replacing nine overlapping and partly contradictory skill-size rules. (ICON-0095)
 - Split `context-document-guidelines` into a lean `SKILL.md` plus three on-demand companions, preserving every section name other docs cite. (ICON-0095)

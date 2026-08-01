@@ -121,12 +121,13 @@ for this record on 2026-08-01 (working tree at branch
 | Classified **program** | **18** | — |
 | Classified **command** | **4** | — |
 | Converting to `.mjs` (18 programs + site 18 on trigger 2) | **19** | **22,934** |
-| Staying inline, permanently | **3** | **337** |
+| Staying inline, permanently | **3** | **397** |
 
-The three that stay are `skills/icon-status/SKILL.md` (185 B), and two byte-identical 76 B
-`JSON.parse` manifest checks in `skills/plugin-design/create-phase-basic-info.md` and
-`create-phase-boilerplate.md` — the same idiom `.claude/CLAUDE.md` documents as the manifest parse
-check.
+The three that stay are `skills/icon-status/SKILL.md` (185 B), and two `JSON.parse` manifest checks
+— the same idiom `.claude/CLAUDE.md` documents as the manifest parse check — in
+`skills/plugin-design/create-phase-basic-info.md` and `create-phase-boilerplate.md`. These two were
+byte-identical at 76 B each when this corpus was classified; they no longer are (see the Neutral
+consequences bullet and the `## Amendments` entry below).
 
 *Counter-example found while re-deriving the count, and it is why the first row says
 **single-quoted**:* a **23rd** inline `node -e` exists at `.claude/claude.md:18` — the manifest parse
@@ -177,7 +178,7 @@ attempted and recorded is that a non-monotone rule trivially could, by being a l
 measured it:
 
 - **Measured for this record.** The 19 converting sites carry **22,934 B** of raw program body; the
-  three staying inline carry 337 B.
+  three staying inline carry 397 B.
 - **From the design artifact, not re-derived here.** The per-site invocation cost is ≈600 B with
   the hardened Copilot form below, giving **≈11.4 kB of invocation fences added** across 19 sites.
   `icon-audit`'s site is the cheap outlier at ≈118 B: a maintainer-only skill under `.claude/` is
@@ -406,13 +407,22 @@ this; it joins the obligations ADR-017's Consequences already lists as author-ho
 
 - **No conversion candidate is shared across skills**, so **no `.githooks/pre-commit` byte-parity
   registration is required by this record.** SHA-256 over all 22 program bodies found exactly one
-  duplicate pair, and both members live in `skills/plugin-design/` — one skill, one `scripts/`
-  directory, one copy — and both stay inline anyway. *Blind spot, named:* SHA-256 is exact-match, so
-  two programs doing the same job with different text across two skills would not be detected.
+  duplicate pair when the sweep ran, and both members lived in `skills/plugin-design/` — one skill,
+  one `scripts/` directory, one copy — and both stayed inline anyway. *Blind spot, named:* SHA-256
+  is exact-match, so two programs doing the same job with different text across two skills would not
+  be detected. **The pair has since diverged** (see the `## Amendments` entry below) — worth
+  recording because it shows the two bodies were held together by nothing but coincidence, not a
+  shared template, which is further evidence for (not against) treating this as zero shared
+  candidates rather than a copy-set needing registration.
 - **Migrating the `icon-audit` site is gate-neutral, not a loss.** `skills/*.mjs` matches
   `skills/<skill>/scripts/<name>.mjs` in the hook's `case` globs, so any `.mjs` under `skills/`
-  falls inside the dead-reference and cap-literal gates. `.claude/skills/…` does not match — but
-  `.claude/` is in no gate scope today either.
+  falls inside the dead-reference and cap-literal gates. `.claude/skills/…` does not match either
+  of those two — but `.claude/` is not outside every gate: `.githooks/pre-commit:563` scopes
+  `.claude/skills/*.md` into the ADR-016 skill-file size advisory, so `icon-audit`'s `SKILL.md` is
+  already inside that gate today, independent of whether its `.mjs` migrates (verified by executing
+  the hook's `case` globs against `.claude/skills/icon-audit/SKILL.md`: it matches line 563's
+  `skills/*.md|.claude/skills/*.md` pattern and matches neither line 500's dead-ref pattern nor line
+  539's cap-literal pattern, both of which lack a `.claude/` alternative).
 
 ## Alternatives Considered
 
@@ -454,3 +464,38 @@ this; it joins the obligations ADR-017's Consequences already lists as author-ho
    2 skills to 6 with a form that discovers and refuses to guess is a better position than 2 skills
    with a form that names a slug this very machine contradicts. Reviewability is answered by
    sequencing the **commits** per skill, not by narrowing the scope.
+
+## Amendments
+
+**2026-08-01 (ICON-0099).** The Decision has not changed; two supporting claims — one about gate
+scope, one about a corpus measurement — were corrected against the artifacts this same record
+governs.
+
+- **Consequences, "Migrating the `icon-audit` site is gate-neutral" bullet.** Said *"`.claude/…`
+  does not match — but `.claude/` is in no gate scope today either."* False: verified by reading
+  `.githooks/pre-commit` and executing its `case` globs directly (`bash` `case` statements against
+  `.claude/skills/icon-audit/SKILL.md`, `.claude/skills/icon-audit/scripts/foo.mjs`, and
+  `skills/plugin-design/create-phase-basic-info.md` as a control). `.claude/skills/*.md` **is**
+  scoped — line 563's pattern (`skills/*.md|.claude/skills/*.md`) matches it — into the ADR-016
+  skill-file size advisory; only the dead-reference gate (line 500) and the cap-literal gate (line
+  539) lack a `.claude/` alternative and so do not reach it. The substantive claim the sentence was
+  supporting — that migrating `icon-audit`'s `.mjs` is dead-reference-and-cap-literal-gate-neutral —
+  is correct and stands; only the unqualified "no gate scope" generalization is corrected, to name
+  the two gates `.claude/` is actually outside of.
+- **The corpus table's "Staying inline, permanently" byte total, its surrounding prose, the
+  "measured byte effect" bullet, and the Neutral consequences SHA-256 bullet.** All four said or
+  implied that `skills/plugin-design/create-phase-basic-info.md` and
+  `create-phase-boilerplate.md` carry byte-identical 76 B `JSON.parse` manifest-check bodies today,
+  giving a "staying inline" total of 337 B and "exactly one duplicate pair" with no qualification.
+  Both were true when the corpus was classified, but commit `f07c85f` (landed on this branch, this
+  task, after that classification) added a Clause-2 affirmative-token to
+  `create-phase-basic-info.md`'s check to close a silent-pass gap — the same Clause 2 this record's
+  own Decision introduces. Re-measured for this correction (`Buffer.byteLength` on the single-line
+  `node -e '…'` body, isolating just the JS argument): `create-phase-basic-info.md` is now **136 B**;
+  `create-phase-boilerplate.md` is unchanged at **76 B**. The pair has diverged and is no longer
+  byte-identical, so "exactly one duplicate pair" no longer holds and the staying-inline total is
+  corrected to **397 B** (185 + 136 + 76). Swept for a third occurrence of either the byte-identical
+  claim or the 337 B total: none found beyond the four locations corrected here. Recorded rather
+  than silently updated because a Clause-2 fix breaking the corpus's one duplicate pair shows the
+  pair was held together by coincidence, not a shared template — reinforcing, not undermining, this
+  record's finding that no `.githooks/pre-commit` byte-parity registration is owed.
