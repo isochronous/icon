@@ -29,28 +29,102 @@ Run a 6-domain parallel audit that dispatches one sub-agent per domain, then syn
 
 Before dispatching any sub-agents, establish the baseline.
 
-```bash
-# 1.1 — find the most recent prior plugin audit, if any
-# (plain `sort` — not `sort -V` — for macOS BSD compatibility; correct because
-#  ICON-NNNN task IDs are zero-padded to ≥3 digits, so lexicographic sort
-#  matches numeric order for the task folder prefix.)
-PRIOR_AUDIT=$(find .context/tasks -maxdepth 2 -name audit-report.md | sort | tail -n 1)
-if [ -n "$PRIOR_AUDIT" ]; then
-  echo "Baseline: $PRIOR_AUDIT"
-else
-  echo "No prior audit found — this is a baseline run. All findings will be reported as net-new."
-fi
+The command below is identical in every shell — run it as-is, in whatever shell the session uses. It prints, in order: the prior-audit baseline (or a baseline-run note), the retrospectives and CHANGELOG line counts, and the agent/skill/manifest counts — record all of it in `plan.md` per the Phase 1 output list below. A missing `.context/retrospectives.md` or `CHANGELOG.md` is reported as `(not found)` rather than silently omitted; treat that as "no data available for this line," not as an error.
 
-# 1.2 — check retrospectives log size; read recent entries for patterns
-wc -l .context/retrospectives.md
+```
+node -e '
+const fs = require("fs");
 
-# 1.3 — check plugin CHANGELOG size; read entries since prior audit
-wc -l CHANGELOG.md
+// 1.1 — find the most recent prior plugin audit, if any. Lexicographic sort
+// over zero-padded task IDs is numerically correct here: Array.prototype.sort()
+// is lexicographic by default, and ICON-NNNN task-folder names are zero-padded
+// to >= 3 digits, so string order agrees with numeric order.
+const tasksDir = ".context/tasks";
+const priorAudits = [];
+let taskEntries = [];
+try {
+  taskEntries = fs.readdirSync(tasksDir, { withFileTypes: true });
+} catch (err) {
+  if (err.code !== "ENOENT") throw err;
+}
+for (const entry of taskEntries) {
+  if (entry.isDirectory()) {
+    const nested = tasksDir + "/" + entry.name + "/audit-report.md";
+    if (fs.existsSync(nested)) priorAudits.push(nested);
+  } else if (entry.name === "audit-report.md") {
+    priorAudits.push(tasksDir + "/" + entry.name);
+  }
+}
+priorAudits.sort();
+const priorAudit = priorAudits.length ? priorAudits[priorAudits.length - 1] : "";
+if (priorAudit) {
+  console.log("Baseline: " + priorAudit);
+} else {
+  console.log("No prior audit found — this is a baseline run. All findings will be reported as net-new.");
+}
 
-# 1.4 — confirm filesystem scale
-ls agents/ | wc -l       # agent count
-ls skills/ | wc -l       # skill count
-find . -maxdepth 3 -name 'plugin.json' -type f -not -path './.context/*' -not -path './.git/*' | wc -l  # manifest count
+// 1.2 / 1.3 — retrospectives and CHANGELOG line counts. wc -l counts newline
+// characters, not "lines"; a missing file reports "(not found)" rather than
+// throwing, matching the "handle missing data gracefully" convention used
+// elsewhere in this repo (icon-status/SKILL.md:43-45, Step 2).
+function lineCount(file) {
+  let text;
+  try {
+    text = fs.readFileSync(file, "utf8");
+  } catch (err) {
+    if (err.code === "ENOENT") return "(not found)";
+    throw err;
+  }
+  return String((text.match(/\n/g) || []).length);
+}
+console.log(lineCount(".context/retrospectives.md") + " .context/retrospectives.md");
+console.log(lineCount("CHANGELOG.md") + " CHANGELOG.md");
+
+// 1.4 — filesystem scale. readdirSync includes dot-entries, unlike `ls`
+// without -a, so dot-entries are filtered out to match `ls | wc -l`. A missing
+// directory reports 0, matching `ls` (error to stderr) + `wc -l` (0) rather
+// than throwing.
+function countEntries(dir) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir);
+  } catch (err) {
+    if (err.code === "ENOENT") return 0;
+    throw err;
+  }
+  return entries.filter((name) => name[0] !== ".").length;
+}
+console.log(countEntries("agents") + "       # agent count");
+console.log(countEntries("skills") + "       # skill count");
+
+// Manifest count: depth <= 3 from ".", regular files named plugin.json
+// (Dirent.isFile() does not follow symlinks, matching find -type f), with
+// .context and .git excluded before descending — not merely filtered after,
+// since walking .git is slow and can surface a stray plugin.json in a packed
+// object path.
+function countManifests(dir, depth) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (err) {
+    if (err.code === "ENOENT") return 0;
+    throw err;
+  }
+  let count = 0;
+  for (const entry of entries) {
+    const childPath = dir + "/" + entry.name;
+    const childDepth = depth + 1;
+    if (childPath === "./.context" || childPath === "./.git") continue;
+    if (entry.isFile() && entry.name === "plugin.json" && childDepth <= 3) {
+      count += 1;
+    } else if (entry.isDirectory() && childDepth < 3) {
+      count += countManifests(childPath, childDepth);
+    }
+  }
+  return count;
+}
+console.log(countManifests(".", 0) + "       # manifest count");
+'
 ```
 
 **Phase 1 output** — record in `plan.md` Decisions before dispatching Phase 2:
