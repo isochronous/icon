@@ -38,15 +38,20 @@ It prints, in order: the prior-audit baseline (or a baseline-run note), the retr
 CHANGELOG line counts, and the agent/skill/manifest counts — record all of it in `plan.md` per the
 Phase 1 output list below.
 
-Missing inputs are reported, not silently absorbed — and "missing" is wider than "absent". An
-unreadable `.context/retrospectives.md` or `CHANGELOG.md` prints `(not found)` in place of its
-count. An `agents/` or `skills/` directory that cannot be listed prints `0` and names the reason on
+Missing inputs are reported, not silently absorbed — and "missing" is wider than "absent". A
+`.context/retrospectives.md` or `CHANGELOG.md` that is absent, that is a *directory*, or that has a
+regular file somewhere in its path prints `(not found)` in place of its count. An `agents/` or
+`skills/` directory that cannot be listed prints `0` and names the reason on
 stderr: `cannot access agents: No such file or directory` when nothing is there,
 `cannot access agents: Not a directory` when a regular file holds the name. That separates both from
 a genuinely empty directory, which also counts `0` but writes nothing to stderr. Every guard in the
-block catches `ENOENT` and `ENOTDIR` together, because an uncaught one aborts the program where it
-is thrown and forfeits every later line — measured, a regular file named `agents` costs the three
-trailing counts, and a regular file at `.context/tasks` costs the entire output. Treat any of these
+block catches `ENOENT` and `ENOTDIR` together, and `lineCount` catches `EISDIR` as well, because an
+uncaught one aborts the program where it is thrown and forfeits every later line — measured, a
+regular file named `agents` costs the three trailing counts, a regular file at `.context/tasks`
+costs the entire output, and a directory named `CHANGELOG.md` cost four of the six lines before the
+`EISDIR` arm existed. Those three codes are the whole of the coverage, not a synonym for
+*unreadable*: a file that is present but cannot be opened still aborts the run, measured on an
+exclusively locked `CHANGELOG.md` — `EBUSY`, exit 1, two lines of six. Treat any of these
 as "no data available for this line," not as an error.
 
 ```
@@ -95,7 +100,9 @@ function lineCount(file) {
     // ENOTDIR covers a path component that is a regular file. On win32 that case
     // surfaces as ENOENT instead, so this arm is what keeps the two platforms
     // agreeing rather than one throwing where the other reports (not found).
-    if (err.code === "ENOENT" || err.code === "ENOTDIR") return "(not found)";
+    // EISDIR covers the path itself being a directory; without it a directory
+    // named CHANGELOG.md aborted here and forfeited the four lines after it.
+    if (err.code === "ENOENT" || err.code === "ENOTDIR" || err.code === "EISDIR") return "(not found)";
     throw err;
   }
   return String((text.match(/\n/g) || []).length);
@@ -139,8 +146,11 @@ function countManifests(dir, depth) {
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch (err) {
-    // Same two codes as the guards above. Reached only if a directory becomes a
-    // file between the readdirSync that listed it and this recursive call.
+    // Same two codes as the guards above. On the recursive calls both are races
+    // against the listing that produced this path: the entry was a directory
+    // then and has since gone (ENOENT) or become a regular file (ENOTDIR). The
+    // first call is passed ".", which no listing preceded -- there ENOENT would
+    // mean the working directory itself was removed out from under the process.
     if (err.code === "ENOENT" || err.code === "ENOTDIR") return 0;
     throw err;
   }

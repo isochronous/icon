@@ -81,11 +81,15 @@ resolving under neither `context_template/context/` nor `.context/`. Absent dire
 as is one that exists but is a regular file. Silence means every reference in every file it *scanned*
 resolves — see **Links** below for what it declines to scan. The exit status
 is 0 whether or not there were findings, so it carries no verdict of its own — read the output for
-that. It still does the job the banner above gives it: telling you the block ran.
+that. It is not evidence the block *ran*, either: per the banner above, a `node` that never launched
+leaves whatever `$LASTEXITCODE` already held — measured on pwsh 7.6.3, 0 after a prior 0 and 3 after
+a prior 3. Apply the test `icon-status` puts on its fresh-repo guard instead: treat silence as clean
+only when stdout **and** stderr are both empty.
 
 **Links.** Every entry is resolved with `statSync`, which follows links, so a directory reached
 through a symlink or a Windows junction is descended into and its files are scanned. That is what
-makes this block agree with the three frontmatter blocks, which resolve links the same way. Measured
+makes this block agree with the other three audit blocks — Phase 1 frontmatter, and the
+skill-reference and description-quality blocks here — which resolve links the same way. Measured
 on a fixture whose only skill sits behind a junction: Phase 1 and the description-quality block below
 both reported it, while the earlier `Dirent`-based walk here printed nothing and exited 0 — a silent
 false-clean, the worst failure available to a dead-reference check.
@@ -96,15 +100,25 @@ reaches more of the tree. `rglob` also yields the symlinked directory itself, an
 then died on `read_text()` (`PermissionError` on Windows, `IsADirectoryError` on POSIX), losing every
 finding in the run; here a directory never reaches the read branch.
 
-`realpathSync` and a visited set bound the walk. A junction pointing at its own ancestor is otherwise
-re-entered until the path-length limit stops it: on such a fixture the Python original printed 190
-findings covering 2 real files and still exited 0, and deleting the visited set from this block
-reproduces all 190. The set costs path spellings, not coverage — a file reachable by several links is
-scanned once, reported under the first path to reach it, so `skills/` junctioned onto `agents/`
-yields findings spelled `agents/...` only. Aliasing fixtures built to make it drop a real file
-outright (sibling junctions onto one target; a top-level directory aliased onto another) did not. An
-entry `statSync` cannot resolve — a broken link, or a symlink loop (`ELOOP`) — is skipped like any
-other unreadable entry.
+`realpathSync` and a visited set bound the walk. Without them a junction pointing at its own ancestor
+is re-entered until the operating system refuses to resolve another link. Measured on a fixture whose
+`agents/` holds `a.md` plus a real `sub/` holding `b.md`, with `sub/loop` junctioned back onto
+`agents/`: this block reports those 2 files and exits 0, while the same block with the visited set
+deleted reports the same 2 files 128 times over, one respelling per lap, and also exits 0. That
+ceiling is the link-resolution limit, not the path length — `statSync` raises `ELOOP` on the 64th lap
+and `isDir` reports not-a-directory, so the walk stops there whether the accumulated path has reached
+582 characters or half that.
+
+The set dedupes *directories*, not files: it is consulted only inside `walk`, and the branch that
+pushes a file never touches it. So a directory reachable by several links is walked once and its
+files reported under the first path to reach it — `skills/` junctioned onto `agents/` yields findings
+spelled `agents/...` only — while a file carrying two names of its own is still reported under each:
+one inode spelled `real.md`, `hard.md` and `alias.md` in a single `agents/` produced 3 findings, one
+per spelling. That over-reporting is the safe direction for a dead-reference check, which would
+otherwise be hiding a path a reader can follow. What the set costs is path spellings, not coverage:
+aliasing fixtures built to make it drop a real file outright (sibling junctions onto one target; a
+top-level directory aliased onto another) did not. An entry `statSync` cannot resolve — a broken
+link, or a link loop (`ELOOP`) — is skipped like any other unreadable entry.
 
 Scanned suffixes are `.md`, `.sh`, `.ps1`, `.js` **and `.mjs`**. `.mjs` is deliberate and was added
 with this port: `*.js` does not glob-match `.mjs`, and the pre-commit gate this check generalizes
@@ -126,8 +140,10 @@ const EXTS = [".md", ".sh", ".ps1", ".js", ".mjs"];
 // before any read, so the guard only bites for a scanned suffix: unguarded,
 // a broken brokendir.md kills the run and extension-less brokendir does not.
 // seen holds realpaths, which bounds the walk: a junction pointing at its own
-// ancestor is otherwise re-entered until the path-length limit stops it. A file
-// reachable by several links is scanned once, under the first path to reach it.
+// ancestor is otherwise re-entered until the OS stops resolving links (ELOOP).
+// It is consulted here only, so it dedupes directories, not files: a directory
+// reachable by several links is walked once, under the first path to reach it,
+// while a file with two names of its own is reported under each of them.
 // ENOENT means the directory is absent; ENOTDIR means it is a regular file.
 const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch (e) { return false; } };
 const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };

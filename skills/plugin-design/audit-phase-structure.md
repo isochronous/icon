@@ -178,9 +178,9 @@ one with no verdict in it at all, so exit alone would misreport it as an ordinar
 | `MISSING CHANGELOG.md` | 1 | There is no `CHANGELOG.md` at all. |
 | *(nothing)* | 1 | The block did not finish, and reached no verdict — a `CHANGELOG.md` that is a *directory* throws `EISDIR` out of `readFileSync`, with the trace on stderr. Fix the tree and re-run. |
 
-The `MISSING CHANGELOG.md` outcome is new. Check 7 is two conditions — the file exists *and* it carries the block —
-and the previous `grep -q` form collapsed them, reporting `MISSING [Unreleased]` for a plugin with
-no changelog whatsoever.
+The `MISSING CHANGELOG.md` outcome is new. Check 7 is two conditions — the file exists *and* it
+carries the block — and the previous `grep -q` form collapsed them, reporting `MISSING [Unreleased]`
+for a plugin with no changelog whatsoever.
 
 ```
 node -e '
