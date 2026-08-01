@@ -3,7 +3,7 @@
 **Date**: 2026-07-28
 **Status**: Accepted
 **Supersedes**: none
-**Superseded-by**: none
+**Superseded-by**: ADR-018 (the Deterministic row's default for *programs*, this record's Node-presence obligations, and the Copilot CLI path reconstruction only — the four-tier classification, the four triggers, § Disqualified, the trivial test, the Node floor, the two exclusion axes and the shared-set rule all stand)
 
 ## Context
 

@@ -28,4 +28,4 @@ entries.map((e) => e.name)
 
 - Index: [shell portability rules](README.md)
 - See also: [Rule 9](009-pass-values-as-arguments.md) — the other half of reviewing a language port: quoting is that rule, semantics is this one
-- See also: [executable content](../../skill-decomposition/executable-content.md) — the authoring spec for the migrations this rule governs
+- See also: [executable content](../../skill-decomposition/executable-content/README.md) — the authoring spec for the migrations this rule governs

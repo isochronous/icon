@@ -16,7 +16,7 @@ One rule per file, named `NNN-kebab-slug.md` with `NNN` matching the rule number
 | [Rule 8](008-sed-i-backup-suffix.md) | `sed -i` backup suffixes on BSD/macOS |
 | [Rule 9](009-pass-values-as-arguments.md) | Pass values as arguments — never interpolate them into a program body |
 | [Rule 10](010-port-semantics-not-shape.md) | Porting a shell construct to a Node API: match its semantics, not its shape |
-| [Rule 11](011-powershell-51-strips-embedded-quotes.md) | Windows PowerShell 5.1 strips embedded `"` from a native command's arguments — the hazard attached to ADR-017's inline `node -e` default |
+| [Rule 11](011-powershell-51-strips-embedded-quotes.md) | Windows PowerShell 5.1 strips embedded `"` from a native command's arguments — the measurement that defeated ADR-017's inline `node -e` default, still qualifying the command tier ADR-018 leaves inline |
 
 ## Related
 

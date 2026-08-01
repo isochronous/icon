@@ -16,13 +16,19 @@ Measured on 5.1.26100.8875 with Node v24.18.0, from the identical source line
 `node -e 'process.stdout.write("HELLO\n")'`, through both `powershell.exe -File` and
 `powershell.exe -Command`. PowerShell 7 and Git-Bash `bash`/`sh` run the same line correctly.
 
-**This is the hazard attached to ADR-017's default disposition.** ADR-017 makes an inline `node -e`
-program the default home for a deterministic block, and a JavaScript program of any substance
-contains a `"` — `require("fs")`, a string literal, a JSON key. As of ICON-0099 there are **21**
-single-quoted `node -e` invocations in ICON's shipped content, plus **1** more in maintainer-only
-`.claude/` (**22** in total), and **all 22** contain a double quote.
-The `.mjs` half of ADR-017 is unaffected: `node "<absolute path>"` has no quote *inside* an argument
-value, and it was measured running correctly on 5.1.
+**This is the measurement that defeated ADR-017's inline default, and it still qualifies what
+survives of it.** ADR-017 made an inline `node -e` program the default home for a deterministic
+block, and a JavaScript program of any substance contains a `"` — `require("fs")`, a string literal,
+a JSON key. As of ICON-0099 there are **21** single-quoted `node -e` invocations in ICON's shipped
+content, plus **1** more in maintainer-only `.claude/` (**22** in total), and **all 22** contain a
+double quote.
+
+**ADR-018 flipped that default for *programs*, citing this rule as one of its three grounds** — but
+it does not close the exposure. A deterministic block with no body is a **command** and still ships
+inline. ADR-018 classifies 19 of the 22 as programs bound for a committed `.mjs`; the other 3 are
+commands, stay inline permanently, and all three contain a `"`, so all three remain exposed here.
+The `.mjs` form is unaffected: `node "<absolute path>"` has no quote *inside* an argument value, and
+it was measured running correctly on 5.1.
 
 ## The sharp edge: a block whose pass state is silence
 
@@ -55,8 +61,8 @@ Silence. `skills/icon-status/SKILL.md` Step 1 is the live worked example.
 
 (ICON-0099: measured by the @tester through two independent invocation paths while re-verifying a
 migration that took the shipped site count from 8 to 21 (22 in total counting the maintainer-only
-`.claude/` site). Widening the count is what made the pre-existing gap worth a rule; the remedy
-across all 22 sites is a design call, ticketed rather than taken.)
+`.claude/` site). Widening the count is what made the pre-existing gap worth a rule. The remedy was
+then taken as a design call rather than left ticketed — ADR-018, later in the same task.)
 
 ## Related
 
@@ -65,5 +71,7 @@ across all 22 sites is a design call, ticketed rather than taken.)
   *value* interpolated into a program body, this one is about the program body's own quotes
 - See also: [testing pattern](../testing-pattern.md) § A Detector Whose Pass State Is Silence — the
   contract that turns this loud failure into a silent one
-- See also: [executable content](../../skill-decomposition/executable-content.md) — the authoring
-  spec whose default disposition this rule qualifies
+- See also: [executable content — classification](../../skill-decomposition/executable-content/classification.md)
+  — the authoring spec whose surviving inline command tier this rule qualifies
+- Governed by: [ADR-018 the body test, program vs command](../../../decisions/018-body-test-program-vs-command.md)
+  — the record that cites this measurement and flips the default for programs

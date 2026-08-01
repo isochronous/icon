@@ -44,6 +44,21 @@ Resources co-located with a specific skill's `SKILL.md` — e.g., scripts or tem
 ${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/icon-marketplace/ICON/skills/<skill-name>/<resource>
 ```
 
+> **`icon-marketplace` is a default, not a constant — and it is wrong on at least one real machine.**
+> Measured 2026-08-01 on the ICON maintainer's host: the local **Claude Code** plugin cache resolves
+> to `~/.claude/plugins/cache/`**`icon-local`**`/ICON/`**`1.22.0`**`/…` — a different marketplace
+> slug *and* an undocumented version segment, alongside a second marketplace directory
+> (`claude-plugins-official`). That is Claude Code's cache rather than Copilot's
+> `installed-plugins`, so it does **not** establish that Copilot inserts a version segment; what it
+> establishes is that the slug is user-local and that more than one marketplace can be installed at
+> once.
+>
+> **For a script *invocation*, do not hand-write this pattern.** Use the hardened reconstruction in
+> [executable content — invocation contract](../standards/skill-decomposition/executable-content/invocation-contract.md)
+> § 3, which globs for the marketplace directory, tries a version segment as a fallback, and fails
+> closed with the match count on ambiguity. This section remains the reference for the *documented
+> layout*; ADR-018 records why naming the slug is no longer sufficient for an invocation.
+
 ---
 
 ## Decision Rule: Which Level to Use
@@ -65,3 +80,5 @@ ${COPILOT_HOME:-$HOME/.copilot}/installed-plugins/icon-marketplace/ICON/skills/<
 
 - Governed by: [ADR-004: tool-agnostic content](../decisions/004-tool-agnostic-content.md)
 - See also: [hooks](hooks.md) — `${CLAUDE_PLUGIN_ROOT}` scope-resolution rules specific to hook configs
+- See also: [executable content — invocation contract](../standards/skill-decomposition/executable-content/invocation-contract.md) § 3 — the discovery-based form to use when the reconstructed path is invoking a script
+- See also: [ADR-018 the body test, program vs command](../decisions/018-body-test-program-vs-command.md) — the measured `icon-local` counter-example, and why an invocation may not name the slug
