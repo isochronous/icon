@@ -8,12 +8,18 @@
 //   stdout  one tab-separated row per folder entry, in order:
 //             "<n>\t<resolved path>\t<raw path>\t<on-disk state>"
 //           where <on-disk state> is "on disk" or "NOT ON DISK".
+//           When the parse yields no folder entries — `folders` absent,
+//           empty, or falsy — the single line "OK no-folder-entries" is
+//           written instead of nothing. Silence is therefore never a pass
+//           (ADR-018 Clause 2): empty stdout means either an error, with
+//           the reason on stderr, or that this block never ran.
 //   stderr  "ERROR: folders[<i>] has no string path key" for a uri-only
 //           virtual/remote entry, before any row is written.
-//   exit    0 on a normal run (including zero folders). 1 when any folder
-//           entry has no string `path` key. An unreadable or invalid-JSON
-//           workspace file is an uncaught error — a stack trace on stderr,
-//           non-zero exit, no rows — same as the pre-migration inline form.
+//   exit    0 on a normal run (including zero folders, which prints the
+//           token above). 1 when any folder entry has no string `path` key.
+//           An unreadable or invalid-JSON workspace file is an uncaught
+//           error — a stack trace on stderr, non-zero exit, no rows and no
+//           token — same as the pre-migration inline form.
 //
 // A folder path is never interpolated into program text — it arrives only as
 // an argument (shell-portability Rule 9) — so a quote or backslash in a path
@@ -46,3 +52,9 @@ folders.forEach((f, i) => {
   }
   process.stdout.write(`${i + 1}\t${p}\t${f.path}\t${state}\n`);
 });
+
+// No rows were written, so say so rather than exiting silent — silence is
+// reserved for "this block did not run" (ADR-018 Clause 2).
+if (folders.length === 0) {
+  process.stdout.write("OK no-folder-entries\n");
+}

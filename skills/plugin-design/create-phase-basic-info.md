@@ -138,10 +138,27 @@ node "$F" "<name>" "<description>"
 
 ## Validation
 
-Re-parse `plugin.json` after every edit to catch malformed writes. Identical in every shell:
+Re-parse `plugin.json` after every edit to catch malformed writes. One block text for every shell —
+there is no per-shell variant — and it prints a token on success, so that a check which passed and a
+check which never ran are not the same observation (ADR-018 Clause 2):
 
 ```
-node -e 'JSON.parse(require("fs").readFileSync(".claude-plugin/plugin.json", "utf8"))'
+node -e 'JSON.parse(require("fs").readFileSync(".claude-plugin/plugin.json", "utf8")); process.stdout.write("VALID .claude-plugin/plugin.json\n")'
 ```
 
-Exit code 0 with no output means the file is valid. Any output is the parse error.
+| stdout | exit | Meaning |
+|---|---|---|
+| `VALID .claude-plugin/plugin.json` | 0 | The manifest parsed. |
+| *(nothing)* | non-zero | The manifest did not parse, or could not be read — the error is on stderr. |
+| *(nothing)* | any | **The check did not run.** Re-check the shell (below) before re-running, and do not record the manifest as valid. |
+
+**Silence is never a pass here, and the exit status cannot separate the last two rows.** This block
+stays inline — under ADR-018's body test it is a *command*: it declares no named callable and has no
+braced body, and adding the token changed neither. That leaves it exposed to `shell-portability`
+Rule 11: **Windows PowerShell 5.1 deletes every `"` in the single-quoted argument**, so Node receives
+`JSON.parse(require(fs).readFileSync(.claude-plugin/plugin.json, utf8)); process.stdout.write(VALID …`
+and dies with a `SyntaxError` on stderr and **zero bytes on stdout** — before reaching the token, which
+is why the token cannot rescue this shell, only expose it. Measured on 5.1.26100.8875 against a valid
+manifest, with the wrapping `powershell.exe -File` still reporting exit 0 to its caller. Without the
+token, that run is byte-identical on stdout to a clean parse. **Run this check in bash or PowerShell
+7**, and require the `VALID` line before treating the manifest as good.

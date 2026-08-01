@@ -12,7 +12,7 @@ user-invocable: true
 Emit a concise plugin-state dashboard for the current repo: active task, recent
 retrospectives, and context health. Use before planning new work or after a break.
 
-**Runtime.** Steps 1 and 2 hold thirteen fences: **one inline `node -e` command** (Step 1's
+**Runtime.** Steps 1 and 2 hold twenty fences: **one inline `node -e` command** (Step 1's
 fresh-repo guard), **eight committed `.mjs` scripts** invoked through a fence pair each (Step 2's
 data gathering), the bare `node -v` probe, and two message templates you *emit* rather than run
 (Step 1's `/icon-init` text and Signal 2's suggestion line).

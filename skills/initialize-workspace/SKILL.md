@@ -76,6 +76,23 @@ A malformed `.code-workspace` — bad JSON, or a `folders` entry with no string 
 (a `uri`-only virtual/remote entry) — fails on stderr before any row is written. Halt
 rather than proceeding with a partial folder list.
 
+### Outcomes
+
+**Require at least one line of stdout.** A workspace that lists no folders prints the token
+`OK no-folder-entries`, so silence is never a *pass*: a run that reached the end of the parse always
+printed something, and empty stdout therefore means either an error — stderr says which — or that
+the block never ran. That matters most on the Copilot fence, where an unresolved script path
+prints `Cannot find module` on stderr and **nothing** on stdout; read as "zero folders", the skill
+would proceed to Step 8 and report a clean run having dispatched no project at all.
+
+| stdout | Exit | Meaning | Caller does |
+|---|---|---|---|
+| one or more tab-separated rows | 0 | One row per `folders` entry, in file order | Build the resolution table below and continue to Step 1 |
+| `OK no-folder-entries` | 0 | The `folders` array is absent, empty, or `null` — there is nothing to dispatch | Report a workspace with no folder entries and **halt**. Do not render an empty table |
+| *(empty)* | any | No rows **and** no token: a `uri`-only `folders` entry (stderr names the index), an unreadable or invalid-JSON workspace file (stack trace on stderr), or the block did not run at all | **Halt.** Read stderr to tell those apart. Never read empty stdout as "zero folders" |
+
+The token is liveness, not content — do not put `OK no-folder-entries` in the resolution table.
+
 The **first folder** is the workspace root — it receives workspace-level context
 in Step 6 regardless of classification.
 
