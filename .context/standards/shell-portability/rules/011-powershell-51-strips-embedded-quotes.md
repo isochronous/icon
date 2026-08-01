@@ -19,14 +19,17 @@ Measured on 5.1.26100.8875 with Node v24.18.0, from the identical source line
 **This is the measurement that defeated ADR-017's inline default, and it still qualifies what
 survives of it.** ADR-017 made an inline `node -e` program the default home for a deterministic
 block, and a JavaScript program of any substance contains a `"` — `require("fs")`, a string literal,
-a JSON key. As of ICON-0099 there are **21** single-quoted `node -e` invocations in ICON's shipped
-content, plus **1** more in maintainer-only `.claude/` (**22** in total), and **all 22** contain a
-double quote.
+a JSON key. At that default's peak ICON-0099 measured **22** single-quoted `node -e` invocations —
+21 shipped plus 1 in maintainer-only `.claude/` — and **all 22** contained a double quote.
 
 **ADR-018 flipped that default for *programs*, citing this rule as one of its three grounds** — but
 it does not close the exposure. A deterministic block with no body is a **command** and still ships
-inline. ADR-018 classifies 19 of the 22 as programs bound for a committed `.mjs`; the other 3 are
-commands, stay inline permanently, and all three contain a `"`, so all three remain exposed here.
+inline. ICON-0099 then converted the 19 programs to committed `.mjs`, leaving **3** single-quoted
+inline sites in the repo — all shipped, all commands, all three containing a `"`, so all three
+remain exposed here. Re-derive rather than trusting the count: `grep -rn "node -e '"` over
+`skills/ agents/ commands/ hooks/ context_template/ .claude/` returns them. As of ICON-0099 they are
+`skills/icon-status/SKILL.md` Step 1 and the two `JSON.parse` manifest checks in
+`skills/plugin-design/create-phase-basic-info.md` and `create-phase-boilerplate.md`.
 The `.mjs` form is unaffected: `node "<absolute path>"` has no quote *inside* an argument value, and
 it was measured running correctly on 5.1.
 

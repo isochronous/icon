@@ -7,10 +7,10 @@ GitHub issue: #59. Follows #23/#58 (ICON-0098), which settled ADR-017 and proved
 
 ## Phase State
 - **Phase plan**: investigation → implementation → testing → **architecture** → implementation → testing → completion
-- **Completed**: investigation, implementation, testing
-- **Current**: architecture   (status: in-progress)
-- **Next**: implementation (re-run)
-- **Loaded skill**: task-plan-phase-architecture
+- **Completed**: investigation, implementation, testing, architecture, implementation (re-run), testing (re-run)
+- **Current**: completion   (status: in-progress)
+- **Next**: (none — close)
+- **Loaded skill**: task-plan-phase-completion
 - **Branch**: feature/ICON-0099-migrate-fenced-blocks-waves-1-2
 - **Attempts (current phase)**: 1
 
@@ -63,7 +63,7 @@ Byte-identical on all three channels. ICON-0096's `$LASTEXITCODE` staleness — 
 
 The diagnosis: ADR-017's *"self-defeating detector"* argument establishes only that **the guard must be prose**, and that is not a `.mjs` property — an inline `node -e` reporting Node's absence is equally self-defeating. A second obligation was appended to a paragraph whose argument never reached it. **Filed against *delivery mechanism* when the hazard is *Node dependence*** — the same misfiling the body test corrects.
 
-The corrected rule: the prose Node-presence guard applies to **both** dispositions; the degradation path is an obligation on the **skill**, not a precondition on the migration; and *"do not invent one"* becomes ***"do not invent one silently"*** — a converting task adds one as separately-reviewable in-scope work. Advisory phrasing was rejected on this repo's own freshly-promoted evidence (`claim-scope.md:19-22`, *"a rule phrased as a disposition is advice"*).
+> **SUPERSEDED — the @architect's proposed replacement, withdrawn in place.** It read: *the prose Node-presence guard applies to both dispositions; the degradation path is an obligation on the skill, not a precondition on the migration; and "do not invent one" becomes "do not invent one silently."* The maintainer's answer replaced it and the architect withdrew this formulation itself (`adr-017-amendment-design.md:499-503`). **The live rule is § The settled invocation guard below** — route to `check-node-runtime`, which already ships the behaviour both formulations were reinventing. Kept here because the reasoning that got here is what justified deleting the precondition at all.
 
 **Both corrections land as one record, ADR-018, scope-superseding ADR-017.** They are not separable: ADR-018 makes `.mjs` the default for programs, and an unamended neighbour would block 12 of the 19 conversions that creates — ADR-018 would be inert. Precedent for the form is ADR-014 → ADR-015. An amendment was rejected because ADR-017's `## Amendments` already holds two entries from this task, **both opening "The Decision has not changed."**
 
@@ -171,11 +171,24 @@ Per-site cost ≈600 B (hardened fence pair); ≈11.4 kB added against ≈14.5 k
 - [x] Completion (first pass): re-review, changelog, retrospective, three lesson promotions, follow-ups #62/#63/#64, **PR #65 opened**
 - [x] Architecture: design the ADR-017 correction — body test settled, degradation-path precondition falsified as a second defect of the same shape
 - [x] Maintainer settles the degradation path outright: *"tell the user node is required and offer to install it."* Verified `check-node-runtime` already does exactly that (Step 4 reports, Step 5 offers a per-platform install without running it). The path is **one uniform behaviour that already ships**, not something a skill must possess or invent — so **no site is blocked** and all 19 program sites convert.
-- [ ] Architecture: restate the invocation guard around `check-node-runtime`, and harden the Copilot path reconstruction now that scope is no longer its mitigation ← IN PROGRESS
-- [ ] Write **ADR-018** (scope-supersedes ADR-017) plus the `executable-content.md` authoring spec
-- [ ] Implementation (re-run): convert 19 program sites — `icon-status` 8, `icon-audit` 1, `plugin-design` 10
-- [ ] Testing: differential re-verification of every converted site
-- [ ] Completion: update PR #65, re-review, changelog, retrospective addendum, close/shrink #62 and #64
+- [x] Architecture: invocation guard restated around `check-node-runtime`; Copilot reconstruction hardened and verified on eight directory fixtures
+- [x] **ADR-018** written, scope-superseding ADR-017; `executable-content.md` split into a four-file folder in the same pass when it crossed both gates
+- [x] Implementation (re-run): 19 program sites converted — `icon-status` 8, `plugin-design` 9, `initialize-workspace` 1, `icon-audit` 1
+- [x] Testing (re-run): differential + mutation verification per skill, then an independent review round that re-ran 48 comparisons itself
+- [x] Round 8 review: **approved with comments**; five must-fixes cleared (two Clause-2 gaps, the CHANGELOG entry, two stale ADR-018 claims, and the issue corrections)
+- [x] Follow-ups filed: #66 (parity check, 18 copies), #67 (one Copilot fence per skill), #68 (arity hazard), #69 (the sibling Clause-2 defect); #62, #63 and #64 corrected
+- [ ] Completion: retrospective addendum, update PR #65 ← IN PROGRESS
+
+## Final outcome
+
+**The maintainer's objection is answered at the corpus level and not at the file level, and both halves need saying.**
+
+- **22,934 B of program bodies left the markdown.** 19 sites are now committed `.mjs` under `scripts/`, reviewable and runnable directly instead of extractable-then-runnable.
+- **`skills/icon-status/SKILL.md` is 30,435 B — 90% over the cap and larger than when the objection was raised.** The review's line-class accounting shows the *entire* net markdown growth across the branch is the Copilot invocation preamble: ≈11.4 kB in 18 fences, matching ADR-018's own prediction to within a few hundred bytes. Program bodies out (−5,171 B in this file), outcomes tables and contract prose in (+5,607 and +4,740), Copilot fences in (+5,552).
+- **The fix exists and is ticketed as #67** — a single Copilot fence per skill invoking all its scripts in one process. Zero cross-fence state, so ADR-018's trigger-1 objection to hoisting does not reach it; takes this file from 5,552 B of fences to ~900 B. ADR-018 never considered it.
+- **#62 is measurably closed for the 19 converted sites**, verified on PowerShell 5.1.26100 with a positive control showing the old inline form still failing. Three command sites remain, all loud; the most dangerous of them — `icon-status`'s silence-is-the-pass hard-stop guard — was fixed here.
+
+**Eight review rounds.** Every one found real defects. Rounds 3, 5 and 7 each found defects *introduced by the immediately preceding remediation*, which is ICON-0094's lesson recurring and now has its own entry.
 
 ## Review Checkpoint
 
@@ -186,6 +199,9 @@ Per-site cost ≈600 B (hardened fence pair); ≈11.4 kB added against ≈14.5 k
 - **Round 4** remediation: commits `d831e04`, `f129326`, `5dd1026`. Dispatched with an explicit instruction to attempt falsification before writing any sentence containing *every / never / only / all*, and to report the attempt. **It worked** — both coders falsified universals in their own drafts and corrected them before finishing (one wrote "this is the one block where a failure to run is indistinguishable from a pass" and found three more; another wrote "loses every line, including the ones already computed" and measured a mutant keeping 95 of 164 bytes).
 - **Round 5** (@reviewer, over `ca32027..HEAD`): **approve with changes** — 0 Critical, 3 Moderate, 7 Minor. All three Moderates were single-sentence prose, again introduced by the preceding round. The link-policy code change was verified correct: *"I could not make the visited set drop a real file in 85 fixture trials plus a validated positive control."* Verdict quote: *"Five rounds is enough — the remaining defect surface is sentences, not semantics."*
 - **Round 6** remediation: commits `58f88d6`, `f6b6e2f`. All three Moderates plus five cheap Minors. The one deferred item — widening the `realpathSync` catch — the reviewer classified explicitly as a follow-up, not a blocker: pre-existing, loud rather than silent, reachable only on a pathological tree.
+- **Round 7** (@reviewer, close-gate check over `5dd1026..HEAD`): **changes requested**, narrowly — 2 Moderate, both single-clause prose in `.context/`, neither touching a shipped surface or any executable behaviour. Cleared in `0da3301`. *That round's findings were the newly-written `claim-scope.md` over-claiming on its own first use.*
+- **Round 8** (@reviewer, over the ADR-018 conversions `f147e0a..HEAD`): **approved with comments** — 0 Critical, 5 Moderate, 6 Minor. All five cleared in `f07c85f` and `f61fbc0`. The reviewer re-ran 48 differential comparisons itself rather than accepting the converting agents' matrices, and verified the PowerShell 5.1 win on 5.1.26100 with a positive control. Verdict: *"Nothing imperfect remains that justifies an eighth round."*
+- **Two reviewers destroyed repo files during their own runs** by invoking `update-plugin-json.mjs` / `update-readme.mjs` with no arguments from the repo root — the arity hazard now ticketed as #68. Both detected it, restored from the HEAD blob, and disclosed it. Manager verified: `git hash-object` matches HEAD exactly for both files.
 
 **Round 6 closed the loop the task had been failing at.** Both agents falsified a premise they were *handed*, not just their own drafts:
 - The coder was told adding `|| err.code === "EISDIR"` would make the word "unreadable" true. It does not — an exclusively locked file throws `EBUSY`, and "unreadable" is wider than any code enumeration. It applied the guard **and** narrowed the prose to the enumeration actually implemented.
@@ -193,7 +209,7 @@ Per-site cost ≈600 B (hardened fence pair); ≈11.4 kB added against ≈14.5 k
 
 ## The over-generalization pattern — this task's main durable lesson
 
-Four times in one task, an agent measured something correctly and then wrote a universal the measurement did not support:
+Five times in one task, an agent measured something correctly and then wrote a universal the measurement did not support (the count matched the table's rows when written; both are five):
 
 | Round | Correct measurement | Unsupported universal written around it |
 |---|---|---|

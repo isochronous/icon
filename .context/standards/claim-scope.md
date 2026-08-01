@@ -51,6 +51,23 @@ on the same branch, and kept the present tense; the amendment written to fix *th
 false claim that the copies still "carry" the bug. When correcting a record mid-task, check the
 working tree at the moment of writing, not the state you remember investigating.
 
+**A measured count is a present-tense claim, and a long task will falsify its own.** The two forms
+above are caught at the moment of writing. A count is not: it can be correct when written, correct
+at review, and false by the time the task closes — because the task itself changed the population.
+ICON-0099 wrote *"21 such sites shipped today, plus 1 more in maintainer-only `.claude/`"* into
+`shell-portability` Rule 11 and into `skill-decomposition/executable-content/classification.md`,
+then converted 19 of those sites to committed `.mjs` in the same task. Both sentences shipped
+asserting 22 where 3 remained, in the two standards that exist to govern exactly this. Nothing
+re-checked them, because nothing was wrong at the time each was written.
+
+Two mechanics, cheap enough to do every time:
+
+- **Re-derive every count you wrote earlier in the task, at task close** — not re-read it. If your
+  work changed the thing counted, the number is stale by construction.
+- **Prefer the members to the number.** Three named paths a reader can check beat a count they
+  cannot, and a wrong enumeration is visible where a wrong integer is not. Where the population is
+  too large to name, ship the command that re-derives it next to the figure.
+
 ## Anti-Rationalization
 
 | Excuse | Reality | Correct Action |
@@ -77,3 +94,6 @@ prose.
   around it was wider than the evidence
 - See also: [harness-trust](harness-trust.md) — a verification *result* that cannot be trusted; this
   standard assumes the result is sound and governs what may be said about it
+- See also: [challenging-a-recorded-decision](challenging-a-recorded-decision.md) — a decision that
+  was applied correctly and is wrong on its merits; this standard governs the prose written around a
+  measurement, that one governs whether the rule you are obeying deserves to be obeyed

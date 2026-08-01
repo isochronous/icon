@@ -6,6 +6,7 @@ On-demand router for this repo's governing rules across `standards/`, `workflows
 
 | Rule | Applies when… | File |
 | --- | --- | --- |
+| challenging-a-recorded-decision | A recorded decision (ADR, standard, or a specialist's blocking finding) is being applied and the work keeps routing around it — the two signals (a third workaround; a blocker that dissolves when you ask for the measurement) and what to do when the challenge holds | [standards/challenging-a-recorded-decision.md](standards/challenging-a-recorded-decision.md) |
 | changelog-discipline | Writing or merging a `CHANGELOG.md` entry — tone, placement, cumulative-effect dedupe | [standards/changelog-discipline.md](standards/changelog-discipline.md) |
 | claim-scope | Writing a sentence that generalizes a measurement — the falsification attempt owed before any `every`/`never`/`only`/`all` or unqualified present-tense claim about repo state, and what to record | [standards/claim-scope.md](standards/claim-scope.md) |
 | harness-trust | A verification result (test pass/fail, byte comparison, exit code) is surprising, or before writing to any absolute scratch/temp path — suspect the harness (verification tool or shell environment) before the code under test | [standards/harness-trust.md](standards/harness-trust.md) |

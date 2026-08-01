@@ -57,10 +57,10 @@ clean.
    `"$TMPDIR/…"` fallback where `TMPDIR` is unset, writes into the Git installation with no error
    and no warning. **`git status` cannot detect the result at all** — the write is outside every
    repository, so the habitual working-tree-cleanliness check is blind to it; this is what let a
-   single task leak into it four times before being caught. Three distinct shapes produced real
-   files there in one task (ICON-0099): a `/`-rooted literal path from an unchecked
+   single task leak into it four times before being caught. Four distinct shapes produced those four
+   files in one task (ICON-0099): a `/`-rooted literal path from an unchecked
    `git rev-parse --show-toplevel` (empty output outside a work tree collapsed
-   `"$ROOT/.gitattributes"` to `/.gitattributes`), separately, a mistyped redirect landing plain
+   `"$ROOT/.gitattributes"` to `/.gitattributes`); a mistyped redirect landing plain
    `git diff` output at `/d.txt`; an unset `$TMPDIR` collapsing `"$TMPDIR/copilot-block.txt"` to
    `/copilot-block.txt`; and an assumption that MSYS2 mounts drives at `/cygdrive/c/...` the way
    **Cygwin** does — it does not, so the path was created as a literal directory tree instead of
