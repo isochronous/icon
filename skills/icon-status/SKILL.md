@@ -12,6 +12,14 @@ user-invocable: true
 Emit a concise plugin-state dashboard for the current repo: active task, recent
 retrospectives, and context health. Use before planning new work or after a break.
 
+**Runtime and shell.** Every fence in Steps 1 and 2 except the bare `node -v` probe is a `node -e`
+program, so with `node` off `PATH` each one emits nothing at all and the dashboard degrades to its
+`Node — not found` line alone — no block has a non-Node fallback. Run them in **bash or
+PowerShell 7**: Windows PowerShell 5.1 does not escape the `"` embedded in a single-quoted program
+when it builds the native command line, so each one fails there at parse time with a visible
+`SyntaxError` and empty stdout — never with a wrong answer. The `node -v` probe carries no quotes
+and runs in 5.1 too.
+
 ## When to Use
 
 - Returning to a repo after a break, to see where things stand
@@ -24,10 +32,9 @@ directly for that.
 
 ## icon-status: Step 1: Fresh-repo guard
 
-Check whether `.context/` exists in the current working directory. **Run this** — it is
-identical in every shell, so run it as-is in whatever shell the session uses. It prints
-`NOT_INITIALIZED` when `.context/` is absent or is not a directory, and prints **nothing at
-all** when the repo is initialized. Silence is the pass.
+Check whether `.context/` exists in the current working directory. **Run this as-is** — one text
+serves both supported shells. It prints `NOT_INITIALIZED` when `.context/` is absent or is not a
+directory, and prints **nothing at all** when the repo is initialized. Silence is the pass.
 
 ```
 node -e '
@@ -49,13 +56,17 @@ This repo is not yet ICON-initialized. Run `/icon-init` to set up — it detects
 
 ## icon-status: Step 2: Gather data
 
-Run each block below. Every block handles missing data gracefully — if a file or
-directory is absent, emit a "not found" note rather than empty output.
+Run each block below. No block fails on missing data, but they do not all report it the same way.
+Three always print: repo name (`(unknown)` at worst), branch/task (`BRANCH=`/`TASK_ID=`, either
+possibly empty), and `iconrc.json` (`not found` or `version (unreadable)` at worst). The rest can
+legitimately print **nothing** — an absent context subdirectory, a `retrospectives.md` with no
+task-ID headings, a Suggestions signal that does not fire — and there, silence is the result, not a
+failure. Each block's own paragraph states the outcomes it can produce.
 
-Each block is a single `node -e` command, untagged because it is byte-identical in bash and
-PowerShell — run it as-is, in whatever shell the session uses. **Every block is independently
-runnable**: none reads a value another block set, so run them in any order. A block's result is
-its stdout; **diagnostics go to stderr** and are never part of the result.
+Each block is a single `node -e` command, untagged because one text serves both supported shells —
+run it as-is (see **Runtime and shell** above). **Every block is independently runnable**: none
+reads a value another block set, so run them in any order. A block's result is its stdout;
+**diagnostics go to stderr** and are never part of the result.
 
 ### Repo name
 
@@ -373,7 +384,7 @@ Suggestions:
 | Plan line | No `plan.md` found for the task ID |
 | Recent retrospectives | No task-ID headings (`### PROJ-123` style) found in `retrospectives.md` |
 | Context health | No `.context/` subdirectories found at all |
-| `iconrc.json` line | Never omitted — report the version, `not found`, or `(unreadable)`. A blank after "version" is indistinguishable from a healthy read. |
+| `iconrc.json` line | Never omitted **when the block ran** — report the version, `not found`, or `(unreadable)`. A blank after "version" is indistinguishable from a healthy read. With `node` absent nothing in Step 2 runs (see **Runtime and shell**). |
 | Node line | Never omitted — report the version or `not found`. A silent pass is indistinguishable from the probe not running. |
 | Suggestions | No signals triggered |
 

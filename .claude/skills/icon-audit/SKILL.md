@@ -29,7 +29,18 @@ Run a 6-domain parallel audit that dispatches one sub-agent per domain, then syn
 
 Before dispatching any sub-agents, establish the baseline.
 
-The command below is identical in every shell — run it as-is, in whatever shell the session uses. It prints, in order: the prior-audit baseline (or a baseline-run note), the retrospectives and CHANGELOG line counts, and the agent/skill/manifest counts — record all of it in `plan.md` per the Phase 1 output list below. A missing `.context/retrospectives.md` or `CHANGELOG.md` is reported as `(not found)` rather than silently omitted; treat that as "no data available for this line," not as an error.
+The command below is one `node -e` program. Run it in **bash or PowerShell 7** — it is a
+single-quoted shell word containing double quotes, and Windows PowerShell 5.1 does not escape
+those when it builds the native command line, so it fails there at parse time with a visible
+`SyntaxError` and empty stdout rather than a wrong answer.
+
+It prints, in order: the prior-audit baseline (or a baseline-run note), the retrospectives and
+CHANGELOG line counts, and the agent/skill/manifest counts — record all of it in `plan.md` per the
+Phase 1 output list below. Missing inputs are reported, not silently absorbed: a missing
+`.context/retrospectives.md` or `CHANGELOG.md` prints `(not found)` in place of its count, and a
+missing `agents/` or `skills/` directory prints `0` with a `cannot access` line on stderr — which
+is what keeps "directory absent" distinguishable from "directory empty", since both count `0`.
+Treat any of these as "no data available for this line," not as an error.
 
 ```
 node -e '
@@ -65,8 +76,8 @@ if (priorAudit) {
 
 // 1.2 / 1.3 — retrospectives and CHANGELOG line counts. wc -l counts newline
 // characters, not "lines"; a missing file reports "(not found)" rather than
-// throwing, matching the "handle missing data gracefully" convention used
-// elsewhere in this repo (icon-status/SKILL.md:43-45, Step 2).
+// throwing, so an absent input is visible on stdout instead of vanishing —
+// the same convention icon-status states in its "Step 2: Gather data" preamble.
 function lineCount(file) {
   let text;
   try {
@@ -82,14 +93,19 @@ console.log(lineCount("CHANGELOG.md") + " CHANGELOG.md");
 
 // 1.4 — filesystem scale. readdirSync includes dot-entries, unlike `ls`
 // without -a, so dot-entries are filtered out to match `ls | wc -l`. A missing
-// directory reports 0, matching `ls` (error to stderr) + `wc -l` (0) rather
-// than throwing.
+// directory reports 0 on stdout, matching `ls` (error to stderr) + `wc -l` (0)
+// rather than throwing — and it writes the same kind of diagnostic `ls` did to
+// stderr, because a bare 0 on stdout cannot be told apart from an empty
+// directory. stdout stays the count; the reason stays on stderr.
 function countEntries(dir) {
   let entries;
   try {
     entries = fs.readdirSync(dir);
   } catch (err) {
-    if (err.code === "ENOENT") return 0;
+    if (err.code === "ENOENT") {
+      process.stderr.write("cannot access " + dir + ": No such file or directory\n");
+      return 0;
+    }
     throw err;
   }
   return entries.filter((name) => name[0] !== ".").length;
