@@ -21,8 +21,15 @@ For each check, report a pass/fail line with a path if applicable.
 **Shell requirement — bash or PowerShell 7.** Each block below is one single-quoted shell word whose
 body contains double quotes. Windows PowerShell 5.1 does not escape embedded `"` when it builds a
 native command line, so it strips them and node fails at parse time: `SyntaxError`, empty stdout,
-exit 1. Measured on 5.1.26100 — every block in this file fails that way. The failure is loud and
-never a wrong answer, but on 5.1 these checks cannot be run as written.
+exit 1. Measured on 5.1.26100 — every block in this file fails that way, so on 5.1 these checks
+cannot be run as written.
+
+That failure is loud in stdout only where a block answers with stdout *content*. Where the contract
+is "silence means clean", empty stdout **is** the pass signal, so a failed run reads as a clean audit
+unless the exit status is read alongside it. On 5.1 that status is 1, so reading it is enough — but
+read it from the run you just made. PowerShell leaves `$LASTEXITCODE` at the previous command's value
+when a native command is not found, so a node that never launched can leave a stale 0 behind, and the
+silence then passes for a genuine clean.
 
 ### plugin.json
 
@@ -52,12 +59,17 @@ plugin — and so does one that exists but is a regular file rather than a direc
 
 **Fidelity limit — read this before treating a clean run as YAML validation.** Node ships no YAML
 parser and ICON forbids third-party imports (ADR-005), so the block parses a deliberate subset:
-top-level `key: value`, and `>` / `>-` / `|` / `|-` block scalars. Block-scalar folding is carried
-here for parity with the Phase 2 description-quality check, which shares this parser and where the
-folding *is* load-bearing (`audit-phase-consistency.md § Frontmatter description quality`). It
-changes no outcome for *this* block: this check only asks whether `name` and `description` are
-non-empty, and an unfolded `>` is itself a non-empty string. Confirmed by mutation — a
-folding-skipped parser produces byte-identical output here, on this repo and on a folded fixture.
+top-level `key: value`, and `>` / `>-` / `|` / `|-` block scalars. Block-scalar folding is shared
+with the Phase 2 description-quality check, which uses this same parser
+(`audit-phase-consistency.md § Frontmatter description quality`), and it is load-bearing here too —
+in a narrower case than Phase 2's. Where a block scalar *has* content, folding changes nothing this
+check can see: the test is only non-emptiness, and an unfolded `>` is itself a non-empty string, so a
+folding-skipped parser produces byte-identical output over this repo (463 bytes either way). The case
+that matters is an **empty** block scalar. `description: >` with nothing indented under it folds to
+the empty string and is reported; a folding-skipped parser stores the literal `">"`, finds it
+non-empty, and says nothing. That is a false pass, so the folding stays. Mutation-verified on a
+two-key `name: x` / `description: >` fixture: this parser printed `missing or empty "description"`
+and exited 1, while the folding-skipped mutant printed nothing and exited 0.
 
 Two findings the previous Python version emitted are **not reproduced**, because a subset parser
 cannot produce them honestly. They are not equivalent, and the difference matters:
@@ -156,15 +168,17 @@ process.exit(findings.length ? 1 : 0);
 
 ### CHANGELOG `[Unreleased]` block
 
-Run it as-is in bash or PowerShell 7. Three outcomes, and the exit code agrees with stdout:
+Run it as-is in bash or PowerShell 7. Read stdout **and** the exit code together; the last row is the
+one with no verdict in it at all, so exit alone would misreport it as an ordinary failure:
 
 | stdout | exit | Meaning |
 |---|---|---|
 | `OK` | 0 | `CHANGELOG.md` exists and carries an `## [Unreleased]` heading. |
 | `MISSING [Unreleased]` | 1 | The file exists but has no `## [Unreleased]` heading. |
 | `MISSING CHANGELOG.md` | 1 | There is no `CHANGELOG.md` at all. |
+| *(nothing)* | 1 | The block did not finish, and reached no verdict — a `CHANGELOG.md` that is a *directory* throws `EISDIR` out of `readFileSync`, with the trace on stderr. Fix the tree and re-run. |
 
-The third outcome is new. Check 7 is two conditions — the file exists *and* it carries the block —
+The `MISSING CHANGELOG.md` outcome is new. Check 7 is two conditions — the file exists *and* it carries the block —
 and the previous `grep -q` form collapsed them, reporting `MISSING [Unreleased]` for a plugin with
 no changelog whatsoever.
 

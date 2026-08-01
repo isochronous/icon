@@ -16,8 +16,15 @@ Cross-file checks that detect drift between what a file claims and what other fi
 **Shell requirement — bash or PowerShell 7.** Each block below is one single-quoted shell word whose
 body contains double quotes. Windows PowerShell 5.1 does not escape embedded `"` when it builds a
 native command line, so it strips them and node fails at parse time: `SyntaxError`, empty stdout,
-exit 1. Measured on 5.1.26100 — every block in this file fails that way. The failure is loud and
-never a wrong answer, but on 5.1 these checks cannot be run as written.
+exit 1. Measured on 5.1.26100 — every block in this file fails that way, so on 5.1 these checks
+cannot be run as written.
+
+That failure is loud in stdout only where a block answers with stdout *content*. Where the contract
+is "silence means clean", empty stdout **is** the pass signal, so a failed run reads as a clean audit
+unless the exit status is read alongside it. On 5.1 that status is 1, so reading it is enough — but
+read it from the run you just made. PowerShell leaves `$LASTEXITCODE` at the previous command's value
+when a native command is not found, so a node that never launched can leave a stale 0 behind, and the
+silence then passes for a genuine clean.
 
 ### Skill-reference resolution
 
@@ -71,15 +78,33 @@ for (const f of findings) console.log(f);
 Run it as-is in bash or PowerShell 7. It recursively scans `agents/`, `skills/`, `shared/` and
 `commands/` for `.context/<path>.<ext>` tokens and prints `<file>: dead ref <token>` for each one
 resolving under neither `context_template/context/` nor `.context/`. Absent directories are skipped,
-as is one that exists but is a regular file. Silence means every reference resolves; exit is 0, so
-read the output, not the status.
+as is one that exists but is a regular file. Silence means every reference in every file it *scanned*
+resolves — see **Links** below for what it declines to scan. The exit status
+is 0 whether or not there were findings, so it carries no verdict of its own — read the output for
+that. It still does the job the banner above gives it: telling you the block ran.
 
-**Symlinks.** A symlinked directory is *not* descended into, matching `pathlib.rglob`, which yields
-such an entry but never recurses through it. It is also not read: the Python original yielded it and
+**Links.** Every entry is resolved with `statSync`, which follows links, so a directory reached
+through a symlink or a Windows junction is descended into and its files are scanned. That is what
+makes this block agree with the three frontmatter blocks, which resolve links the same way. Measured
+on a fixture whose only skill sits behind a junction: Phase 1 and the description-quality block below
+both reported it, while the earlier `Dirent`-based walk here printed nothing and exited 0 — a silent
+false-clean, the worst failure available to a dead-reference check.
+
+It diverges from `pathlib.rglob` in both directions, deliberately. `rglob` descends a junction
+(`os.path.islink` is False for one) but stops at a true symlink; this block descends both, so it
+reaches more of the tree. `rglob` also yields the symlinked directory itself, and the Python original
 then died on `read_text()` (`PermissionError` on Windows, `IsADirectoryError` on POSIX), losing every
-finding in the run; this block skips it instead. That is a deliberate, measured improvement on the
-original rather than a port of it. A symlink pointing at a real *file* is still followed and scanned,
-exactly as the original did.
+finding in the run; here a directory never reaches the read branch.
+
+`realpathSync` and a visited set bound the walk. A junction pointing at its own ancestor is otherwise
+re-entered until the path-length limit stops it: on such a fixture the Python original printed 190
+findings covering 2 real files and still exited 0, and deleting the visited set from this block
+reproduces all 190. The set costs path spellings, not coverage — a file reachable by several links is
+scanned once, reported under the first path to reach it, so `skills/` junctioned onto `agents/`
+yields findings spelled `agents/...` only. Aliasing fixtures built to make it drop a real file
+outright (sibling junctions onto one target; a top-level directory aliased onto another) did not. An
+entry `statSync` cannot resolve — a broken link, or a symlink loop (`ELOOP`) — is skipped like any
+other unreadable entry.
 
 Scanned suffixes are `.md`, `.sh`, `.ps1`, `.js` **and `.mjs`**. `.mjs` is deliberate and was added
 with this port: `*.js` does not glob-match `.mjs`, and the pre-commit gate this check generalizes
@@ -89,24 +114,35 @@ was extended to `.mjs` under ADR-017, so omitting it here would leave migrated s
 node -e '
 const fs = require("fs");
 const EXTS = [".md", ".sh", ".ps1", ".js", ".mjs"];
-// Two different stat semantics are needed here, deliberately.
-// Descending: Dirent.isDirectory() is lstat-based, so a symlinked directory is
-// NOT descended into -- matching pathlib rglob, which yields a symlinked
-// directory but never recurses through it.
-// Reading: isFile uses statSync, which FOLLOWS links, exactly as readFileSync
-// would. That keeps a symlink pointing at a real file (rglob yields those and
-// the original read them) and drops the entries that cannot be read as files --
-// a symlinked directory, a broken link, a device. Without this guard a
-// symlinked directory reaches readFileSync and throws EISDIR, killing the run
-// and losing every finding. ENOENT and ENOTDIR both yield no files.
+// One link policy across all four audit blocks: statSync, which FOLLOWS links.
+// Descending: a directory reached through a symlink or a Windows junction is
+// entered and its files are scanned. The three frontmatter blocks already read
+// a SKILL.md sitting behind a junction; this walk used to be the only one that
+// did not, and it said nothing about what it had skipped.
+// Reading: isFile drops whatever statSync cannot resolve to a regular file --
+// a broken link, a device -- which readFileSync would throw on. A directory
+// never reaches that branch; isDir claims it first, so the throw this guard
+// prevents is ENOENT on a broken link, not EISDIR. EXTS filters on the name
+// before any read, so the guard only bites for a scanned suffix: unguarded,
+// a broken brokendir.md kills the run and extension-less brokendir does not.
+// seen holds realpaths, which bounds the walk: a junction pointing at its own
+// ancestor is otherwise re-entered until the path-length limit stops it. A file
+// reachable by several links is scanned once, under the first path to reach it.
+// ENOENT means the directory is absent; ENOTDIR means it is a regular file.
+const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch (e) { return false; } };
 const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };
+const seen = new Set();
 function walk(dir, out) {
+  let real;
+  try { real = fs.realpathSync(dir); } catch (e) { if (e.code === "ENOENT") return out; throw e; }
+  if (seen.has(real)) return out;
+  seen.add(real);
   let ents;
-  try { ents = fs.readdirSync(dir, { withFileTypes: true }); }
+  try { ents = fs.readdirSync(dir); }
   catch (e) { if (e.code === "ENOENT" || e.code === "ENOTDIR") return out; throw e; }
-  for (const e of ents) {
-    const p = dir + "/" + e.name;
-    if (e.isDirectory()) walk(p, out); else if (isFile(p)) out.push(p);
+  for (const n of ents) {
+    const p = dir + "/" + n;
+    if (isDir(p)) walk(p, out); else if (isFile(p)) out.push(p);
   }
   return out;
 }
@@ -148,12 +184,13 @@ guard replaces `None` but not a non-dict, so the next `.get()` raised `Attribute
 the run before any finding printed. Here such a block yields no keys, so the file is reported
 `empty description` and the scan continues.
 
-**Block-scalar folding is load-bearing here, and only here.** Descriptions are almost always written
-as `description: >` with the text on the following lines, so a parser that skipped folding would
-store the literal `">"` — one character. This block measures length, so every such file would be
-reported `description too short (1 chars)`. Note the finding is *too short*, not *empty*: `">"` is
-non-empty, which is exactly why the Phase 1 block, whose test is only non-emptiness, is unaffected
-and why the justification belongs on this block rather than that one. Mutation-verified: replacing
+**Block-scalar folding is load-bearing here, and most visibly here.** Descriptions are almost always
+written as `description: >` with the text on the following lines, so a parser that skipped folding
+would store the literal `">"` — one character. This block measures length, so files written that way
+land on `description too short (1 chars)`. Note the finding is *too short*, not *empty*: `">"` is
+non-empty, which is why Phase 1, whose test is only non-emptiness, is unaffected by *this* case.
+Phase 1 has its own, narrower dependency on the folding — an **empty** block scalar, where dropping
+it converts a real finding into a false pass — recorded there. Mutation-verified: replacing
 the parser with a folding-skipped one turns this check's **0 findings against this repo into 59
 false `description too short (1 chars)` findings**, while Phase 1's output over the same repo does
 not change by a single byte.
