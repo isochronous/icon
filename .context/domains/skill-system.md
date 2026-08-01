@@ -112,7 +112,7 @@ Do not create a skill when:
 
 Once inside the dispatched skill, refer to a received value in prose ("the `repo_type` value supplied by the dispatcher prompt") rather than repeating the bracketed slot marker. If a bracket IS used inside the dispatched skill, it signals a resolved value — not a new slot to fill. The distinction is easy to miss when reading a step cold.
 
-**Concrete example**: In `initialize-monorepo/SKILL.md:289`, the dispatcher prompt contains `repo_type: monorepo` — a literal value passed to the dispatched agent. Inside `context-specialist-impl-root/SKILL.md:236`, the invocation reads `repo_type: <repo_type>` — the lowercase form is the variable as received by that skill, not an unfilled orchestrator slot. A future writer seeing `<repo_type>` inside `impl-root` must not treat it as something the orchestrator needs to fill in; it is already filled by the time that step runs.
+**Concrete example**: In `initialize-monorepo/SKILL.md` § Root session prompt (Step 5), the dispatcher prompt contains `repo_type: monorepo` — a literal value passed to the dispatched agent. Inside `context-specialist-impl-root/SKILL.md` § Step 14: Create Root `.iconrc`, the invocation reads `repo_type: <repo_type>` — the lowercase form is the variable as received by that skill, not an unfilled orchestrator slot. A future writer seeing `<repo_type>` inside `impl-root` must not treat it as something the orchestrator needs to fill in; it is already filled by the time that step runs.
 
 ## Related
 

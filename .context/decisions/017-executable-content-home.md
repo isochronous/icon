@@ -332,25 +332,26 @@ the `.gitattributes` cross-skill example were re-measured and corrected.
   copies of the `.gitattributes` block exist today with two already diverged and nothing detecting
   it."* Corrected to: three copies existed, one had diverged, and nothing detected it until this
   record's own investigation did.
-- **2026-07-31 (ICON-0099), same-day correction.** The two bullets immediately above were themselves
-  written in the present tense, asserting a live divergence and — in the first bullet — that the two
-  un-hardened copies "carry" a filesystem-root-write bug. Both claims were already false the moment
-  they were written: commit `5448e00` (ICON-0099, back-porting the two guards into
-  `context-specialist-impl-leaf` and `context-specialist-impl-root`) landed *before* the commit that
-  wrote this Amendments entry (`c234e84`), on the same branch, 14 seconds earlier by commit
-  timestamp. The divergence this record describes was this task's own to find and this task's own
-  to close — both happened inside ICON-0099, in the wrong order for the prose to notice. Re-verified
-  directly against the working tree for this correction: all three copies' `.gitattributes`
-  union-merge blocks are byte-identical (1,524 B each; SHA-256
-  `1c7b7e607bcc5d2fb83fb70bce80b645a46b01ec81a7aa1fc582cafbb0cb6f7f`). The Context and Decision
-  bullets above have been re-worded to past tense accordingly. This does not weaken the record's
-  argument — if anything it sharpens it: a hardening fix reached one of three prose copies, nothing
-  mechanical detected the gap for however long it stood, a targeted investigation (not a gate) found
-  it, and the very sentence written to document the finding repeated the same present-tense mistake
-  it was correcting, because verifying a replacement against the repo is a discipline that has to be
-  re-applied every time, not a box checked once
-  (`context-document-guidelines/correcting-a-stale-adr.md`'s ICON-0091 lesson, recurring here as
-  ICON-0099).
+
+**2026-07-31 (ICON-0099), same-day correction.** The Decision has not changed; the two bullets
+immediately above were themselves written in the present tense, asserting a live divergence and —
+in the first bullet — that the two un-hardened copies "carry" a filesystem-root-write bug. Both
+claims were already false the moment they were written: commit `5448e00` (ICON-0099, back-porting
+the two guards into `context-specialist-impl-leaf` and `context-specialist-impl-root`) landed
+*before* the commit that wrote this Amendments entry (`c234e84`), on the same branch, 14 seconds
+earlier by commit timestamp. The divergence this record describes was this task's own to find and
+this task's own to close — both happened inside ICON-0099, in the wrong order for the prose to
+notice. Re-verified directly against the working tree for this correction: all three copies'
+`.gitattributes` union-merge blocks are byte-identical (1,524 B each; SHA-256
+`1c7b7e607bcc5d2fb83fb70bce80b645a46b01ec81a7aa1fc582cafbb0cb6f7f`). The Context and Decision
+bullets above have been re-worded to past tense accordingly. This does not weaken the record's
+argument — if anything it sharpens it: a hardening fix reached one of three prose copies, nothing
+mechanical detected the gap for however long it stood, a targeted investigation (not a gate) found
+it, and the very sentence written to document the finding repeated the same present-tense mistake
+it was correcting, because verifying a replacement against the repo is a discipline that has to be
+re-applied every time, not a box checked once
+(`context-document-guidelines/correcting-a-stale-adr.md`'s ICON-0091 lesson, recurring here as
+ICON-0099).
 
 The Consequences section's parity-population claim (*"Migrating `append-retrospective-entry` takes
 its tracked population from 6 files to 3"*) was checked in the same pass against
