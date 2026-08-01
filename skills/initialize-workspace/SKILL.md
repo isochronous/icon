@@ -40,26 +40,36 @@ WORKSPACE_DIR="$(dirname "$WORKSPACE_FILE")"
 Parse the `folders` array. Each entry has a `path` key, relative (to the workspace
 file's directory) or absolute. Output is **tab-separated** — `#`, resolved path, raw
 entry, on-disk state — because paths contain spaces; do not re-split it on whitespace.
-Both paths are passed as **arguments**, never interpolated into the program: a folder
-path containing a quote or a backslash would otherwise corrupt it.
+Both paths are passed as **arguments**, never interpolated into the script body: a
+folder path containing a quote or a backslash would otherwise corrupt it.
+
+**Precondition — confirm Node is present before running this step.** Run `node -v`
+and read its **output**, not its exit status. If Node is absent, do not run the
+block below — invoke `check-node-runtime`, which reports what stops working and
+offers a per-platform install.
+
+`scripts/parse-workspace-folders.mjs` performs the parse.
+
+### Claude Code
+
+```
+node "${CLAUDE_SKILL_DIR}/scripts/parse-workspace-folders.mjs" "$WORKSPACE_FILE" "$WORKSPACE_DIR"
+```
+
+### Copilot CLI (Bash)
 
 ```bash
-node -e '
-const fs = require("fs"), path = require("path");
-const [wsFile, wsDir] = process.argv.slice(1);
-const folders = JSON.parse(fs.readFileSync(wsFile, "utf8")).folders || [];
-folders.forEach((f, i) => {
-  if (typeof f.path !== "string") {
-    process.stderr.write("ERROR: folders[" + i + "] has no string path key\n");
-    process.exit(1);
-  }
-});
-folders.forEach((f, i) => {
-  let p = path.resolve(wsDir, f.path), state = "on disk";
-  try { p = fs.realpathSync(p); } catch (e) { state = "NOT ON DISK"; }
-  process.stdout.write((i + 1) + "\t" + p + "\t" + f.path + "\t" + state + "\n");
-});
-' "$WORKSPACE_FILE" "$WORKSPACE_DIR"
+# Resolve this skill's install directory. Set MARKETPLACE_NAME=<slug> to pin one marketplace;
+# otherwise every installed marketplace is searched and an ambiguous result fails closed.
+ROOT="${COPILOT_HOME:-$HOME/.copilot}/installed-plugins"
+S="initialize-workspace"; P="scripts/parse-workspace-folders.mjs"
+if [ -n "${MARKETPLACE_NAME+x}" ]; then G="$MARKETPLACE_NAME"; else G="*"; fi
+F=""; N=0
+for f in "$ROOT"/$G/ICON/skills/"$S/$P" "$ROOT"/$G/ICON/*/skills/"$S/$P"; do
+  [ -f "$f" ] || continue; F="$f"; N=$((N+1))
+done
+[ "$N" = 1 ] || { echo "ICON: $N matches for $S/$P under $ROOT (marketplace ${MARKETPLACE_NAME-<any>}) — set MARKETPLACE_NAME; see: copilot plugin list" >&2; exit 1; }
+node "$F" "$WORKSPACE_FILE" "$WORKSPACE_DIR"
 ```
 
 A malformed `.code-workspace` — bad JSON, or a `folders` entry with no string `path`
