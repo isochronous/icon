@@ -23,8 +23,8 @@ That mass is a problem on three axes at once.
   separate work. **This record is that work's rule.**
 - **Nothing lints any of it.** shellcheck's gate scope is `*.sh` plus the two `.githooks/` files;
   **zero of the 164 fenced blocks are inside it.**
-- **Cross-skill duplication.** The `.gitattributes` union-merge block exists in three skills — two
-  copies already drifted, today, with nothing detecting it.
+- **Cross-skill duplication.** The `.gitattributes` union-merge block exists in three skills — one
+  copy has already diverged from the other two, today, with nothing detecting it.
 
 Against that sits a real counter-argument that has to survive: **a skill instructs an *agent*,
 which sometimes needs to adapt a command mid-flight** — substitute a path, skip a step, branch on
@@ -165,7 +165,7 @@ one costs a file, an invocation preamble, a runtime guard and a degradation path
 settles the shape: an installed skill cannot reference files outside its own directory, so **n
 copies ship, and the duplication is the price.** What migration changes is not the copy count —
 it is that **prose duplication is not preventing drift, it is hiding it.** Three copies of the
-`.gitattributes` block exist today with two already diverged and nothing detecting it.
+`.gitattributes` block exist today, one already diverged, and nothing detected it.
 
 Therefore: when a migrated block is shared by **n ≥ 2** skills, adding the copy-set to the
 `.githooks/pre-commit` byte-parity check is **mandatory in the same commit**, and the set migrates
@@ -309,3 +309,26 @@ Until both run, the Copilot half of this contract is a design, not a measurement
 5. **Add PowerShell twins for the remaining bash-only scripts instead — rejected**, and already
    rejected by ADR-005 on a user decision. It doubles the surface it is meant to fix and adds no
    detection of drift between the halves.
+
+## Amendments
+
+**2026-07-31 (ICON-0099).** The Decision has not changed; two Context/Decision sentences describing
+the `.gitattributes` cross-skill example were re-measured and corrected.
+
+- **Context, "Cross-skill duplication" bullet.** Said *"two copies already drifted, today, with
+  nothing detecting it."* Measured (ICON-0099's wave-2 investigation): `context-specialist-impl-leaf`
+  and `context-specialist-impl-root` are byte-identical (785 B each); exactly one copy —
+  `upgrade-repo` — has diverged, and it diverged *upward*, as a hardening pass (adding a check on
+  the otherwise-unchecked `git rev-parse --show-toplevel`, which resolves to the literal
+  `/.gitattributes` outside a work tree, and a conditional on the success-echo line, which otherwise
+  prints even when nothing was written) that reached one of the three copies and never propagated to
+  the other two. This makes the section's point stronger, not weaker: the two un-hardened copies
+  carry a live filesystem-root-write bug, and the described detection gap is exactly what let it go
+  unnoticed.
+- **Decision, "Cross-skill duplication migrates as a whole set, or not at all."** Said *"Three
+  copies of the `.gitattributes` block exist today with two already diverged and nothing detecting
+  it."* Corrected to: three copies exist, one already diverged, and nothing detected it.
+
+The Consequences section's parity-population claim (*"Migrating `append-retrospective-entry` takes
+its tracked population from 6 files to 3"*) was checked in the same pass against
+`.githooks/pre-commit:512-522,608-638` and confirmed accurate; left unchanged.
