@@ -6,15 +6,46 @@
 GitHub issue: #59. Follows #23/#58 (ICON-0098), which settled ADR-017 and proved it on `icon-init`.
 
 ## Phase State
-- **Phase plan**: investigation → implementation → testing → completion
-- **Completed**: investigation, implementation
-- **Current**: testing   (status: in-progress)
-- **Next**: completion
-- **Loaded skill**: task-plan-phase-testing
+- **Phase plan**: investigation → implementation → testing → **architecture** → implementation → testing → completion
+- **Completed**: investigation, implementation, testing
+- **Current**: architecture   (status: in-progress)
+- **Next**: implementation (re-run)
+- **Loaded skill**: task-plan-phase-architecture
 - **Branch**: feature/ICON-0099-migrate-fenced-blocks-waves-1-2
 - **Attempts (current phase)**: 1
 
+**Re-opened 2026-08-01 by explicit maintainer decision.** PR #65 was open and awaiting review when the maintainer challenged the premise the whole task was built on: *"Why are we putting huge code blocks in skill files instead of just adding scripts to skills?"* The challenge holds. An `architecture` phase is inserted to correct ADR-017 before the implementation is redone against the corrected rule. PR #65 stays open and unmerged.
+
 ## Decisions
+
+### OVERTURNED 2026-08-01 — ADR-017's inline-`node -e` default
+
+**The maintainer overturned the premise this task executed on.** Everything below in this section describing wave-1 dispositions as inline `node -e` was applied faithfully to ADR-017 as written; ADR-017 as written is what is now judged wrong. Kept as the record of what was done and why, not as current direction.
+
+Measured at PR #65's HEAD:
+
+| File | Before | After | Factor |
+|---|---|---|---|
+| `skills/icon-status/SKILL.md` | 8,076 B | 18,534 B | 2.3× |
+| `skills/plugin-design/audit-phase-consistency.md` | 6,343 B | 17,580 B | 2.8× |
+| `skills/plugin-design/audit-phase-structure.md` | 3,661 B | 11,245 B | 3.1× |
+
+21 inline `node -e` sites repo-wide, **14,842 B of program bodies**, largest single program **2,067 B** — against **3** committed `.mjs` files in the entire repo (`hooks/` ×2, `icon-init/scripts/` ×1).
+
+**Size is NOT the argument, and ADR-017 is right to disqualify it.** The three files grew ~29 kB while holding ~14 kB of code; roughly half the growth is the prose contract, which ADR-017 obliges to survive extraction either way. Moving code to scripts recovers 40–50% of the growth, not all of it.
+
+**The arguments that do land are the ones ADR-017 never weighed:**
+
+1. **The PowerShell 5.1 defect (#62) exists *only* because of inline delivery.** A program passed as a single-quoted shell word loses its embedded `"` on 5.1. Verified this session: `node "<path>.mjs"` runs clean on 5.1. The default created a 21-site portability bug that the disfavoured exception does not have.
+2. **Every program body is banned from containing an apostrophe** — a language restriction imposed by the delivery mechanism. ICON-0097 shipped a break on the name `Siobhan O'Brien`.
+3. **Nothing can be tested directly.** Every verification round had to extract fences from markdown and re-run them as shell words to test what ships.
+4. **Six review rounds were spent reading JavaScript inside markdown diffs.**
+
+**The precise gap in ADR-017**: its four `.mjs` triggers — cross-fence state, mutation, reuse, unavoidable apostrophe — are all *fence-specific correctness hazards*. **None asks whether the block is a program or a command.** A 2 kB parser with a recursive walk and a visited set is a program; it classified inline because no trigger fired.
+
+**Live counter-considerations the architecture phase must resolve, not wave away**: Copilot CLI path reconstruction is still *designed for, untested* with a hard-coded marketplace slug, and flipping the default makes it load-bearing for many more sites; shared blocks ship n copies (`skills cannot share scripts`); and there is no JS correctness linter either way (#48).
+
+### Original decisions (applied as written; superseded above where they conflict)
 - Scope taken verbatim from issue #59 (waves 1 and 2). `skills/upgrade-repo/SKILL.md` (#61) and the `.sh`/`.ps1` script files (#60) are explicitly OUT — they are separately ticketed and #61 is blocked on #42's split.
 - Wave 2 migrates **as a whole set or not at all** (ADR-017 § Cross-skill duplication). A half-migrated copy-set is worse than either end state, and the set intersects the `.githooks/pre-commit` byte-parity check's population, which must be updated in the same commit.
 - Phase plan includes a distinct **testing** phase because ICON-0098's retro (Rule 10, `shell-portability`) makes differential verification against the pre-migration implementation mandatory, not optional — porting by shape rather than semantics is the known failure mode for exactly this work.
