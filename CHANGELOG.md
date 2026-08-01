@@ -19,7 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - `/icon-init` now detects repo shape with a committed Node script instead of inline shell, so one implementation runs on every platform. (ICON-0098)
-- `plugin-design` repo-setup steps dropped their duplicate PowerShell blocks; the surviving commands run unchanged in both shells. (ICON-0098)
+- `plugin-design` repo-setup steps dropped their duplicate PowerShell blocks in favour of single shell-agnostic commands. (ICON-0098)
+- Inline `node -e` blocks in shipped skills require bash or PowerShell 7; Windows PowerShell 5.1 fails them at parse time. (ICON-0099)
+- `plugin-design`'s Phase 1 check no longer validates YAML; a clean run now means the `name` and `description` keys are present, not that the file parses. (ICON-0099)
 - `writing-skills` now sets a single byte cap per file (`SKILL.md` ≤ 16,000, companion ≤ 8,000), replacing nine overlapping and partly contradictory skill-size rules. (ICON-0095)
 - Split `context-document-guidelines` into a lean `SKILL.md` plus three on-demand companions, preserving every section name other docs cite. (ICON-0095)
 - `.context/` maintenance now carries P0/P1/P2 urgency tiers, so inaccurate content is corrected on discovery instead of queued to task close. (ICON-0088)
@@ -29,7 +31,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `/icon-init` no longer misdetects a JavaScript workspace monorepo as a single project when its manifest cannot be read. (ICON-0097)
 - `/icon-status` no longer shows a blank version when `.context/iconrc.json` is missing, malformed, or unreadable. (ICON-0097)
 - `/initialize-workspace` no longer breaks on a workspace folder path containing an apostrophe, a backslash, or a space. (ICON-0097)
-- Nine `python3` invocations in shipped skills are now Node, which does run on a stock Windows box. (ICON-0097)
+- Every `python3` invocation in shipped skills is now Node, so `plugin-design`'s structure and consistency audit phases run on a stock Windows box. (ICON-0097, ICON-0099)
+- `/icon-status` now reports the active plan and its two staleness suggestions, which never appeared because each block lost the variables the previous one set. (ICON-0099)
+- The `.gitattributes` setup in `context-specialist-impl-leaf` and `-impl-root` no longer writes to the filesystem root when run outside a git work tree. (ICON-0099)
+- `plugin-design`'s dead-reference audit no longer skips an entire directory reached through a symlink or a Windows junction. (ICON-0099)
+- `plugin-design` and `icon-audit` audit blocks no longer abort on one unreadable entry, which forfeited every finding after it. (ICON-0099)
 - The manager-role session hook now warns the user when it skips injection, instead of writing to a stream nobody sees. (ICON-0096)
 - Shipped skills no longer use GNU-only shell constructs, so `/icon-init` .NET monorepo discovery, `/upgrade-repo` schema comparison, and the retrospective-append helper now work on macOS and BSD. (ICON-0093)
 - The `commit-conventions.md` scaffold shipped to consumer repos no longer carries a predecessor project's ticket prefix, ICON's own commit history, or a single-assistant co-author trailer. (ICON-0093)

@@ -15,12 +15,21 @@ where the line falls and what an author must write on each side of it.
 | **Judgement** | prose, **no fence** | Could two competent agents, both following correctly, emit *different* commands? |
 | **Illustrative** | fence with **no language tag** | Is this output to recognise, or a command to run? |
 | **Trivial** | fence kept in place, **never migrate** (retagging is not migrating) | See *The Trivial Test*. |
-| **Deterministic** | **inline `node -e` — the default** | Shell-agnostic, no path resolution, no new file, no runtime guard. |
+| **Deterministic** | **inline `node -e` — the default** | Runs in bash, sh, zsh and PowerShell 7; no path resolution, no new file, no runtime guard. **Not** Windows PowerShell 5.1 if the program body contains a `"` — see below. |
 | **Deterministic + a trigger** | committed `.mjs` under the invoking skill's own `scripts/` | One of the four triggers below. |
 
 Inline `node -e` is the default, not a compromise. Pass values through `process.argv` — **never by
 interpolating them into the program text.** An interpolated value containing a literal `'` closes
 the program.
+
+**Say which shells the block runs in, in the prose next to it.** Windows PowerShell 5.1 does not
+escape a `"` embedded in a native command's argument, so an inline `node -e` program whose body
+contains a double quote reaches Node with those quotes deleted and dies on a `SyntaxError` —
+measured on 5.1.26100, and true of all 22 such sites shipped today. PowerShell 7 and bash are
+unaffected, and so is the `.mjs` invocation form below, which has no quote inside an argument
+value. `shell-portability` Rule 11 carries the measurement, the pairing with a silent-pass contract
+that turns the failure into a false pass, and why outer-double/inner-single is not a general fix.
+A block that must run on 5.1 is a block that belongs in a committed `.mjs`.
 
 **Port the block's semantics, not its shape** — per `shell-portability` Rule 10, a Node API that
 mirrors a shell construct's shape can be inverted against its behaviour, so check each construct
@@ -231,3 +240,4 @@ it works, not asserting that it should.
 - Governed by: [ADR-017 executable content home](../../decisions/017-executable-content-home.md)
 - See also: [shell portability Rule 10](../shell-portability/rules/010-port-semantics-not-shape.md) — matching a shell construct's semantics rather than its shape when migrating it
 - See also: [shell portability Rule 9](../shell-portability/rules/009-pass-values-as-arguments.md) — the `process.argv` obligation this file's default rests on
+- See also: [shell portability Rule 11](../shell-portability/rules/011-powershell-51-strips-embedded-quotes.md) — the Windows PowerShell 5.1 limit on this file's inline `node -e` default

@@ -7,12 +7,12 @@ GitHub issue: #59. Follows #23/#58 (ICON-0098), which settled ADR-017 and proved
 
 ## Phase State
 - **Phase plan**: investigation → implementation → testing → completion
-- **Completed**: investigation
-- **Current**: implementation   (status: pending)
-- **Next**: testing
-- **Loaded skill**: task-plan-phase-implementation
+- **Completed**: investigation, implementation
+- **Current**: testing   (status: in-progress)
+- **Next**: completion
+- **Loaded skill**: task-plan-phase-testing
 - **Branch**: feature/ICON-0099-migrate-fenced-blocks-waves-1-2
-- **Attempts (current phase)**: 0
+- **Attempts (current phase)**: 1
 
 ## Decisions
 - Scope taken verbatim from issue #59 (waves 1 and 2). `skills/upgrade-repo/SKILL.md` (#61) and the `.sh`/`.ps1` script files (#60) are explicitly OUT — they are separately ticketed and #61 is blocked on #42's split.
@@ -72,17 +72,110 @@ GitHub issue: #59. Follows #23/#58 (ICON-0098), which settled ADR-017 and proved
 - [x] Investigation: enumerate and classify every candidate block in waves 1 and 2 against ADR-017's four tiers — 24 wave-1 fences classified, 8 wave-2 copy-sets found, 3 of them deterministic
 - [x] Update this plan with the classification and per-site disposition before any edit
 - [x] Maintainer decision on the wave-2 scope conflict — bug fixed here, migration deferred
-- [ ] Implementation: wave 1 — `plugin-design` (the `python3` bug + the four heredocs) ← IN PROGRESS
-- [ ] Implementation: wave 1 — `icon-status` (10 blocks; cure the three dead cross-fence chains)
-- [ ] Implementation: wave 1 — `.claude/skills/icon-audit` (1 block)
-- [ ] Implementation: back-port `upgrade-repo`'s two `.gitattributes` guards into `impl-leaf` and `impl-root`
-- [ ] `.context/` correction: ADR-017's falsified "two copies already drifted" sentence (dispatched in-task, not deferred)
-- [ ] Testing: differential verification of each migrated site against its `git show HEAD:`-extracted original
-- [ ] Completion: reconcile plan, @reviewer, changelog, retrospective, follow-up issues, PR
+- [x] Implementation: wave 1 — `plugin-design`, all four `python3` heredocs gone, 5 blocks inline, 2 PowerShell twins retired (commit `4646892`)
+- [x] Implementation: wave 1 — `icon-status`, 10 blocks inline, three dead cross-fence chains cured (commit `a814893`)
+- [x] Implementation: wave 1 — `.claude/skills/icon-audit`, 1 block inline + 3 fidelity fixes (commit `ce5e956`)
+- [x] Implementation: back-port `upgrade-repo`'s two `.gitattributes` guards into `impl-leaf` and `impl-root` — all three copies now byte-identical (commit `5448e00`)
+- [x] `.context/` correction: ADR-017's falsified "two copies already drifted" sentence, plus a second occurrence in its Decision section and one in ICON-0098's `plan.md` (commit `c234e84`)
+- [x] Testing: independent adversarial re-verification by @tester and @reviewer in parallel — both found real defects; 4 Moderate + 6 lower, plus one High-severity pre-existing class
+- [x] Round 2: remediation of all findings across three parallel dispatches (commits `5a7ebdb`, `c308b74`, `ca32027`)
+- [ ] Completion: re-review the post-checkpoint diff, changelog, retrospective, follow-up issues, PR ← IN PROGRESS
+
+## Review Checkpoint
+
+- **Round 1** (@reviewer, tier `complex`, over `1b8d651..c234e84`): **changes requested** — 4 Moderate, 5 Minor. Verdict recorded: *"The migration itself is sound and I would approve it on the strength of the semantics work once those land."*
+- **Round 1** (@tester, tier `complex`, independent and parallel): 1 High (pre-existing class), 1 Moderate, 4 Low. Mutation-tested every semantics item and found **one fixture that does not discriminate**.
+- **Round 2** remediation: commits `5a7ebdb`, `c308b74`, `ca32027`. Every Moderate and Minor addressed; the High goes to its own ticket (below) with the prose corrected to state the measured truth in the meantime.
+- **Round 3** (@reviewer, over `c234e84..HEAD`): **changes requested** — 4 Moderate, 7 Minor. Every one of the four Moderates was **introduced by round 2's own prose**, not by the migration. The reviewer's framing is the durable lesson: *"The seven verifiable measurements round 2 made all reproduce exactly. What did not survive is the generalization round 2 wrapped around three of them — four new unconditional claims, each falsified by a counter-example I could construct in under a minute."*
+- **Round 4** remediation: commits `d831e04`, `f129326`, `5dd1026`. Dispatched with an explicit instruction to attempt falsification before writing any sentence containing *every / never / only / all*, and to report the attempt. **It worked** — both coders falsified universals in their own drafts and corrected them before finishing (one wrote "this is the one block where a failure to run is indistinguishable from a pass" and found three more; another wrote "loses every line, including the ones already computed" and measured a mutant keeping 95 of 164 bytes).
+- **Round 5** (@reviewer, over `ca32027..HEAD`): **approve with changes** — 0 Critical, 3 Moderate, 7 Minor. All three Moderates were single-sentence prose, again introduced by the preceding round. The link-policy code change was verified correct: *"I could not make the visited set drop a real file in 85 fixture trials plus a validated positive control."* Verdict quote: *"Five rounds is enough — the remaining defect surface is sentences, not semantics."*
+- **Round 6** remediation: commits `58f88d6`, `f6b6e2f`. All three Moderates plus five cheap Minors. The one deferred item — widening the `realpathSync` catch — the reviewer classified explicitly as a follow-up, not a blocker: pre-existing, loud rather than silent, reachable only on a pathological tree.
+
+**Round 6 closed the loop the task had been failing at.** Both agents falsified a premise they were *handed*, not just their own drafts:
+- The coder was told adding `|| err.code === "EISDIR"` would make the word "unreadable" true. It does not — an exclusively locked file throws `EBUSY`, and "unreadable" is wider than any code enumeration. It applied the guard **and** narrowed the prose to the enumeration actually implemented.
+- The context-specialist's first fix (moving the mis-parented paragraph) would have broken entry 2's own *"the two bullets immediately above"* reference — trading one false attribution for another. It reverted and named the commit in place instead.
+
+## The over-generalization pattern — this task's main durable lesson
+
+Four times in one task, an agent measured something correctly and then wrote a universal the measurement did not support:
+
+| Round | Correct measurement | Unsupported universal written around it |
+|---|---|---|
+| 1 | `impl-leaf` and `impl-root` are byte-identical; `upgrade-repo` diverged | ADR-017's *"two copies already drifted"* |
+| 2 | The back-port made all three identical | The correction, written 14 s later, kept the **present tense** — and its amendment added a *new* false claim that the copies still "carry" the bug |
+| 2 | Folding is load-bearing for the description-quality check | *"It changes no outcome for this block"* — false for an empty block scalar |
+| 2 | `rglob` yields a symlinked dir without recursing | *"matching `pathlib.rglob`"* — false for a Windows junction, silently |
+| 2 | The fences fail loudly on PowerShell 5.1 | *"never with a wrong answer"* — false wherever silence is the pass |
+
+The remedy is already written down at `skills/context-document-guidelines/correcting-a-stale-adr.md:34-35`: *"Prefer a description of what the repo does… over a universal that one counter-example falsifies."* It was not applied, including by the round that was citing it. What made round 4 different was an **explicit instruction to attempt falsification before writing the sentence, and to report the attempt** — which converted the rule from something to remember into a step with an output.
+
+## Size: three files are now over ADR-016's advisory cap
+
+| File | Before | After | Cap | Gate 2 |
+|---|---|---|---|---|
+| `skills/icon-status/SKILL.md` | 8,076 B | **18,955 B** | 16,000 | no — one linear procedure |
+| `skills/plugin-design/audit-phase-consistency.md` | 6,343 B | **16,450 B** | 8,000 | no — four checks, one invocation |
+| `skills/plugin-design/audit-phase-structure.md` | 3,661 B | **11,444 B** | 8,000 | no — same |
+
+Growth is ADR-017's expected and stated cost, and nothing was relocated to a `.mjs` or trimmed from a contract to manage a number (ADR-017 § Disqualified). Gate 2's prescribed answer for all three is *"record the finding; do not split"*, and that is what was done.
+
+**But the round-3 reviewer's challenge stands and is recorded rather than dismissed**: *"'Did you shrink a file dishonestly' was the wrong question to ask at gate 2 — the honest answer is no, but nobody asked whether tripling two companions warrants a split."* `icon-status` is now ~2.35× its pre-task size and past the post-compaction retention limit ADR-016's cap was derived from, so content will be silently dropped on compaction. That deserves a deliberate decision rather than a gate-2 default, and is ticketed.
+
+## The PowerShell 5.1 finding — the largest thing this task learned
+
+The @tester measured that **Windows PowerShell 5.1 does not escape embedded `"` when building a native command line**, so Node receives an inline `node -e` program with its quotes stripped:
+
+```
+=== PS5.1 ===                                    === PS7 / bash ===
+process.stdout.write(HELLO\n)                    HELLO
+                     ^^^^^^  quotes stripped
+SyntaxError: Invalid or unexpected token         exit 0
+```
+
+**Every inline `node -e` fence containing a `"` fails on PowerShell 5.1** — exit 1, zero stdout, a visible SyntaxError. Reproduced through two independent invocation paths (`-File` and `-Command`) on 5.1.26100.
+
+This matters more than one task's diff, for three reasons:
+
+1. **ADR-017's untagged-fence contract does not survive contact with it as written.** The ADR's claim — *"byte-identical in bash, sh, zsh, PowerShell 5.1 and 7, and cmd"* — is stated about `node "${CLAUDE_SKILL_DIR}/scripts/<name>.mjs"`, a single-line invocation with no embedded quotes, where it is **true**. It does not extend to multi-line `node -e` programs, which is what the ADR simultaneously makes the *default* disposition. The gap is in the ADR, not in this migration.
+2. **It is pre-existing and this task widened it.** 8 such sites existed at `1b8d651`; the branch takes it to 22. It also **deleted 3 native-PowerShell twins that did work on 5.1**, so for `plugin-design` specifically this is a net regression on that shell.
+3. **`shell-portability/testing-pattern.md` measures `$LASTEXITCODE` on "7.6.3 and 5.1"**, so 5.1 is inside ICON's stated support scope, not outside it.
+
+**Decision: ticket it, do not fix it here, and correct the prose that claims otherwise.** Per the maintainer's bug policy the cause is apparent but the fix is *not* obvious — the candidates are (a) eliminate `"` from all 22 program bodies, which needs a verified alternative quoting form, (b) amend ADR-017's shell claim and scope inline `node -e` to bash/pwsh 7, or (c) reintroduce PowerShell twins, which contradicts ADR-017's standing no-new-twins policy. That is a design call across 22 sites and an ADR, not a fix.
+
+**The twins are deliberately not restored.** A partial restoration would leave `plugin-design` working on 5.1 while `icon-status` and `icon-audit` do not — a worse state than a uniform, documented, loudly-failing gap with a ticket. The failure mode is loud and closed in every case: SyntaxError, exit 1, empty stdout, never a wrong answer.
+
+All four migrated files now state the measured requirement — bash or PowerShell 7 — in place of the "identical in every shell" claim they carried.
+
+## Findings recorded, not acted on
+
+**ADR-016 size-gate advisories** (the gate is advisory until #24 lands a CI backstop; both were answered per the gate's own gate-2 instruction):
+- `skills/plugin-design/audit-phase-consistency.md` — 9,776 B against the 8,000 B companion cap. Gate 2 answered **no** (all four checks run in one invocation, so there are not 2+ invocation-scoped conditions), therefore **recorded, not split**. Growth is the expected ADR-017 cost.
+- `skills/context-specialist-impl-leaf/SKILL.md` — 19,271 B against the 16,000 B cap. **Pre-existing**; this task's guard back-port added ~739 B to a file already over. Not this task's to split.
+- `skills/icon-status/SKILL.md` — 15,723 B **at the migration commit `a814893`**, i.e. 277 B of headroom at that point. The four remediation rounds' prose then took it past the cap; see § Size below for the final figure and the disposition. Recorded here as the historical reading, not the current one.
+
+**Two crash bugs in the `plugin-design` originals that the classification did not name** — the description-quality check and the dead-ref check each aborted *entirely* on one bad input (an `AttributeError` on a string-valued frontmatter, a `PermissionError` on a directory named `*.md`), losing every finding rather than one. Both fixed by the port as a side effect.
+
+**S12 was wrong on this runtime, and measurement overturned it.** The classification warned that GNU `find -mmin +2880` truncates, so a naive `(now-mtime)/60000 > 2880` fires a minute early. Measured on findutils 4.10.0: modern `find` compares exact timestamps, so the naive mapping *is* the faithful one and the "corrected" floored form would have fired up to a minute **late**. The unfloored form shipped, bracketed by fixtures at 2,880.4 and 2,879.6 minutes.
+
+**An axis S10 did not name, and it is sharper than the one it did.** `find <symlinked-dir> -maxdepth 1` does not descend, because `find -P` lstats its top-level arguments. So `icon-status`'s original context-health block was internally contradictory: `[ -d ]` said "report this directory", `find` reported it empty. On a symlinked `.context/domains` holding two files it printed `— 0 files` *and* emitted a false "run /upgrade-repo" suggestion. The port diverges deliberately — reproducing it would mean adding an `lstatSync` purely to preserve a defect.
+
+**One process miss, self-caught**: a verification run used `2>$null`, the banned suppression pattern (ADR-007). The agent discarded that run and re-ran with stderr to a file — which is how the bash/PowerShell **stderr** parity got measured at all.
 
 ## Open Questions / Blockers
 - None blocking. The wave-2 scope conflict is resolved (see Decisions); the degradation-path question is resolved (not engaged — every disposition is inline).
-- Carried to close, not blocking: three follow-up issues to file — sets A and C onto #61, and set B as its own ticket with the byte-identical/no-degradation-path counter-evidence recorded so it is not simply re-proposed.
+
+### Follow-ups to file at close
+Wave-2 deferral (the ticket's own scope, moved rather than dropped):
+1. **Sets A and C onto #61** — both have a member in `skills/upgrade-repo/`, so they migrate when #61 does. Set A's *bug* is already fixed here; only its migration moves.
+2. **Set B as its own ticket**, carrying the counter-evidence so it is not simply re-proposed: its three copies are already byte-identical (nothing to detect), and none of the three `initialize-*` skills has a Node-absence degradation path, which ADR-017 makes a hard precondition for the committed `.mjs` both its triggers would require.
+
+Found in passing, none in this task's scope:
+3. **Nine `agents/*.agent.md` declare no `name:` key** — a real self-audit finding that both the original and the ported check report. Either add the key or amend the check.
+4. **15 dead references and 8 unresolved skill references live in the repo today** — pre-existing, both implementations agree on them.
+5. **`skills/plugin-design/audit-mode.md:16-24` / `:30-38`** — a bash/PowerShell twin pair still unmigrated; missed by #59's enumeration.
+6. **`skills/plugin-design/audit-phase-structure.md` check 2 (`$schema`) has no snippet** at all.
+7. **`.githooks/pre-commit:33` header comment is stale**, and so is `:512`'s `# … ANY of the six tracked copies` narration plus the `three copies (…)` enumeration at `:28-31` — none of them gated, all of them drift-prone. Pairs naturally with #30's registry-driven checks.
+8. **Node absence now degrades the whole `icon-status` dashboard**, not the two lines the original degraded. Widening the degradation path was out of scope for a migration (ADR-017 forbids inventing one), so it was left as-is and needs its own decision.
 
 ## Constraints
 - ICON is pure-content: no build step, no test runner, no package manager (ADR-005). Committed, dependency-free scripts run in place ARE in scope.

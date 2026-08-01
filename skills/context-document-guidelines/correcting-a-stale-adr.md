@@ -34,6 +34,16 @@ unsourced claims and introduced a sixth, attributing to a neighbouring ADR a rul
 stated. Prefer a description of what the repo does, with known gaps named as gaps, over a
 universal ("only in X", "always Y") that one counter-example falsifies.
 
+**That preference is not self-executing — run the procedure (ICON-0099).** Stated as a preference,
+this paragraph was violated five times in one task, including by the round that was citing it. The
+executable form is the **claim-scope** standard: before writing any sentence containing *every /
+never / only / all* or an unqualified present-tense claim about repo state, attempt to construct a
+counter-example and **record what you tried**. It applies to any authored artifact, not only an
+ADR — the five ICON-0099 instances were spread across ADR prose, skill prose, and a code comment.
+The tense trap is specific to this file's subject and worth naming here: a correction written
+*after* the commit that fixed the thing it describes still reads false if it keeps the present
+tense. Check the working tree at the moment of writing, not the state you remember investigating.
+
 **When a claim resists repeated correction, remove it instead of correcting it again
 (ICON-0091).** Some facts have no reliable representation to verify against, and no amount of
 careful re-checking converges on one. The same ADR-005 correction stated a count of unpaired
