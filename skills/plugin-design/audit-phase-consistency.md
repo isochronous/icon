@@ -13,23 +13,38 @@ Cross-file checks that detect drift between what a file claims and what other fi
 
 ## Validation Snippets
 
+**Shell requirement — bash or PowerShell 7.** Each block below is one single-quoted shell word whose
+body contains double quotes. Windows PowerShell 5.1 does not escape embedded `"` when it builds a
+native command line, so it strips them and node fails at parse time: `SyntaxError`, empty stdout,
+exit 1. Measured on 5.1.26100 — every block in this file fails that way. The failure is loud and
+never a wrong answer, but on 5.1 these checks cannot be run as written.
+
 ### Skill-reference resolution
 
-Identical in every shell — run it as-is, in whatever shell the session uses. It prints one line per
-unresolved invocation to stdout and always exits 0: this check reports, it does not gate, because
+Run it as-is in bash or PowerShell 7. It prints one line per
+unresolved invocation to stdout and exits 0: this check reports, it does not gate, because
 the built-in slash commands named in check 1 are indistinguishable from a dead reference here and
 the auditor is the one who tells them apart. Silence means every `/name` token in agent and skill
 body text has a matching `skills/name/SKILL.md`. Each finding is a *candidate*: check 1 above is
 what decides whether the name is really dead or is a harness built-in.
 
+The exit-0 promise depends on the target list holding only readable regular files, which is what the
+`isFile` filter is for — without it, a *directory* named `something.agent.md` reaches `readFileSync`
+and the block dies on `EISDIR` with exit 1 and no findings at all. Anything that cannot be stat-ed
+as a file is skipped rather than thrown.
+
 ```
 node -e '
 const fs = require("fs");
-const ls = (d) => { try { return fs.readdirSync(d); } catch (e) { if (e.code === "ENOENT") return []; throw e; } };
+// ENOENT and ENOTDIR both yield no entries, matching pathlib glob, which returns
+// nothing whether the directory is absent or is actually a regular file.
+const ls = (d) => { try { return fs.readdirSync(d); } catch (e) { if (e.code === "ENOENT" || e.code === "ENOTDIR") return []; throw e; } };
 const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };
 const existing = new Set(ls("skills").filter((n) => isFile("skills/" + n + "/SKILL.md")));
+// filter(isFile) is required on the agents half too: a *directory* named
+// something.agent.md would otherwise reach readFileSync below and throw EISDIR.
 const targets = ls("agents").filter((n) => n.endsWith(".agent.md")).map((n) => "agents/" + n)
-  .concat(Array.from(existing).map((n) => "skills/" + n + "/SKILL.md"));
+  .concat(Array.from(existing).map((n) => "skills/" + n + "/SKILL.md")).filter(isFile);
 // Require the slash-name to be a real invocation: preceded by start-of-line or
 // whitespace/backtick, and followed by whitespace, end-of-line, backtick, or
 // common punctuation. This avoids matching mid-path tokens like .context/standards.
@@ -53,10 +68,18 @@ for (const f of findings) console.log(f);
 
 ### File-path resolution (dead-ref)
 
-Identical in every shell — run it as-is. It recursively scans `agents/`, `skills/`, `shared/` and
+Run it as-is in bash or PowerShell 7. It recursively scans `agents/`, `skills/`, `shared/` and
 `commands/` for `.context/<path>.<ext>` tokens and prints `<file>: dead ref <token>` for each one
-resolving under neither `context_template/context/` nor `.context/`. Absent directories are skipped.
-Silence means every reference resolves; exit is always 0, so read the output, not the status.
+resolving under neither `context_template/context/` nor `.context/`. Absent directories are skipped,
+as is one that exists but is a regular file. Silence means every reference resolves; exit is 0, so
+read the output, not the status.
+
+**Symlinks.** A symlinked directory is *not* descended into, matching `pathlib.rglob`, which yields
+such an entry but never recurses through it. It is also not read: the Python original yielded it and
+then died on `read_text()` (`PermissionError` on Windows, `IsADirectoryError` on POSIX), losing every
+finding in the run; this block skips it instead. That is a deliberate, measured improvement on the
+original rather than a port of it. A symlink pointing at a real *file* is still followed and scanned,
+exactly as the original did.
 
 Scanned suffixes are `.md`, `.sh`, `.ps1`, `.js` **and `.mjs`**. `.mjs` is deliberate and was added
 with this port: `*.js` does not glob-match `.mjs`, and the pre-commit gate this check generalizes
@@ -66,15 +89,24 @@ was extended to `.mjs` under ADR-017, so omitting it here would leave migrated s
 node -e '
 const fs = require("fs");
 const EXTS = [".md", ".sh", ".ps1", ".js", ".mjs"];
-// Dirent.isDirectory() does not follow symlinks, matching pathlib rglob, which
-// does not descend into symlinked directories either. ENOENT yields no files.
+// Two different stat semantics are needed here, deliberately.
+// Descending: Dirent.isDirectory() is lstat-based, so a symlinked directory is
+// NOT descended into -- matching pathlib rglob, which yields a symlinked
+// directory but never recurses through it.
+// Reading: isFile uses statSync, which FOLLOWS links, exactly as readFileSync
+// would. That keeps a symlink pointing at a real file (rglob yields those and
+// the original read them) and drops the entries that cannot be read as files --
+// a symlinked directory, a broken link, a device. Without this guard a
+// symlinked directory reaches readFileSync and throws EISDIR, killing the run
+// and losing every finding. ENOENT and ENOTDIR both yield no files.
+const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };
 function walk(dir, out) {
   let ents;
   try { ents = fs.readdirSync(dir, { withFileTypes: true }); }
-  catch (e) { if (e.code === "ENOENT") return out; throw e; }
+  catch (e) { if (e.code === "ENOENT" || e.code === "ENOTDIR") return out; throw e; }
   for (const e of ents) {
     const p = dir + "/" + e.name;
-    if (e.isDirectory()) walk(p, out); else out.push(p);
+    if (e.isDirectory()) walk(p, out); else if (isFile(p)) out.push(p);
   }
   return out;
 }
@@ -101,20 +133,38 @@ for (const f of findings) console.log(f);
 
 ### Frontmatter description quality
 
-Identical in every shell — run it as-is. It prints at most one finding per file to stdout, in the
+Run it as-is in bash or PowerShell 7. It prints at most one finding per file to stdout, in the
 precedence order of check 3 above — empty, then equals-name, then placeholder, then too-short — and
-always exits 0. Precedence matters: an empty description is reported as empty, not also as too
+exits 0. Precedence matters: an empty description is reported as empty, not also as too
 short. Files with no frontmatter block are skipped silently; Phase 1 already reports those.
 
 Same **YAML fidelity limit** as Phase 1 — a dependency-free subset parser, no syntax-error
-detection; see `audit-phase-structure.md § Frontmatter parse`. Block-scalar folding is load-bearing
-*here* in particular: descriptions are almost always written as `description: >`, so reading only
-the text on that line would report every file in a healthy plugin as empty.
+detection, and the same three cosmetic message divergences (two of which are this block's); see
+`audit-phase-structure.md § Frontmatter parse`.
+
+One divergence is specific to this block and is an improvement. A frontmatter block that is a scalar
+or a sequence rather than a mapping **crashed the Python original**: its `yaml.safe_load(...) or {}`
+guard replaces `None` but not a non-dict, so the next `.get()` raised `AttributeError` and killed
+the run before any finding printed. Here such a block yields no keys, so the file is reported
+`empty description` and the scan continues.
+
+**Block-scalar folding is load-bearing here, and only here.** Descriptions are almost always written
+as `description: >` with the text on the following lines, so a parser that skipped folding would
+store the literal `">"` — one character. This block measures length, so every such file would be
+reported `description too short (1 chars)`. Note the finding is *too short*, not *empty*: `">"` is
+non-empty, which is exactly why the Phase 1 block, whose test is only non-emptiness, is unaffected
+and why the justification belongs on this block rather than that one. Mutation-verified: replacing
+the parser with a folding-skipped one turns this check's **0 findings against this repo into 59
+false `description too short (1 chars)` findings**, while Phase 1's output over the same repo does
+not change by a single byte.
 
 ```
 node -e '
 const fs = require("fs");
-const ls = (d) => { try { return fs.readdirSync(d); } catch (e) { if (e.code === "ENOENT") return []; throw e; } };
+// ENOENT and ENOTDIR both yield no entries, matching pathlib glob.
+const ls = (d) => { try { return fs.readdirSync(d); } catch (e) { if (e.code === "ENOENT" || e.code === "ENOTDIR") return []; throw e; } };
+// statSync follows symlinks, matching what reading the file would do. It also
+// drops a *directory* named something.agent.md, which would throw EISDIR.
 const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };
 const targets = ls("agents").filter((n) => n.endsWith(".agent.md")).map((n) => "agents/" + n)
   .concat(ls("skills").map((n) => "skills/" + n + "/SKILL.md")).filter(isFile);
