@@ -45,6 +45,64 @@ Measured at PR #65's HEAD:
 
 **Live counter-considerations the architecture phase must resolve, not wave away**: Copilot CLI path reconstruction is still *designed for, untested* with a hard-coded marketplace slug, and flipping the default makes it load-bearing for many more sites; shared blocks ship n copies (`skills cannot share scripts`); and there is no JS correctness linter either way (#48).
 
+### Architecture phase outcome — two corrections, one record (ADR-018)
+
+Design artifact: `.context/tasks/ICON-0099-.../adr-017-amendment-design.md`.
+
+**Correction 1 — the body test.** A deterministic block is a **program** if it has a **body**: a named callable it declares and calls, or a braced `if`/`for`/`try`/`catch` body holding two or more statements. No body → **command**, stays inline. Applied to all 22 sites: **18 programs, 4 commands, zero ambiguous**. Structural, not numeric — and provably not size in disguise: one site converts at 269 B while a 402 B site stays inline, and no byte threshold reproduces the partition. Three alternatives were rejected on corpus evidence ("defines a function" splits two sites purely on whether an arrow was hoisted, and is gameable by inlining it; "control flow beyond a single guard" has five arguable members).
+
+**Correction 2 — the degradation-path precondition is a second defect of the same shape.** The manager challenged the architect's first-pass finding that this precondition blocked 12 of 19 conversions. **Measured on three shells with `node` off `PATH`**, running `plugin-design` site 15 verbatim against `icon-init`'s committed `.mjs` verbatim:
+
+| Shell | Inline `node -e` | `node "<path>.mjs"` |
+|---|---|---|
+| bash | 127 · empty stdout · `node: command not found` | **identical** |
+| PowerShell 7 | `CommandNotFoundException` · `$LASTEXITCODE` stale | **identical** |
+| Windows PowerShell 5.1 | `CommandNotFoundException` · `$LASTEXITCODE` stale | **identical** |
+
+Byte-identical on all three channels. ICON-0096's `$LASTEXITCODE` staleness — ADR-017's *second* stated ground — applies equally to both forms.
+
+The diagnosis: ADR-017's *"self-defeating detector"* argument establishes only that **the guard must be prose**, and that is not a `.mjs` property — an inline `node -e` reporting Node's absence is equally self-defeating. A second obligation was appended to a paragraph whose argument never reached it. **Filed against *delivery mechanism* when the hazard is *Node dependence*** — the same misfiling the body test corrects.
+
+The corrected rule: the prose Node-presence guard applies to **both** dispositions; the degradation path is an obligation on the **skill**, not a precondition on the migration; and *"do not invent one"* becomes ***"do not invent one silently"*** — a converting task adds one as separately-reviewable in-scope work. Advisory phrasing was rejected on this repo's own freshly-promoted evidence (`claim-scope.md:19-22`, *"a rule phrased as a disposition is advice"*).
+
+**Both corrections land as one record, ADR-018, scope-superseding ADR-017.** They are not separable: ADR-018 makes `.mjs` the default for programs, and an unamended neighbour would block 12 of the 19 conversions that creates — ADR-018 would be inert. Precedent for the form is ADR-014 → ADR-015. An amendment was rejected because ADR-017's `## Amendments` already holds two entries from this task, **both opening "The Decision has not changed."**
+
+**Copilot risk, unresolved and now observed rather than hypothetical.** Copilot CLI is not installed here, so neither of ADR-017's two settling tests is runnable. But this machine's Claude Code marketplace slug is **`icon-local`, not the hard-coded `icon-marketplace`**, and the install path carries an undocumented **version segment** the reconstruction has no analogue for. `.mjs` adds exactly one failure mode over inline — an unresolved path, failing loudly with `Cannot find module` — and that is this exposure.
+
+**No candidate is shared cross-skill** (SHA-256 over all 22; the one duplicate pair is both-inside-`plugin-design`), so **no `.githooks/pre-commit` parity registration is needed in any wave**.
+
+Also surfaced: `icon-status` sites 04 and 10 duplicate the same named `scan` walker — a consolidation motive that is not a size argument. Sites 18 and 19 mutate state and are inline today, i.e. ADR-017 trigger 2 already fired on them and was never applied; they predate the ADR.
+
+### The settled invocation guard — two clauses, and the second is easy to miss
+
+**Clause 1** applies to **both** dispositions (the §4.0 measurement showed the Node-absence exposure identical): run `node -v`, read its **output** not its exit status; if absent, invoke **`check-node-runtime`**, which reports what stops working and offers a per-platform install without running one. No bootstrap circularity — that skill's detector is `node -v` and every interpretation step is a prose table, so it needs no Node and is reachable in exactly the case it detects.
+
+*"Never gates"* and *"report not-run"* are compatible, not in tension: the prohibition is scoped to the **session**, the false-pass fix to **one block's result**. `check-node-runtime`'s own Common Mistakes already asserts the stronger form — *"Reporting nothing when Node is present — a silent pass is indistinguishable from the skill never running."*
+
+**Clause 2 — any block whose documented pass state is silence must emit an affirmative token instead.** Node being present does **not** establish that the block ran. Two measured modes produce empty stdout with Node present: inline PowerShell 5.1 quote-stripping, and, for `.mjs`, an unresolved path (`Cannot find module`, exit 1). Clause 1 cannot reach either. **This binds at `icon-status`'s Step 1 guard whether or not it ever converts** — that site stays inline permanently as a command.
+
+### The hardened Copilot reconstruction
+
+The earlier mitigation for the unverified Copilot path was "keep the scope narrow." Scope is no longer narrow, so **the reconstruction itself becomes the mitigation**: 482 B / 8 lines, discovering the marketplace directory by glob rather than naming it, with `MARKETPLACE_NAME` demoted from a guess to a **pin**, a second glob handling the undocumented version segment as a fallback so the documented layout still wins, and **ambiguity failing closed with the match count**.
+
+Verified against eight fixtures built as real directory trees with real `.mjs` files — canonical layout, the `icon-local` slug case, a version segment, an empty slug, a spaced path, no install, two marketplaces, both shapes at once — exit 0 on the five resolvable cases and **exit 1 on all three ambiguous/absent ones**, plus recovery checks (ambiguous + a correct pin resolves; a wrong pin fails closed). Passes under POSIX `sh`.
+
+Three constraint findings: `${MARKETPLACE_NAME:-*}` would have **violated `shell-portability` Rule 5** — the rule's stated live case is a fork setting the value deliberately empty, which `:-` discards and the `if`/`then` form preserves. `set -- $MATCHES` was rejected as not space-safe, and Windows home directories have spaces. Globbing only, so no `find` and no `-maxdepth`/`-quit` portability question.
+
+A heavier 28-line/970 B two-pass resolver passed the same fixtures and was **rejected on cost** — ≈18 kB across 19 sites, more than the 14,545 B of program bodies the migration removes. Hoisting the resolver per-skill halves that but **creates trigger-1 cross-fence state in its most dangerous form**: a stale `SKILL_DIR` from a *different* skill resolves to a real directory and runs the wrong script silently.
+
+**Residual exposure, stated not waved**: the fixtures are built from ICON's own documentation, not a real Copilot install. The hardening buys a loud, actionable, closed failure on a wrong guess. **It does not make the layout verified**, and ADR-017's two settling tests remain unrun.
+
+### Final scope and cost
+
+**All 19 program sites convert** — `icon-status` 8, `plugin-design` 9 (8 by the body test + one on ADR-017's existing trigger 2), `initialize-workspace` 1, `icon-audit` 1. No site exempted. Sites 02, 20 and 21 stay inline as **commands**, which is the rule applied correctly rather than conservatively.
+
+Per-site cost ≈600 B (hardened fence pair); ≈11.4 kB added against ≈14.5 kB removed — **net roughly flat, which is what ADR-017 says to expect.** Size is not the win and must not be reported as one.
+
+**#62 shrinks from "22 sites, one silently wrong" to "3 sites, all loud."** Site 02's token inversion is in scope here (Clause 2); the two survivors are `JSON.parse` checks whose 5.1 failure is a visible parse error.
+
+**Open consequence for the ADR to address**: the invocation preamble itself becomes duplicated across ~6 skills. It is not byte-identical between them (skill and script names differ), so the `.githooks/pre-commit` parity check cannot police it as-is — the exact drift shape ADR-017's own Context section names, created by ADR-018.
+
 ### Original decisions (applied as written; superseded above where they conflict)
 - Scope taken verbatim from issue #59 (waves 1 and 2). `skills/upgrade-repo/SKILL.md` (#61) and the `.sh`/`.ps1` script files (#60) are explicitly OUT — they are separately ticketed and #61 is blocked on #42's split.
 - Wave 2 migrates **as a whole set or not at all** (ADR-017 § Cross-skill duplication). A half-migrated copy-set is worse than either end state, and the set intersects the `.githooks/pre-commit` byte-parity check's population, which must be updated in the same commit.
@@ -110,7 +168,14 @@ Measured at PR #65's HEAD:
 - [x] `.context/` correction: ADR-017's falsified "two copies already drifted" sentence, plus a second occurrence in its Decision section and one in ICON-0098's `plan.md` (commit `c234e84`)
 - [x] Testing: independent adversarial re-verification by @tester and @reviewer in parallel — both found real defects; 4 Moderate + 6 lower, plus one High-severity pre-existing class
 - [x] Round 2: remediation of all findings across three parallel dispatches (commits `5a7ebdb`, `c308b74`, `ca32027`)
-- [ ] Completion: re-review the post-checkpoint diff, changelog, retrospective, follow-up issues, PR ← IN PROGRESS
+- [x] Completion (first pass): re-review, changelog, retrospective, three lesson promotions, follow-ups #62/#63/#64, **PR #65 opened**
+- [x] Architecture: design the ADR-017 correction — body test settled, degradation-path precondition falsified as a second defect of the same shape
+- [x] Maintainer settles the degradation path outright: *"tell the user node is required and offer to install it."* Verified `check-node-runtime` already does exactly that (Step 4 reports, Step 5 offers a per-platform install without running it). The path is **one uniform behaviour that already ships**, not something a skill must possess or invent — so **no site is blocked** and all 19 program sites convert.
+- [ ] Architecture: restate the invocation guard around `check-node-runtime`, and harden the Copilot path reconstruction now that scope is no longer its mitigation ← IN PROGRESS
+- [ ] Write **ADR-018** (scope-supersedes ADR-017) plus the `executable-content.md` authoring spec
+- [ ] Implementation (re-run): convert 19 program sites — `icon-status` 8, `icon-audit` 1, `plugin-design` 10
+- [ ] Testing: differential re-verification of every converted site
+- [ ] Completion: update PR #65, re-review, changelog, retrospective addendum, close/shrink #62 and #64
 
 ## Review Checkpoint
 
