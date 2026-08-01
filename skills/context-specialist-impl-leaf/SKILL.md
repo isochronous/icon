@@ -230,18 +230,34 @@ root-level file covers every `.context/` directory. Idempotent — safe to re-ru
 # Ensure repo-root .gitattributes gives retrospective logs a union merge driver,
 # so concurrent retrospective appends across branches merge cleanly instead of
 # conflicting. Idempotent — safe to re-run.
-ROOT=$(git rev-parse --show-toplevel)
+#
+# Both the path lookup and the append are checked. An unchecked `git rev-parse`
+# yields an empty ROOT and turns the target into the filesystem-root
+# `/.gitattributes`, and an unconditional success echo after the append reports
+# "Ensured ..." even when the redirection never wrote a byte.
+ROOT=$(git rev-parse --show-toplevel) || {
+  echo "ERROR: git rev-parse --show-toplevel failed — not inside a git work tree." >&2
+  echo "       Refusing to guess a repository root." >&2
+  exit 1
+}
+if [ -z "$ROOT" ]; then
+  echo "ERROR: git rev-parse --show-toplevel returned an empty path; refusing to" >&2
+  echo "       write .gitattributes at the filesystem root." >&2
+  exit 1
+fi
 GA="$ROOT/.gitattributes"
 if [ -f "$GA" ] && grep -qF 'retrospectives.md' "$GA"; then
   echo ".gitattributes: retrospective union-merge entries already present — skipped"
-else
-  {
+elif {
     printf '\n# ICON retrospective logs are append-mostly; the union merge driver keeps\n'
     printf '# both sides'"'"' entries instead of conflicting on concurrent appends.\n'
     printf 'retrospectives.md          merge=union\n'
     printf 'retrospectives-archive.md  merge=union\n'
-  } >> "$GA"
+  } >> "$GA"; then
   echo "Ensured retrospective union-merge entries in $GA"
+else
+  echo "ERROR: failed to append retrospective union-merge entries to $GA" >&2
+  exit 1
 fi
 ```
 

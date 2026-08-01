@@ -40,7 +40,44 @@ Fixing only the loud half (swap in `-p` and stop) moves every consumer on a curr
 
 **The fourth shape is the sharpest — it needs no error handling at all to go wrong (ICON-0096).** `$LASTEXITCODE` is not updated when PowerShell cannot resolve a command. `CommandNotFoundException` is raised before any process starts, so the variable retains whatever value it held before the call — measured on 7.6.3 and 5.1. The obvious existence check, `node -v` followed by `if ($LASTEXITCODE -ne 0)`, reads that stale value and reports the command **present** in exactly the case the check exists to catch. bash returns 127 and `cmd` returns 9009 for the same absent-command case (`cmd` needs `cmd /v:on` — the naive `& echo %errorlevel%` reports 0 through parse-time expansion, a second trap of its own); only PowerShell is silent. The consequence is directional: with the command present, `$LASTEXITCODE` updates correctly, so a guard keyed on exit status fails **only** in the absent direction, and happy-path testing cannot surface it. To test whether a command exists, read its **output**, not its exit status — and note that `$out = cmd 2>&1 | Out-String` does not help either: it yields an empty string in the same case, since the exception fires before any stream exists for the redirect to capture.
 
+## A Detector Whose Pass State Is Silence
+
+The four shapes above are PowerShell's. This one is not — it is a property of the block's own
+contract, and any runtime can produce it. **A detector whose pass state is silence cannot
+distinguish "ran and found nothing" from "did not run."** Both write zero bytes to stdout. Every
+guard written as *"prints nothing when everything is fine"* is one failed invocation away from
+reporting the healthy answer about a program that never executed.
+
+The contract fix is one line: **the pass requires empty stdout *and* empty stderr — never quiet
+alone.** Silence on stdout is the finding; silence on stderr is the evidence the finding was
+produced. ICON-0099 measured two independent ways to lose the second half, on the same block:
+
+- **Windows PowerShell 5.1**, which strips the embedded `"` out of an inline `node -e` program
+  ([Rule 11](rules/011-powershell-51-strips-embedded-quotes.md)) — `SyntaxError`, 0 bytes of
+  stdout, `$LASTEXITCODE` 1 through `-Command`.
+- **Node absent from `PATH`** under PowerShell 7 — 0 bytes of stdout, and `$LASTEXITCODE` keeps its
+  *prior* value, so exit status is clean too (the ICON-0096 shape above, arriving through a
+  different door).
+
+Exit status is not a substitute for the stderr half. Measured on this repo's own fixtures, a `.ps1`
+whose native command exits 3 still reports **0** through `powershell.exe -File` on both 5.1 and 7 —
+so through that invocation path a failed run and a clean run are indistinguishable on both stdout
+and exit code, leaving stderr as the only channel that carries the difference.
+
+`skills/icon-status/SKILL.md` Step 1 is the live worked example: a fresh-repo guard that prints
+`NOT_INITIALIZED` or nothing, where reading silence as a pass skips a **hard stop** on a repo that
+has no `.context/` at all. Its prose now states the stdout-and-stderr requirement inline, next to
+the block, rather than leaving it to a reader to infer.
+
+**When authoring a silent-pass detector, prefer inverting it.** A block that prints an explicit
+`OK` token on the healthy path needs no contract paragraph — the absence of the token *is* the
+failure signal, in every runtime, with no second channel to remember. Where the silent form is
+kept (it reads better in a nine-block dashboard), the stdout-and-stderr sentence is not optional
+garnish; it is the whole contract.
+
 ## Related
 
 - Index: [shell portability](../shell-portability.md)
 - See also: [rules](rules/README.md) § Rule 3 — the obligation this procedure discharges
+- See also: [rules](rules/README.md) § Rule 11 — the quoting defect that turns a silent-pass block
+  into a false pass on Windows PowerShell 5.1

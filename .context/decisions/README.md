@@ -67,4 +67,5 @@ format live in its `§ Correcting a stale ADR` section, cited above.
 | [014](014-model-aware-delegation.md) | Model-aware delegation — required per-delegation tier | Accepted (inline carve-out superseded by ADR-015) | 2026-07-18 |
 | [015](015-all-specialists-isolated.md) | Sub-agent isolation — all specialists dispatched task→report | Accepted | 2026-07-18 |
 | [016](016-skill-hot-cold-path.md) | Skill hot path / cold path separation — per-file byte caps | Accepted | 2026-07-27 |
-| [017](017-executable-content-home.md) | Where executable content lives — prose, inline `node -e`, or a committed `.mjs` | Accepted | 2026-07-28 |
+| [017](017-executable-content-home.md) | Where executable content lives — prose, inline `node -e`, or a committed `.mjs` | Accepted (Deterministic-row default, Node-presence obligations and Copilot path reconstruction superseded by ADR-018) | 2026-07-28 |
+| [018](018-body-test-program-vs-command.md) | A program belongs in a committed `.mjs` — the body test, and one Node guard for both homes | Accepted | 2026-08-01 |

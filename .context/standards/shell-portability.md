@@ -8,8 +8,8 @@ The body of this standard lives in topic-scoped sub-files under [`./shell-portab
 
 | Sub-file | Covers |
 |----------|--------|
-| [rules/](./shell-portability/rules/README.md) | The numbered construct rules 1–10, one per file: gawk extensions in awk blocks (1); pure-bash parsing (2); live-testing blocks that write or delete files (3); `grep` patterns that can start with `-`, and the `if grep` guard that masks its own breakage (4); `${VAR+x}` presence tests vs `${VAR:-fallback}` (5); PowerShell `-replace` inside a .NET method-call argument list (6); `grep -P` PCRE mode and its three-way fix triage (7); `sed -i` backup suffixes on BSD/macOS (8); passing values as arguments rather than interpolating them into a program body (9); matching a shell construct's semantics rather than its shape when porting it to a Node API (10) |
-| [testing-pattern.md](./shell-portability/testing-pattern.md) | The live-fixture procedure and why a contents check beats an exit-code check; that a prescribed idiom must be executed rather than reviewed; how a portability fix can trade a loud failure for a quiet one; and the four measured shapes of PowerShell's fail-open generator behaviour |
+| [rules/](./shell-portability/rules/README.md) | The numbered construct rules 1–11, one per file: gawk extensions in awk blocks (1); pure-bash parsing (2); live-testing blocks that write or delete files (3); `grep` patterns that can start with `-`, and the `if grep` guard that masks its own breakage (4); `${VAR+x}` presence tests vs `${VAR:-fallback}` (5); PowerShell `-replace` inside a .NET method-call argument list (6); `grep -P` PCRE mode and its three-way fix triage (7); `sed -i` backup suffixes on BSD/macOS (8); passing values as arguments rather than interpolating them into a program body (9); matching a shell construct's semantics rather than its shape when porting it to a Node API (10); Windows PowerShell 5.1 stripping embedded `"` out of an inline `node -e` program (11) |
+| [testing-pattern.md](./shell-portability/testing-pattern.md) | The live-fixture procedure and why a contents check beats an exit-code check; that a prescribed idiom must be executed rather than reviewed; how a portability fix can trade a loud failure for a quiet one; the four measured shapes of PowerShell's fail-open generator behaviour; and why a detector whose pass state is silence must require empty stderr as well as empty stdout |
 
 ## When to consult which file
 
@@ -18,6 +18,7 @@ The body of this standard lives in topic-scoped sub-files under [`./shell-portab
 - **Correcting a portability defect, or copying an idiom this standard prints** → `testing-pattern.md` before claiming the fix works. The corrected form is a hypothesis until it runs in the exact shape printed, and a fix can trade a loud failure on one platform for a silent one on another.
 - **Porting shell from one language or interpreter to another** → `rules/` Rules 9 and 10 together — Rule 9 for quoting (a value interpolated into a program body is parsed as source, and the safe construct in the outgoing language can be the unsafe one in the incoming language), Rule 10 for semantics (an API that mirrors the construct's *shape* can be inverted against its *behaviour*).
 - **Writing PowerShell that reports success or failure** → `testing-pattern.md § PowerShell Is a Fail-Open Generator` for the four measured shapes, then `rules/` Rule 6 for the `-replace` parsing trap.
+- **Writing an inline `node -e` block, or any block whose healthy result is silence** → `rules/` Rule 11 for the Windows PowerShell 5.1 quote-stripping measurement, then `testing-pattern.md § A Detector Whose Pass State Is Silence` for the stdout-and-stderr contract that stops it reading as a pass.
 
 ## Related
 

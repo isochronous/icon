@@ -29,28 +29,35 @@ Run a 6-domain parallel audit that dispatches one sub-agent per domain, then syn
 
 Before dispatching any sub-agents, establish the baseline.
 
-```bash
-# 1.1 — find the most recent prior plugin audit, if any
-# (plain `sort` — not `sort -V` — for macOS BSD compatibility; correct because
-#  ICON-NNNN task IDs are zero-padded to ≥3 digits, so lexicographic sort
-#  matches numeric order for the task folder prefix.)
-PRIOR_AUDIT=$(find .context/tasks -maxdepth 2 -name audit-report.md | sort | tail -n 1)
-if [ -n "$PRIOR_AUDIT" ]; then
-  echo "Baseline: $PRIOR_AUDIT"
-else
-  echo "No prior audit found — this is a baseline run. All findings will be reported as net-new."
-fi
+Discovery is **script-backed** — `scripts/discovery.mjs` performs it. It takes no arguments and
+probes the current working directory, so run it from the repo root being audited.
 
-# 1.2 — check retrospectives log size; read recent entries for patterns
-wc -l .context/retrospectives.md
+**Precondition — confirm Node is present before running this step.** Run `node -v` and read its
+**output**, not its exit status. If Node is absent, do not run the block below — invoke
+`check-node-runtime`, which reports what stops working and offers a per-platform install.
 
-# 1.3 — check plugin CHANGELOG size; read entries since prior audit
-wc -l CHANGELOG.md
+It prints, in order: the prior-audit baseline (or a baseline-run note), the retrospectives and
+CHANGELOG line counts, and the agent/skill/manifest counts — record all of it in `plan.md` per the
+Phase 1 output list below.
 
-# 1.4 — confirm filesystem scale
-ls agents/ | wc -l       # agent count
-ls skills/ | wc -l       # skill count
-find . -maxdepth 3 -name 'plugin.json' -type f -not -path './.context/*' -not -path './.git/*' | wc -l  # manifest count
+Missing inputs are reported, not silently absorbed — and "missing" is wider than "absent". A
+`.context/retrospectives.md` or `CHANGELOG.md` that is absent, that is a *directory*, or that has a
+regular file somewhere in its path prints `(not found)` in place of its count. An `agents/` or
+`skills/` directory that cannot be listed prints `0` and names the reason on
+stderr: `cannot access agents: No such file or directory` when nothing is there,
+`cannot access agents: Not a directory` when a regular file holds the name. That separates both from
+a genuinely empty directory, which also counts `0` but writes nothing to stderr. Every guard in the
+block catches `ENOENT` and `ENOTDIR` together, and `lineCount` catches `EISDIR` as well, because an
+uncaught one aborts the program where it is thrown and forfeits every later line — measured, a
+regular file named `agents` costs the three trailing counts, a regular file at `.context/tasks`
+costs the entire output, and a directory named `CHANGELOG.md` cost four of the six lines before the
+`EISDIR` arm existed. Those three codes are the whole of the coverage, not a synonym for
+*unreadable*: a file that is present but cannot be opened still aborts the run, measured on an
+exclusively locked `CHANGELOG.md` — `EBUSY`, exit 1, two lines of six. Treat any of these
+as "no data available for this line," not as an error.
+
+```
+node .claude/skills/icon-audit/scripts/discovery.mjs
 ```
 
 **Phase 1 output** — record in `plan.md` Decisions before dispatching Phase 2:

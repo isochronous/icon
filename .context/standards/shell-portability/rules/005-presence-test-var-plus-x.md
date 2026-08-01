@@ -9,4 +9,4 @@ The live instance is the `MARKETPLACE_NAME` override in every Copilot CLI invoca
 ## Related
 
 - Index: [shell portability rules](README.md)
-- See also: [executable content](../../skill-decomposition/executable-content.md) § The Invocation Contract — the Copilot CLI fence this rule governs
+- See also: [executable content — invocation contract](../../skill-decomposition/executable-content/invocation-contract.md) § 3 — the Copilot CLI fence this rule governs

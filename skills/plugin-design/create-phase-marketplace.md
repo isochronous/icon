@@ -14,23 +14,48 @@ This phase **does not submit** anything. Marketplaces use their own PR workflow 
 
 Confirm the manifest parses and declares the fields a marketplace typically requires (`name`, `version`, `description`, `author`, plus optional `repository`, `keywords`, `license`):
 
-Identical in every shell — run it as-is, in whatever shell the session uses. Both field
-lists print as plain comma-separated names, not as a language-specific list literal.
+**Precondition — confirm Node is present before running this block.** Run `node -v` and read its
+**output**, not its exit status. If Node is absent, do not run it — invoke `check-node-runtime`,
+which reports what stops working and offers a per-platform install.
+
+A field counts as declared only if it is **non-empty**: `""`, `null`, `0` and an **empty object**
+all read as absent, so an `"author": {}` left over from scaffolding is reported rather than
+accepted. Both field lists print as plain comma-separated names, not as a language-specific list
+literal. The manifest is read relative to the current directory, so run this from the plugin root.
+
+| stdout | exit | Meaning |
+|---|---|---|
+| `plugin.json OK; declared fields: <names>` | 0 | All four required fields are non-empty. The list is every top-level key present, sorted — including the optional ones. |
+| `missing required fields: <names>` | 1 | The named fields are absent or empty. Return to Phase 2 and fill them in first. |
+| *(nothing)* | non-zero | No verdict was reached — the manifest is absent, unreadable, or not valid JSON, and the trace is on stderr. **Never read this as a pass.** |
+
+The failing verdict goes to **stdout**, not stderr as the inline form emitted it, so that empty
+stdout means no verdict was produced — the block did not run, or it crashed before printing. On the
+inline form empty stdout meant either of those *or* a missing field. Measured on bash 5.3.9,
+PowerShell 7.6.3 and Windows PowerShell 5.1.26100.8875 with Node v24.18.0: identical stdout and
+exit status on all three. Not measured under `cmd`.
+
+### Claude Code
 
 ```
-node -e '
-const data = JSON.parse(require("fs").readFileSync(".claude-plugin/plugin.json", "utf8"));
-const empty = (v) => !v || (typeof v === "object" && Object.keys(v).length === 0);
-const missing = ["name", "version", "description", "author"].filter((k) => empty(data[k]));
-if (missing.length) {
-  console.error("missing required fields: " + missing.join(", "));
-  process.exit(1);
-}
-console.log("plugin.json OK; declared fields: " + Object.keys(data).sort().join(", "));
-'
+node "${CLAUDE_SKILL_DIR}/scripts/verify-marketplace-fields.mjs"
 ```
 
-If any required field is missing or empty, return to Phase 2 and fill it in first.
+### Copilot CLI (Bash)
+
+```bash
+# Resolve this skill's install directory. Set MARKETPLACE_NAME=<slug> to pin one marketplace;
+# otherwise every installed marketplace is searched and an ambiguous result fails closed.
+ROOT="${COPILOT_HOME:-$HOME/.copilot}/installed-plugins"
+S="plugin-design"; P="scripts/verify-marketplace-fields.mjs"
+if [ -n "${MARKETPLACE_NAME+x}" ]; then G="$MARKETPLACE_NAME"; else G="*"; fi
+F=""; N=0
+for f in "$ROOT"/$G/ICON/skills/"$S/$P" "$ROOT"/$G/ICON/*/skills/"$S/$P"; do
+  [ -f "$f" ] || continue; F="$f"; N=$((N+1))
+done
+[ "$N" = 1 ] || { echo "ICON: $N matches for $S/$P under $ROOT (marketplace ${MARKETPLACE_NAME-<any>}) — set MARKETPLACE_NAME; see: copilot plugin list" >&2; exit 1; }
+node "$F"
+```
 
 ## Generate Marketplace README Skeleton
 
