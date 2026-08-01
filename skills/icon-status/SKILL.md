@@ -12,13 +12,24 @@ user-invocable: true
 Emit a concise plugin-state dashboard for the current repo: active task, recent
 retrospectives, and context health. Use before planning new work or after a break.
 
-**Runtime and shell.** Every fence in Steps 1 and 2 except the bare `node -v` probe is a `node -e`
-program, so with `node` off `PATH` each one emits nothing at all and the dashboard degrades to its
-`Node — not found` line alone — no block has a non-Node fallback. Run them in **bash or
-PowerShell 7**: Windows PowerShell 5.1 does not escape the `"` embedded in a single-quoted program
-when it builds the native command line, so each one fails there at parse time with a visible
-`SyntaxError` and empty stdout — never with a wrong answer. The `node -v` probe carries no quotes
-and runs in 5.1 too.
+**Runtime and shell.** Steps 1 and 2 hold twelve fences: nine `node -e` programs, the bare `node -v`
+probe, and two message templates you *emit* rather than run (Step 1's `/icon-init` text and Signal
+2's suggestion line). None of the nine has a non-Node fallback, so with `node` off `PATH` all nine
+emit nothing and the dashboard degrades to its `Node — not found` line plus Signal 2's
+`check-node-runtime` suggestion. Run the nine in **bash or PowerShell 7**: Windows PowerShell 5.1
+does not escape the `"` embedded in a single-quoted program when it builds the native command line,
+so each fails there at parse time with a visible `SyntaxError` and empty stdout. The `node -v` probe
+carries no quotes and runs in 5.1 too.
+
+**A block that never ran prints nothing — and for most blocks that is also a legitimate result.**
+Only three always print (repo name, branch/task, `iconrc.json`); for the rest, "no output" is a real
+outcome, so a block that failed to run is indistinguishable from one that ran and had nothing to
+say. Usually that costs a dashboard line. **In Step 1 it costs the hard stop**: there, silence means
+*initialized*, so a guard that never ran reads as permission to render a dashboard for a repo that
+was never initialized. Measured on an uninitialized repo: PowerShell 5.1 gives `SyntaxError`, 0
+bytes of stdout and `$LASTEXITCODE` 1; with `node` off `PATH`, PowerShell 7 gives 0 bytes of stdout
+and leaves `$LASTEXITCODE` at **0**, so the exit status does not catch it either. **Never read
+silence as a pass without confirming the program ran — its stderr must be empty too.**
 
 ## When to Use
 
@@ -34,7 +45,12 @@ directly for that.
 
 Check whether `.context/` exists in the current working directory. **Run this as-is** — one text
 serves both supported shells. It prints `NOT_INITIALIZED` when `.context/` is absent or is not a
-directory, and prints **nothing at all** when the repo is initialized. Silence is the pass.
+directory, and prints **nothing at all** when the repo is initialized.
+
+Silence is the pass **only if the program ran** — and this is the one block where that distinction
+costs a hard stop rather than a dashboard line (see **Runtime and shell**). Require empty stdout
+*and* empty stderr. Anything on stderr means the guard never reached the filesystem: fix the shell
+or the runtime before continuing, and do not read it as initialized.
 
 ```
 node -e '
@@ -57,16 +73,21 @@ This repo is not yet ICON-initialized. Run `/icon-init` to set up — it detects
 ## icon-status: Step 2: Gather data
 
 Run each block below. No block fails on missing data, but they do not all report it the same way.
-Three always print: repo name (`(unknown)` at worst), branch/task (`BRANCH=`/`TASK_ID=`, either
-possibly empty), and `iconrc.json` (`not found` or `version (unreadable)` at worst). The rest can
-legitimately print **nothing** — an absent context subdirectory, a `retrospectives.md` with no
-task-ID headings, a Suggestions signal that does not fire — and there, silence is the result, not a
-failure. Each block's own paragraph states the outcomes it can produce.
+Of this step's **eight `node -e` blocks**, three always print: repo name (`(unknown)` at worst),
+branch/task (`BRANCH=`/`TASK_ID=`, either possibly empty), and `iconrc.json` (`not found` or
+`version (unreadable)` at worst). The other five can legitimately print **nothing** — an absent
+context subdirectory, a `retrospectives.md` with no task-ID headings, a Suggestions signal that does
+not fire — and there, silence is the result, not a failure. Each block's own paragraph states the
+outcomes it can produce. **The `node -v` probe is in neither bucket**: it is not a `node -e` program,
+and empty stdout from it means *not found* — a reportable value, never an omission, which is why the
+Step 3 table lists the `Node` line, like the `iconrc.json` line, as never omitted.
 
-Each block is a single `node -e` command, untagged because one text serves both supported shells —
-run it as-is (see **Runtime and shell** above). **Every block is independently runnable**: none
-reads a value another block set, so run them in any order. A block's result is its stdout;
-**diagnostics go to stderr** and are never part of the result.
+Each of those eight is a single `node -e` command, untagged because one text serves both supported
+shells — run it as-is (see **Runtime and shell** above). **The eight are independently runnable**:
+none reads a shell variable another block set, so run them in any order. A block's result is its
+stdout; **diagnostics go to stderr** and are never part of the result. Signal 2 is the one item in
+this step that does depend on another — it reads the `node -v` output instead of running a program
+of its own.
 
 ### Repo name
 
@@ -395,5 +416,6 @@ Suggestions:
 | Mistake | What happens | Correct behavior |
 |---------|-------------|-----------------|
 | Running on a repo with no `.context/` | Skill halts at Step 1 with the `/icon-init` suggestion | Correct — Step 1 is a hard stop |
+| Reading Step 1's silence as a pass without checking stderr | On PowerShell 5.1, or with `node` off `PATH`, the guard never runs: 0 bytes of stdout looks identical to "initialized", and the hard stop is skipped on a repo that has no `.context/` | Require empty stdout **and** empty stderr before treating it as a pass |
 | Branch is `dev` or `main` | "No active task branch" appears | Correct — not an error |
 | Treating a block's stderr as part of its result | A git error or a parse reason lands on the dashboard | Read stdout for the value; stderr is diagnostics only |

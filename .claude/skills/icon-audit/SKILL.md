@@ -36,11 +36,18 @@ those when it builds the native command line, so it fails there at parse time wi
 
 It prints, in order: the prior-audit baseline (or a baseline-run note), the retrospectives and
 CHANGELOG line counts, and the agent/skill/manifest counts — record all of it in `plan.md` per the
-Phase 1 output list below. Missing inputs are reported, not silently absorbed: a missing
-`.context/retrospectives.md` or `CHANGELOG.md` prints `(not found)` in place of its count, and a
-missing `agents/` or `skills/` directory prints `0` with a `cannot access` line on stderr — which
-is what keeps "directory absent" distinguishable from "directory empty", since both count `0`.
-Treat any of these as "no data available for this line," not as an error.
+Phase 1 output list below.
+
+Missing inputs are reported, not silently absorbed — and "missing" is wider than "absent". An
+unreadable `.context/retrospectives.md` or `CHANGELOG.md` prints `(not found)` in place of its
+count. An `agents/` or `skills/` directory that cannot be listed prints `0` and names the reason on
+stderr: `cannot access agents: No such file or directory` when nothing is there,
+`cannot access agents: Not a directory` when a regular file holds the name. That separates both from
+a genuinely empty directory, which also counts `0` but writes nothing to stderr. Every guard in the
+block catches `ENOENT` and `ENOTDIR` together, because an uncaught one aborts the program where it
+is thrown and forfeits every later line — measured, a regular file named `agents` costs the three
+trailing counts, and a regular file at `.context/tasks` costs the entire output. Treat any of these
+as "no data available for this line," not as an error.
 
 ```
 node -e '
@@ -56,7 +63,9 @@ let taskEntries = [];
 try {
   taskEntries = fs.readdirSync(tasksDir, { withFileTypes: true });
 } catch (err) {
-  if (err.code !== "ENOENT") throw err;
+  // ENOTDIR: .context/tasks exists but is a regular file. Same result as absent
+  // -- no task entries -- rather than an uncaught throw that loses all of Phase 1.
+  if (err.code !== "ENOENT" && err.code !== "ENOTDIR") throw err;
 }
 for (const entry of taskEntries) {
   if (entry.isDirectory()) {
@@ -83,7 +92,10 @@ function lineCount(file) {
   try {
     text = fs.readFileSync(file, "utf8");
   } catch (err) {
-    if (err.code === "ENOENT") return "(not found)";
+    // ENOTDIR covers a path component that is a regular file. On win32 that case
+    // surfaces as ENOENT instead, so this arm is what keeps the two platforms
+    // agreeing rather than one throwing where the other reports (not found).
+    if (err.code === "ENOENT" || err.code === "ENOTDIR") return "(not found)";
     throw err;
   }
   return String((text.match(/\n/g) || []).length);
@@ -102,8 +114,12 @@ function countEntries(dir) {
   try {
     entries = fs.readdirSync(dir);
   } catch (err) {
-    if (err.code === "ENOENT") {
-      process.stderr.write("cannot access " + dir + ": No such file or directory\n");
+    // A directory that is really a regular file (ENOTDIR) counts 0 exactly as an
+    // absent one does, but says so with its own reason -- keeping "absent",
+    // "not a directory" and "empty" three distinguishable states, not two.
+    if (err.code === "ENOENT" || err.code === "ENOTDIR") {
+      const why = err.code === "ENOENT" ? "No such file or directory" : "Not a directory";
+      process.stderr.write("cannot access " + dir + ": " + why + "\n");
       return 0;
     }
     throw err;
@@ -123,7 +139,9 @@ function countManifests(dir, depth) {
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch (err) {
-    if (err.code === "ENOENT") return 0;
+    // Same two codes as the guards above. Reached only if a directory becomes a
+    // file between the readdirSync that listed it and this recursive call.
+    if (err.code === "ENOENT" || err.code === "ENOTDIR") return 0;
     throw err;
   }
   let count = 0;
