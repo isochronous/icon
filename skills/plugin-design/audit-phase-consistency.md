@@ -15,122 +15,154 @@ Cross-file checks that detect drift between what a file claims and what other fi
 
 ### Skill-reference resolution
 
-```bash
-python3 - <<'PY'
-import pathlib, re, sys
-existing = {p.parent.name for p in pathlib.Path("skills").glob("*/SKILL.md")}
-findings = []
-# Require the slash-name to be a real invocation: preceded by start-of-line or
-# whitespace/backtick, and followed by whitespace, end-of-line, backtick, or
-# common punctuation. This avoids matching mid-path tokens like `.context/standards`.
-INVOCATION_RE = re.compile(r'(?:^|(?<=[\s`]))/([a-z][a-z0-9-]+)(?=[\s`.,;:!?)\]]|$)', re.MULTILINE)
-SKIP_PREFIXES = (
-    "http://", "https://",
-    "/usr/", "/etc/", "/var/",
-    ".context/", "context_template/",
-    "github.com/",
-)
-for p in list(pathlib.Path("agents").glob("*.agent.md")) + \
-         list(pathlib.Path("skills").glob("*/SKILL.md")):
-    txt = p.read_text()
-    for m in INVOCATION_RE.finditer(txt):
-        name = m.group(1)
-        if name in existing:
-            continue
-        # Heuristic guard: skip references inside URLs, file paths, or generic command examples.
-        ctx = txt[max(0, m.start()-20):m.end()+20]
-        if any(s in ctx for s in SKIP_PREFIXES):
-            continue
-        findings.append(f"{p}: references /{name} but skills/{name}/SKILL.md not found")
-for f in findings:
-    print(f)
-PY
+Identical in every shell — run it as-is, in whatever shell the session uses. It prints one line per
+unresolved invocation to stdout and always exits 0: this check reports, it does not gate, because
+the built-in slash commands named in check 1 are indistinguishable from a dead reference here and
+the auditor is the one who tells them apart. Silence means every `/name` token in agent and skill
+body text has a matching `skills/name/SKILL.md`. Each finding is a *candidate*: check 1 above is
+what decides whether the name is really dead or is a harness built-in.
+
+```
+node -e '
+const fs = require("fs");
+const ls = (d) => { try { return fs.readdirSync(d); } catch (e) { if (e.code === "ENOENT") return []; throw e; } };
+const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };
+const existing = new Set(ls("skills").filter((n) => isFile("skills/" + n + "/SKILL.md")));
+const targets = ls("agents").filter((n) => n.endsWith(".agent.md")).map((n) => "agents/" + n)
+  .concat(Array.from(existing).map((n) => "skills/" + n + "/SKILL.md"));
+// Require the slash-name to be a real invocation: preceded by start-of-line or
+// whitespace/backtick, and followed by whitespace, end-of-line, backtick, or
+// common punctuation. This avoids matching mid-path tokens like .context/standards.
+// Flags: m makes ^ and $ line anchors; g is required by matchAll.
+const INVOCATION = /(?:^|(?<=[\s`]))\/([a-z][a-z0-9-]+)(?=[\s`.,;:!?)\]]|$)/gm;
+const SKIP = ["http://", "https://", "/usr/", "/etc/", "/var/", ".context/", "context_template/", "github.com/"];
+const findings = [];
+for (const p of targets) {
+  const txt = fs.readFileSync(p, "utf8");
+  for (const m of txt.matchAll(INVOCATION)) {
+    if (existing.has(m[1])) continue;
+    // Heuristic guard: skip references inside URLs, file paths, or command examples.
+    const ctx = txt.slice(Math.max(0, m.index - 20), m.index + m[0].length + 20);
+    if (SKIP.some((s) => ctx.includes(s))) continue;
+    findings.push(p + ": references /" + m[1] + " but skills/" + m[1] + "/SKILL.md not found");
+  }
+}
+for (const f of findings) console.log(f);
+'
 ```
 
 ### File-path resolution (dead-ref)
 
-```bash
-python3 - <<'PY'
-import pathlib, re
-plugin_root = pathlib.Path(".")
-findings = []
-for d in ("agents", "skills", "shared", "commands"):
-    base = plugin_root / d
-    if not base.exists():
-        continue
-    for p in base.rglob("*"):
-        if p.suffix not in (".md", ".sh", ".ps1", ".js"):
-            continue
-        for m in re.finditer(r'\.context/[a-zA-Z0-9_/-]+\.[a-zA-Z0-9]+', p.read_text()):
-            ref = m.group(0)
-            rest = ref[len(".context/"):]
-            # ICON self-audit: content lives under context_template/context/.
-            # Generic plugins: content lives at the plugin's .context/ root
-            # (audit-mode's hard precondition guarantees .context/ exists).
-            ct_path = plugin_root / "context_template" / "context" / rest
-            if ct_path.exists():
-                continue
-            ctx_path = plugin_root / ".context" / rest
-            if ctx_path.exists():
-                continue
-            findings.append(f"{p}: dead ref {ref}")
-for f in findings:
-    print(f)
-PY
+Identical in every shell — run it as-is. It recursively scans `agents/`, `skills/`, `shared/` and
+`commands/` for `.context/<path>.<ext>` tokens and prints `<file>: dead ref <token>` for each one
+resolving under neither `context_template/context/` nor `.context/`. Absent directories are skipped.
+Silence means every reference resolves; exit is always 0, so read the output, not the status.
+
+Scanned suffixes are `.md`, `.sh`, `.ps1`, `.js` **and `.mjs`**. `.mjs` is deliberate and was added
+with this port: `*.js` does not glob-match `.mjs`, and the pre-commit gate this check generalizes
+was extended to `.mjs` under ADR-017, so omitting it here would leave migrated scripts unscanned.
+
 ```
-
-PowerShell variant:
-
-```powershell
-$pluginRoot = (Get-Location).Path
-$findings = @()
-foreach ($d in 'agents','skills','shared','commands') {
-  $base = Join-Path $pluginRoot $d
-  if (-not (Test-Path $base)) { continue }
-  $files = Get-ChildItem -Path $base -Recurse -File -Include *.md,*.sh,*.ps1,*.js -ErrorAction SilentlyContinue
-  foreach ($f in $files) {
-    $txt = Get-Content $f.FullName -Raw
-    foreach ($m in [regex]::Matches($txt, '\.context/[a-zA-Z0-9_/-]+\.[a-zA-Z0-9]+')) {
-      $ref = $m.Value
-      $rest = $ref.Substring('.context/'.Length)
-      $ctPath = Join-Path $pluginRoot (Join-Path 'context_template/context' $rest)
-      if (Test-Path $ctPath) { continue }
-      $ctxPath = Join-Path $pluginRoot (Join-Path '.context' $rest)
-      if (Test-Path $ctxPath) { continue }
-      $findings += "$($f.FullName): dead ref $ref"
+node -e '
+const fs = require("fs");
+const EXTS = [".md", ".sh", ".ps1", ".js", ".mjs"];
+// Dirent.isDirectory() does not follow symlinks, matching pathlib rglob, which
+// does not descend into symlinked directories either. ENOENT yields no files.
+function walk(dir, out) {
+  let ents;
+  try { ents = fs.readdirSync(dir, { withFileTypes: true }); }
+  catch (e) { if (e.code === "ENOENT") return out; throw e; }
+  for (const e of ents) {
+    const p = dir + "/" + e.name;
+    if (e.isDirectory()) walk(p, out); else out.push(p);
+  }
+  return out;
+}
+const findings = [];
+for (const d of ["agents", "skills", "shared", "commands"]) {
+  for (const p of walk(d, [])) {
+    const base = p.slice(p.lastIndexOf("/") + 1);
+    const dot = base.lastIndexOf(".");
+    if (!EXTS.includes(dot > 0 ? base.slice(dot) : "")) continue;
+    for (const m of fs.readFileSync(p, "utf8").matchAll(/\.context\/[a-zA-Z0-9_\/-]+\.[a-zA-Z0-9]+/g)) {
+      const rest = m[0].slice(".context/".length);
+      // ICON self-audit: content lives under context_template/context/.
+      // Generic plugins: content lives at the plugin .context/ root
+      // (the audit-mode hard precondition guarantees .context/ exists).
+      if (fs.existsSync("context_template/context/" + rest)) continue;
+      if (fs.existsSync(".context/" + rest)) continue;
+      findings.push(p + ": dead ref " + m[0]);
     }
   }
 }
-$findings
+for (const f of findings) console.log(f);
+'
 ```
 
 ### Frontmatter description quality
 
-```bash
-python3 - <<'PY'
-import yaml, pathlib
-findings = []
-for p in list(pathlib.Path("agents").glob("*.agent.md")) + \
-         list(pathlib.Path("skills").glob("*/SKILL.md")):
-    parts = p.read_text().split("---", 2)
-    if len(parts) < 3: continue
-    try:
-        fm = yaml.safe_load(parts[1]) or {}
-    except Exception:
-        continue
-    desc = (fm.get("description") or "").strip()
-    name = (fm.get("name") or "").strip()
-    if not desc:
-        findings.append(f"{p}: empty description")
-    elif desc.lower() == name.lower():
-        findings.append(f"{p}: description equals name (boilerplate)")
-    elif desc.upper() in ("TODO", "<DESCRIPTION>"):
-        findings.append(f"{p}: placeholder description ({desc!r})")
-    elif len(desc) < 20:
-        findings.append(f"{p}: description too short ({len(desc)} chars; aim for ≥ 20)")
-for f in findings:
-    print(f)
-PY
+Identical in every shell — run it as-is. It prints at most one finding per file to stdout, in the
+precedence order of check 3 above — empty, then equals-name, then placeholder, then too-short — and
+always exits 0. Precedence matters: an empty description is reported as empty, not also as too
+short. Files with no frontmatter block are skipped silently; Phase 1 already reports those.
+
+Same **YAML fidelity limit** as Phase 1 — a dependency-free subset parser, no syntax-error
+detection; see `audit-phase-structure.md § Frontmatter parse`. Block-scalar folding is load-bearing
+*here* in particular: descriptions are almost always written as `description: >`, so reading only
+the text on that line would report every file in a healthy plugin as empty.
+
+```
+node -e '
+const fs = require("fs");
+const ls = (d) => { try { return fs.readdirSync(d); } catch (e) { if (e.code === "ENOENT") return []; throw e; } };
+const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };
+const targets = ls("agents").filter((n) => n.endsWith(".agent.md")).map((n) => "agents/" + n)
+  .concat(ls("skills").map((n) => "skills/" + n + "/SKILL.md")).filter(isFile);
+// Minimal YAML, as in Phase 1: top-level "key: value" plus block scalars. 34 and
+// 39 are the quote characters, as codes so this program holds no apostrophe.
+function fm(txt) {
+  const L = txt.replace(/^\uFEFF/, "").split(/\r?\n/);
+  if (L[0] !== "---") return null;
+  const end = L.indexOf("---", 1);
+  if (end < 0) return null;
+  const out = {};
+  for (let i = 1; i < end; i++) {
+    const m = /^([A-Za-z0-9_.-]+):(?:[ \t]+(.*))?$/.exec(L[i]);
+    if (!m) continue;
+    const v = m[2] === undefined ? "" : m[2].trim();
+    if (!/^[>|][+-]?[0-9]*$/.test(v)) {
+      const q = v.charCodeAt(0);
+      const quoted = v.length > 1 && (q === 34 || q === 39) && v.charCodeAt(v.length - 1) === q;
+      out[m[1]] = quoted ? v.slice(1, -1) : v;
+      continue;
+    }
+    const par = [[]];
+    let j = i + 1;
+    for (; j < end; j++) {
+      const t = L[j].trim();
+      if (t === "") { if (par[par.length - 1].length) par.push([]); continue; }
+      if (!/^[ \t]/.test(L[j])) break;
+      par[par.length - 1].push(t);
+    }
+    i = j - 1;
+    out[m[1]] = par.filter((g) => g.length).map((g) => g.join(v[0] === ">" ? " " : "\n")).join("\n");
+  }
+  return out;
+}
+const findings = [];
+for (const p of targets) {
+  const d = fm(fs.readFileSync(p, "utf8"));
+  if (d === null) continue;
+  const desc = (d.description || "").trim();
+  const name = (d.name || "").trim();
+  const n = Array.from(desc).length;
+  if (!desc) findings.push(p + ": empty description");
+  else if (desc.toLowerCase() === name.toLowerCase()) findings.push(p + ": description equals name (boilerplate)");
+  else if (["TODO", "<DESCRIPTION>"].includes(desc.toUpperCase())) findings.push(p + ": placeholder description (" + JSON.stringify(desc) + ")");
+  else if (n < 20) findings.push(p + ": description too short (" + n + " chars; aim for >= 20)");
+}
+for (const f of findings) console.log(f);
+'
 ```
 
 ### Role-overlap heuristic

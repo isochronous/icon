@@ -34,66 +34,118 @@ if (missing.length) {
 '
 ```
 
-### Frontmatter parse (Python, no yq dependency)
+### Frontmatter parse
 
-`yq` is not always installed; this Python snippet parses the YAML block between the first pair of `---` markers in every agent and skill file.
+Identical in every shell — run it as-is, in whatever shell the session uses. It walks every
+`agents/*.agent.md` and `skills/*/SKILL.md` and prints one line per finding to stdout: a file with
+no frontmatter block, or one whose `name` or `description` is missing or empty. Silence and exit 0
+mean every file is well-formed; any finding exits 1. A missing `agents/` or `skills/` directory
+contributes no files rather than erroring — check 4 above already allows a skill-only plugin.
 
-```bash
-python3 - <<'PY'
-import yaml, pathlib, sys
-findings = []
-for p in list(pathlib.Path("agents").glob("*.agent.md")) + \
-         list(pathlib.Path("skills").glob("*/SKILL.md")):
-    txt = p.read_text()
-    parts = txt.split("---", 2)
-    if len(parts) < 3:
-        findings.append(f"{p}: missing frontmatter")
-        continue
-    try:
-        fm = yaml.safe_load(parts[1])
-    except Exception as e:
-        findings.append(f"{p}: YAML parse error: {e}")
-        continue
-    if not isinstance(fm, dict):
-        findings.append(f"{p}: frontmatter is not a mapping")
-        continue
-    for required in ("name", "description"):
-        if required not in fm or not fm[required]:
-            findings.append(f"{p}: missing or empty '{required}'")
-for f in findings:
-    print(f)
-sys.exit(1 if findings else 0)
-PY
+**Fidelity limit — read this before treating a clean run as YAML validation.** Node ships no YAML
+parser and ICON forbids third-party imports (ADR-005), so the block parses a deliberate subset:
+top-level `key: value`, and `>` / `>-` / `|` / `|-` block scalars. Block-scalar support is not
+optional — nearly every real `description:` is folded, and a parser that skipped folding would
+report a *false* empty description for every file in a healthy plugin.
+
+Two findings the previous Python version emitted are **deliberately dropped**, because a subset
+parser cannot produce them honestly:
+
+- **`YAML parse error`** — malformed YAML is not detected. A broken block is read for whatever
+  `key:` lines it still exposes.
+- **`frontmatter is not a mapping`** — a scalar or sequence frontmatter block surfaces as missing
+  `name` and `description`, not as a type error.
+
+That is the fidelity the retired PowerShell variant already shipped, so nothing is lost on Windows,
+and neither case becomes a false pass — both still produce findings, under a less precise name. A
+plugin that needs real YAML validation should run `yq` or a YAML linter separately.
+
+The block is also **stricter about where frontmatter starts**: the file must open with a `---` line,
+and the block ends at the next line that is exactly `---`. The Python version split on the first two
+`---` sequences anywhere in the text, so a file with no frontmatter but a `---` horizontal rule in
+its body was read as having one. Anchoring to line starts is the intended meaning.
+
 ```
-
-PowerShell variant (uses `powershell-yaml` if available, otherwise falls back to a hand parser that only validates "starts with ---, ends with ---, has key: value lines"):
-
-```powershell
-$files = @(Get-ChildItem agents/*.agent.md -ErrorAction SilentlyContinue) + @(Get-ChildItem skills/*/SKILL.md -ErrorAction SilentlyContinue)
-$findings = @()
-foreach ($f in $files) {
-  $txt = Get-Content $f.FullName -Raw
-  $parts = $txt -split '---', 3
-  if ($parts.Count -lt 3) { $findings += "$($f.FullName): missing frontmatter"; continue }
-  $fm = $parts[1]
-  foreach ($k in 'name','description') {
-    if ($fm -notmatch "(?m)^\s*${k}\s*:") {
-      $findings += "$($f.FullName): missing '$k'"
+node -e '
+const fs = require("fs");
+// Dot-entries are kept: the Python original used pathlib glob, which (unlike a
+// shell glob) does not hide leading-dot names. A missing directory yields none.
+const ls = (d) => { try { return fs.readdirSync(d); } catch (e) { if (e.code === "ENOENT") return []; throw e; } };
+// statSync follows symlinks, matching what reading the file would do; a Dirent
+// would not, and would drop a skill reached through a junction.
+const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch (e) { return false; } };
+const targets = ls("agents").filter((n) => n.endsWith(".agent.md")).map((n) => "agents/" + n)
+  .concat(ls("skills").map((n) => "skills/" + n + "/SKILL.md")).filter(isFile);
+// Minimal YAML: top-level "key: value" plus block scalars. 34 and 39 are the quote
+// characters, written as codes so this program holds no literal apostrophe.
+function fm(txt) {
+  const L = txt.replace(/^\uFEFF/, "").split(/\r?\n/);
+  if (L[0] !== "---") return null;
+  const end = L.indexOf("---", 1);
+  if (end < 0) return null;
+  const out = {};
+  for (let i = 1; i < end; i++) {
+    const m = /^([A-Za-z0-9_.-]+):(?:[ \t]+(.*))?$/.exec(L[i]);
+    if (!m) continue;
+    const v = m[2] === undefined ? "" : m[2].trim();
+    if (!/^[>|][+-]?[0-9]*$/.test(v)) {
+      const q = v.charCodeAt(0);
+      const quoted = v.length > 1 && (q === 34 || q === 39) && v.charCodeAt(v.length - 1) === q;
+      out[m[1]] = quoted ? v.slice(1, -1) : v;
+      continue;
     }
+    const par = [[]];
+    let j = i + 1;
+    for (; j < end; j++) {
+      const t = L[j].trim();
+      if (t === "") { if (par[par.length - 1].length) par.push([]); continue; }
+      if (!/^[ \t]/.test(L[j])) break;
+      par[par.length - 1].push(t);
+    }
+    i = j - 1;
+    out[m[1]] = par.filter((g) => g.length).map((g) => g.join(v[0] === ">" ? " " : "\n")).join("\n");
+  }
+  return out;
+}
+const findings = [];
+for (const p of targets) {
+  const d = fm(fs.readFileSync(p, "utf8"));
+  if (d === null) { findings.push(p + ": missing frontmatter"); continue; }
+  for (const k of ["name", "description"]) {
+    if (!d[k]) findings.push(p + ": missing or empty \"" + k + "\"");
   }
 }
-$findings
-if ($findings.Count -gt 0) { exit 1 }
+for (const f of findings) console.log(f);
+process.exit(findings.length ? 1 : 0);
+'
 ```
 
 ### CHANGELOG `[Unreleased]` block
 
-```bash
-grep -q '^## \[Unreleased\]' CHANGELOG.md && echo "OK" || echo "MISSING [Unreleased]"
+Identical in every shell — run it as-is. Three outcomes, and the exit code agrees with stdout:
+
+| stdout | exit | Meaning |
+|---|---|---|
+| `OK` | 0 | `CHANGELOG.md` exists and carries an `## [Unreleased]` heading. |
+| `MISSING [Unreleased]` | 1 | The file exists but has no `## [Unreleased]` heading. |
+| `MISSING CHANGELOG.md` | 1 | There is no `CHANGELOG.md` at all. |
+
+The third outcome is new. Check 7 is two conditions — the file exists *and* it carries the block —
+and the previous `grep -q` form collapsed them, reporting `MISSING [Unreleased]` for a plugin with
+no changelog whatsoever.
+
 ```
-
-PowerShell:
-
-```powershell
-if (Select-String -Path CHANGELOG.md -Pattern '^## \[Unreleased\]' -Quiet) { 'OK' } else { 'MISSING [Unreleased]' }
+node -e '
+const fs = require("fs");
+let txt;
+try { txt = fs.readFileSync("CHANGELOG.md", "utf8"); }
+catch (e) {
+  if (e.code !== "ENOENT") throw e;
+  console.log("MISSING CHANGELOG.md");
+  process.exit(1);
+}
+const ok = /^## \[Unreleased\]/m.test(txt);
+console.log(ok ? "OK" : "MISSING [Unreleased]");
+process.exit(ok ? 0 : 1);
+'
 ```
