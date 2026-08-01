@@ -354,5 +354,6 @@ re-applied every time, not a box checked once
 ICON-0099).
 
 The Consequences section's parity-population claim (*"Migrating `append-retrospective-entry` takes
-its tracked population from 6 files to 3"*) was checked in the same pass against
+its tracked population from 6 files to 3"*) was checked in commit `c234e84`'s pass — the
+cross-skill duplication correction above, not the same-day correction that follows it — against
 `.githooks/pre-commit:512-522,608-638` and confirmed accurate; left unchanged.
